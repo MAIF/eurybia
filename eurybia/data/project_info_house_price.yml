@@ -1,0 +1,32 @@
+General information:
+  version: 0.1
+  name: House price DataDrift Analysis
+  purpose: Analyse drift between learning dataset and production
+  date: auto
+  contributors: Thomas Bouche, Nicolas Roux, Johann Martin
+  description: Make sure that both datasets have the same properties
+  source code: https://github.com/MAIF/eurybia
+  Git commit: ..
+
+Dataset information:
+  path:
+  origin: Datasets from production and from development session
+  description: Dataset of house price for a regression model
+  depth: Unknown
+  perimeter: sample from both production and learning datasets
+  target variable: SalePrice
+  target description: Price of House
+
+Data Preparation:
+  variable filetring: All variables that required special knowledge or previous calculations for their use were removed
+  individual filtering: random sample
+  missing values: were replaced by 0
+  Feature engineering: No feature was created. All features are directly taken from the kaggle dataset. Categorical features were transformed using an ordinal encoder.
+  Path to script: https://github.com/MAIF/eurybia
+
+Model training:
+  Used algorithm: We used a lightgbm regressor algorithm
+  Parameters choice: We did not perform any hyperparameter optimisation
+  Metrics: Mean Squared Error metric
+  Validation strategy: We splitted our data into train (75%) and test (25%)
+  Path to script: https://github.com/MAIF/eurybia

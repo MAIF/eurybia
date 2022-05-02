@@ -1,0 +1,32 @@
+General information:
+  version: 0.1
+  name: Titanic Data Validation Analysis
+  purpose: Validate data between learning dataset and production
+  date: auto
+  contributors: Thomas Bouche, Nicolas Roux, Johann Martin
+  description: Make sure that both datasets has the same properties
+  source code: https://github.maif.local/solutions-data-client/datadrift
+  Git commit: ..
+
+Dataset information:
+  path:
+  origin: Datasets from production and from development session
+  description: Dataset of Titanic for a classification model
+  depth: Unknown
+  perimeter: sample from both production and learning datasets
+  target variable: Survived
+  target description: 1 for survived or 0
+
+Data Preparation:
+  variable filetring: All variables that required special knowledge or previous calculations for their use were removed
+  individual filtering: random sample
+  missing values: were replaced by 0
+  Feature engineering: No feature was created. All features are directly taken from the kaggle dataset. Categorical features were transformed using an ordinal encoder.
+  Path to script: https://github.maif.local/solutions-data-client/datadrift
+
+Model training:
+  Used algorithm: We used a Catboost algorithm
+  Parameters choice: We did not perform any hyperparameter optimisation
+  Metrics:
+  Validation strategy: We splitted our data into train (75%) and test (25%)
+  Path to script: https://github.maif.local/solutions-data-client/datadrift

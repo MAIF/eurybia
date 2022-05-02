@@ -1,0 +1,32 @@
+General information:
+  version: 0.1
+  name: Car accident DataDrift Analysis
+  purpose: Analyse drift between learning dataset and production
+  date: auto
+  contributors: Thomas Bouche, Nicolas Roux, Johann Martin
+  description: Make sure that both datasets has the same properties
+  source code: https://github.com/MAIF/eurybia
+  Git commit: ..
+
+Dataset information:
+  path:
+  origin: Datasets from production and from development session
+  description: Dataset of Car accident to predict severity of accident
+  depth: Unknown
+  perimeter: sample from both production and learning datasets
+  target variable: Cible
+  target description: 0 for a less severe accident and 1 for a severe accident
+
+Data Preparation:
+  variable filetring: All variables that required special knowledge or previous calculations for their use were removed
+  individual filtering: random sample
+  missing values: were replaced by 0
+  Feature engineering: No feature was created. All features are directly taken from the kaggle dataset. Categorical features were transformed using an ordinal encoder.
+  Path to script: https://github.com/MAIF/eurybia
+
+Model training:
+  Used algorithm: We used a catboost algorithm
+  Parameters choice: We did not perform any hyperparameter optimisation
+  Metrics: Mean Squared Error metric
+  Validation strategy: We splitted our data into train (75%) and test (25%)
+  Path to script: https://github.com/MAIF/eurybia
