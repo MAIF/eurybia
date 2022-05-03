@@ -327,7 +327,8 @@ class SmartDrift:
         )
         self.data_modeldrift = None
         self.ignore_cols = ignore_cols
-        self.datadrift_stat_test = self._compute_datadrift_stat_test()
+        if self.deployed_model is not None:
+            self.datadrift_stat_test = self._compute_datadrift_stat_test()
 
     def generate_report(
         self, output_file, project_info_file=None, title_story="Drift Report", title_description="", working_dir=None
@@ -735,10 +736,20 @@ class SmartDrift:
 
         # compute test for each feature
         for features, count in self.xpl.features_desc.items():
-            if current[features].dtypes.kind == "O" and count <= categ_max:
-                test = chisq_test(current[features].to_numpy(), baseline[features].to_numpy())
-            else:
-                test = ksmirnov_test(current[features].to_numpy(), baseline[features].to_numpy())
+            try:
+                if current[features].dtypes.kind == "O" and count <= categ_max:
+                    test = chisq_test(current[features].to_numpy(), baseline[features].to_numpy())
+                else:
+                    test = ksmirnov_test(current[features].to_numpy(), baseline[features].to_numpy())
+            except BaseException as e:
+                raise Exception(
+                """
+                There is a problem with the format of {} column between the two datasets.
+                Error:
+                """.format(
+                str(features)
+                )
+                + str(e))
             test_results[features] = test
 
         return pd.DataFrame.from_dict(test_results, orient="index")
