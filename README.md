@@ -164,7 +164,7 @@ Eurybia also contributes to data science auditing by displaying usefull informat
 **Eurybia** works mainly with a binary classification model (named datadrift classifier) that tries to predict whether a sample belongs to the training dataset (or baseline dataset) or to the production dataset (or current dataset).
 
 <p align="center">
-  <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/data_drift_detection.png?raw=true" width="60%" />
+  <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/data_drift_detection.png?raw=true" width="90%" />
 </p>
 
 As shown below on the diagram, there are 2 datasets, the baseline and the current one. Those datasets are those we wish to compare in order to assess if data drift occurred. On the first one we create a column named “target”, it will be filled only with 0, on the other hand on the second dataset we also add this column, but this time it will be filled only with 1 values.
