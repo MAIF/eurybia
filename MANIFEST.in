@@ -6,3 +6,5 @@ include README.rst
 include .pre-commit-config.yaml
 
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
+
+recursive-include eurybia/assets *

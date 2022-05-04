@@ -27,7 +27,7 @@ def _load_custom_template(report: dp.Report) -> dp.Report:
     ----------
     datapane.Report
     """
-    report._local_writer.assets = ir.files("eurybia.report.assets")
+    report._local_writer.assets = ir.files("eurybia.assets")
     logo_img = (report._local_writer.assets / "logo_eurybia_dp.png").read_bytes()
     report._local_writer.logo = f"data:image/png;base64,{b64encode(logo_img).decode('ascii')}"
     template_loader = FileSystemLoader(report._local_writer.assets)
