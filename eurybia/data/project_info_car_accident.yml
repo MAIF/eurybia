@@ -13,7 +13,7 @@ Dataset information:
   Description: Dataset of Car accident to predict severity of accident
   Depth: accidents between 2016 and 2020
   Perimeter: Samples from both learning and production datasets. 
-  Target feature: "Cible" by transforming "Severity" in two class 0 and 1
+  Target feature: Cible by transforming Severity in two class 0 and 1
   Target description: 0 for a less severe accident and 1 for a severe accident
 
 Data Preparation:
