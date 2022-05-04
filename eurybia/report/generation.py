@@ -56,7 +56,7 @@ def _get_index(dr: DriftReport, project_info_file: str, config: Optional[dict]) 
 
     eurybia_logo = """
     <html>
-        <img src="https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true" alt="drawing" width="150" height="150"/>
+        <img style="max-width: 150px; height: auto;" src="https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true"/>
     </html>
     """
 
