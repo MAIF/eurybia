@@ -37,7 +37,7 @@
 
 
 **Eurybia** is a Python library which aims to help in :
-  - **Detecting drift**
+  - **Detecting data drift and model drift**
   - **Validate data** before putting a model in production.
 
 Eurybia secures deployment of a model in production and ensures that the model does not drift over time. Thus, it contributes for a better model monitoring, model auditing and more generally AI governance.
@@ -49,7 +49,7 @@ The 3 steps to display results:
 - Step 1: Declare SmartDrift Object
   > you need to pass at least 2 pandas DataFrames in order to instantiate the SmartDrift class (Current or production dataset, baseline or training dataset)
 
-```
+```python
 from eurybia import SmartDrift
 sd = SmartDrift(
   df_current=df_current,
@@ -62,7 +62,7 @@ sd = SmartDrift(
 - Step 2: Compile Model
   > There are different ways to compile the SmartDrift object
 
-```
+```python
 sd.compile(
   full_validation=True, # Optional: to save time, leave the default False value. If True, analyze consistency on modalities between columns.
   date_compile_auc='01/01/2022', # Optional: useful when computing the drift for a time that is not now
@@ -74,7 +74,7 @@ sd.compile(
   > The report's content will be enriched if you provided the datascience model (deployed) and its encoder.
   Note that providing the deployed_model and encoding will only produce useful results if the datasets are both usable by the model (i.e. all features are present, dtypes are correct, etc).
 
-```
+```python
 sd.generate_report(
   output_file='output/my_report_name.html',
   title_story="my_report_title",
