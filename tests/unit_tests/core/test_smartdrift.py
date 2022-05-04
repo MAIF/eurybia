@@ -428,7 +428,6 @@ class TestSmartDrift(unittest.TestCase):
         self.assertCountEqual(sd.err_mods, sd2.err_mods)
         assert sd.auc == sd2.auc
         pd.testing.assert_frame_equal(sd.historical_auc, sd2.historical_auc)
-        pd.testing.assert_frame_equal(sd.datadrift_stat_test, sd2.datadrift_stat_test)
         pd.testing.assert_frame_equal(sd._df_concat, sd2._df_concat)
         assert sd._datadrift_target == sd2._datadrift_target
         assert sd.deployed_model == sd2.deployed_model
