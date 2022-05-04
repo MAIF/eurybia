@@ -399,14 +399,13 @@ class SmartDrift:
         if not isinstance(self.df_current, pd.DataFrame) or not isinstance(self.df_baseline, pd.DataFrame):
             raise TypeError("df_current and df_baseline should be Pandas dataframes.")
         if len(ignore_cols) > 0:
-            print(f"""The following variables are set in ignore_cols and
-                        will not be analyzed: \n {ignore_cols}""")
+            print(f"""The following variables are manually set to be ignored in the analysis: \n {ignore_cols}""")
         # Features
         new_cols = [c for c in self.df_baseline.columns if c not in self.df_current.columns]
         removed_cols = [c for c in self.df_current.columns if c not in self.df_baseline.columns]
         if len(new_cols) > 0:
             print(f"""The following variables are no longer available in the
-                        current dataset and will not be analyzed: \n {new_cols}}""")
+                        current dataset and will not be analyzed: \n {new_cols}""")
         if len(removed_cols) > 0:
             print(f"""The following variables are only available in the
             current dataset and will not be analyzed: \n {removed_cols}""")
@@ -417,7 +416,7 @@ class SmartDrift:
         ]
         if len(err_dtypes) > 0:
             print(f"""The following variables have mismatching dtypes
-             and will not be analyzed: \n {}""")
+             and will not be analyzed: \n {err_dtypes}""")
         # Feature values
         err_mods: Dict[Text, Dict] = {}
         variables_mm_mods = []
@@ -433,9 +432,8 @@ class SmartDrift:
                         err_mods[column] = {}
                         err_mods[column]["New distinct values"] = new_mods
                         err_mods[column]["Removed distinct values"] = removed_mods
-                        print(f"""The variable {column}
-                                     has mismatching possible values: \n
-                                     {new_mods} | {removed_mods}""")
+                        print(f"""The variable {column} has mismatching unique values:
+{new_mods} | {removed_mods}\n""")
         return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
     def _predict(self, deployed_model=None, encoding=None):

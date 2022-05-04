@@ -20,9 +20,9 @@ requirements = [
     "datapane==0.14.0",
     "ipywidgets>=7.4.2",
     "jinja2>=2.11.0,<3.1.0",
-    "shapash>=2.0.0",
-    "seaborn<=0.11.1",
     "scipy>=1.4.0",
+    "seaborn>=0.10.1",
+    "shapash>=2.0.0",
     "jupyter",
 ]
 
