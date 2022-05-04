@@ -210,9 +210,9 @@ This github repository offers a lot of tutorials to allow you to start more conc
 ## 🔭 Roadmap
 - [ ] Concept Drift
 
-Detecting drift concept and get analyses and explainability of this drift
+Detecting drift concept and get analyses and explainability of this drift. An issue is open: [Add Concept Drift](https://github.com/MAIF/eurybia/issues/8)
 - [ ] API mode
 
-Adapting Eurybia for models consumed in API mode
+Adapting Eurybia for models consumed in API mode. An issue is open: [Adapt Eurybia to API mode](https://github.com/MAIF/eurybia/issues/9)
 
 If you want to contribute, you can contact us in the [discussion tab](https://github.com/MAIF/eurybia/discussions)
