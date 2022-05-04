@@ -621,7 +621,8 @@ class SmartPlotter:
         if xaxis_title is None:
             xaxis_title = self._style_dict["dict_xaxis_title"]
         if yaxis_title is None:
-            yaxis_title = self._style_dict["dict_yaxis_continuous"]
+            yaxis_title = self._style_dict["dict_yaxis_title"]
+            yaxis_title["text"] = metric
         if height is None:
             height = self._style_dict["height"]
         if width is None:
