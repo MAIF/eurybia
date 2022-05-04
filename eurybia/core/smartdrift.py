@@ -398,40 +398,25 @@ class SmartDrift:
         if not isinstance(self.df_current, pd.DataFrame) or not isinstance(self.df_baseline, pd.DataFrame):
             raise TypeError("df_current and df_baseline should be Pandas dataframes.")
         if len(ignore_cols) > 0:
-            logging.info(
-                """The following variables are set in ignore_cols and
-                        will not be analyzed: \n %s""",
-                ignore_cols,
-            )
+            print(f"""The following variables are set in ignore_cols and
+                        will not be analyzed: \n {ignore_cols}""")
         # Features
         new_cols = [c for c in self.df_baseline.columns if c not in self.df_current.columns]
         removed_cols = [c for c in self.df_current.columns if c not in self.df_baseline.columns]
         if len(new_cols) > 0:
-            logging.info(
-                """
-            The following variables are no longer available in the
-            current dataset and will not be analyzed: \n %s""",
-                new_cols,
-            )
+            print(f"""The following variables are no longer available in the
+                        current dataset and will not be analyzed: \n {new_cols}}""")
         if len(removed_cols) > 0:
-            logging.info(
-                """
-            The following variables are only available in the
-            current dataset and will not be analyzed: \n %s""",
-                removed_cols,
-            )
+            print(f"""The following variables are only available in the
+            current dataset and will not be analyzed: \n {removed_cols}""")
         common_cols = [c for c in self.df_current.columns if c in self.df_baseline.columns]
         # dtypes
         err_dtypes = [
             c for c in common_cols if self.df_baseline.dtypes.map(str)[c] != self.df_current.dtypes.map(str)[c]
         ]
         if len(err_dtypes) > 0:
-            logging.info(
-                """
-            The following variables have mismatching dtypes
-             and will not be analyzed: \n %s""",
-                err_dtypes,
-            )
+            print(f"""The following variables have mismatching dtypes
+             and will not be analyzed: \n {}""")
         # Feature values
         err_mods: Dict[Text, Dict] = {}
         variables_mm_mods = []
@@ -447,15 +432,9 @@ class SmartDrift:
                         err_mods[column] = {}
                         err_mods[column]["New distinct values"] = new_mods
                         err_mods[column]["Removed distinct values"] = removed_mods
-                        logging.info(
-                            """The variable %s
+                        print(f"""The variable {column}
                                      has mismatching possible values: \n
-                                     %s %s""",
-                            column,
-                            new_mods,
-                            removed_mods,
-                        )
-                        variables_mm_mods.append(column)
+                                     {new_mods} | {removed_mods}""")
         return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
     def _predict(self, deployed_model=None, encoding=None):
