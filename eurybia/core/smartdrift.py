@@ -605,13 +605,8 @@ class SmartDrift:
                     raise Exception("The argument date must have the format '%d/%m/%Y'")
             else:
                 date_compile_auc = (datetime.datetime.today().date()).strftime("%d/%m/%Y")
-            logging.info(
-                """
-            The computed AUC on the X_test used to build datadrift_classifier is equal to: {}
-                        """.format(
-                    str(self.auc)
-                )
-            )
+            print(f"The computed AUC on the X_test used to build datadrift_classifier is equal to: {self.auc}")
+
             if self.deployed_model is not None:
                 df_auc = pd.DataFrame(
                     {"date": [date_compile_auc], "auc": [self.auc], "JS_predict": [self.js_divergence]}
@@ -637,7 +632,7 @@ class SmartDrift:
                         df_auc = pd.concat([histo_auc[["date", "auc"]], df_auc]).reset_index(drop=True)
 
                 else:
-                    warnings.warn(f"{self.datadrift_file} did not exist and is created. ")
+                    print(f"{self.datadrift_file} did not exist and was created. ")
 
                 try:
                     df_auc.to_csv(self.datadrift_file)
