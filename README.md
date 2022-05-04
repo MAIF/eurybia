@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/MAIF/eurybia/master/docs/_static/eurybia-fond-clair.png" width="300" title="eurybia-logo">
+<img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/eurybia-fond-clair.png?raw=true" width="300" title="eurybia-logo">
 </p>
 
 <div align="center">
