@@ -40,7 +40,14 @@
   - **Detecting data drift and model drift**
   - **Validate data** before putting a model in production.
 
-Eurybia secures deployment of a model in production and ensures that the model does not drift over time. Thus, it contributes for a better model monitoring, model auditing and more generally AI governance.
+Eurybia addresses challenges of **industrialisation** and **maintainability** of machine learning models over time.
+Thus, it contributes for a better model monitoring, model auditing and more generally AI governance.
+
+To do so, Eurybia generates an HTML report:
+
+<p align="center">
+    <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/report_scrolling.gif?raw=true" width="800" title="eurybia_gif">
+</p>
 
 ## 🕐 Quickstart
 
@@ -82,10 +89,6 @@ sd.generate_report(
   project_info_file='project_info.yml' # Optional: add information on report
   )
 ```
-
- <p align="center">
-    <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/report_scrolling.gif?raw=true" width="800" title="eurybia_gif">
-  </p>
 
 [Report Example](https://eurybia.readthedocs.io/en/latest/report.html)
 
@@ -181,8 +184,6 @@ This section list libraries used in Eurybia.
 - [Datapane](https://github.com/datapane/datapane)
 - [Plotly](https://github.com/plotly/plotly.py)
 - [Catboost](https://github.com/catboost/catboost)
-
-
 
 ## 📖  Tutorials
 
