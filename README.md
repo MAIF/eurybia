@@ -41,7 +41,7 @@
   - **Validate data** before putting a model in production.
 
 Eurybia addresses challenges of **industrialisation** and **maintainability** of machine learning models over time.
-Thus, it contributes for a better model monitoring, model auditing and more generally AI governance.
+Thus, it contributes for better model monitoring, model auditing and more generally AI governance.
 
 To do so, Eurybia generates an HTML report:
 
@@ -187,7 +187,7 @@ This section list libraries used in Eurybia.
 
 ## 📖  Tutorials
 
-This github repository offers a lot of tutorials to allow you to start more concretely in the use of Eurybia.
+This github repository offers a lot of tutorials to let you to quickly start using Eurybia.
 
 ### Overview
 - [Overview to compile Eurybia and generate Report](tutorial/tutorial01-Eurybia-overview.ipynb)
