@@ -30,6 +30,8 @@
     <a href="https://eurybia.readthedocs.io/en/latest/report.html">View Demo</a>
     ·
     <a href="https://eurybia.readthedocs.io/en/latest/">Documentation</a>
+    ·
+    <a href="https://medium.com/oss-by-maif/eurybia-maif-releases-a-new-open-source-solution-for-quality-ia-models-in-production-57bd0266a77e">Medium article</a>
   </p>
 </div>
 
