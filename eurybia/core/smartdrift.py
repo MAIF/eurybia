@@ -290,6 +290,7 @@ class SmartDrift:
             loss_function=hyperparameter["loss_function"],
             eval_metric=hyperparameter["eval_metric"],
             task_type="CPU",
+            allow_writing_files=False
         )
 
         datadrift_classifier = datadrift_classifier.fit(train_pool_cat, eval_set=test_pool_cat, silent=True)
