@@ -90,7 +90,7 @@ def define_style(palette):
         "text": "Density",
     }
     style_dict["dict_legend"] = {"title": ""}
-    style_dict["template"] = "none"
+    style_dict["template"] = "simple_white"
     style_dict["height"] = 600
     style_dict["width"] = 900
     style_dict["univariate_cat_bar"] = palette["univariate_cat_bar"]
