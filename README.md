@@ -23,7 +23,6 @@
 
 <p align="center">
 <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/eurybia-fond-clair.png?raw=true" width="300" title="eurybia-logo">
-</p>
 
 <div align="center">
   <p align="center">
@@ -31,7 +30,9 @@
     ·
     <a href="https://eurybia.readthedocs.io/en/latest/">Documentation</a>
     ·
-    <a href="https://medium.com/oss-by-maif/eurybia-maif-releases-a-new-open-source-solution-for-quality-ia-models-in-production-57bd0266a77e">Medium article</a>
+    <a href="https://medium.com/oss-by-maif/eurybia-maif-releases-a-new-open-source-solution-for-quality-ia-models-in-production-57bd0266a77e">Eurybia Quick Tour</a>
+    ·
+    <a href="https://www.kdnuggets.com/2022/07/detecting-data-drift-ensuring-production-ml-model-quality-eurybia.html">Tutorial Article</a>    
   </p>
 </div>
 
