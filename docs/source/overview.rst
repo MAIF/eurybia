@@ -54,7 +54,8 @@ The 3 steps to display results:
     df_current=df_current,
     df_baseline=df_baseline,
     deployed_model=my_model, # Optional: put in perspective result with importance on deployed model
-    encoding=my_encoder # Optional: if deployed_model and encoder to use this model
+    encoding=my_encoder, # Optional: if deployed_model and encoder to use this model
+    dataset_names={"df_current": "Current dataset Name", "df_baseline": "Baseline dataset Name"} # Optional: Names for outputs
     )
 
 
