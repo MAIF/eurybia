@@ -102,6 +102,20 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift.compile()
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
 
+    def test_compile_dataset_names(self):
+        """
+        test compile() with a model and an encoder specified
+        """
+        smart_drift = SmartDrift(
+            self.titanic_df_1,
+            self.titanic_df_2,
+            deployed_model=self.rf,
+            encoding=self.categ_encoding,
+            dataset_names={"df_current": "titanic 2", "df_baseline": "titanic 1"},
+        )
+        smart_drift.compile()
+        assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+
     def test_generate_report_fullvalid(self):
         """
         test generate_report() with fullvalidation option specified to True

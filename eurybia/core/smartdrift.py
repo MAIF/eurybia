@@ -8,7 +8,6 @@ import logging
 import pickle
 import shutil
 import tempfile
-import warnings
 from pathlib import Path
 from typing import Dict, Text
 
@@ -290,7 +289,7 @@ class SmartDrift:
             loss_function=hyperparameter["loss_function"],
             eval_metric=hyperparameter["eval_metric"],
             task_type="CPU",
-            allow_writing_files=False
+            allow_writing_files=False,
         )
 
         datadrift_classifier = datadrift_classifier.fit(train_pool_cat, eval_set=test_pool_cat, silent=True)
@@ -318,8 +317,12 @@ class SmartDrift:
         self.pb_cols, self.err_mods = pb_cols, err_mods
         if self.deployed_model is not None:
             self.js_divergence = compute_js_divergence(
-                self.df_predict.loc[lambda df: df["dataset"] == "Baseline dataset", :]["Score"].values,
-                self.df_predict.loc[lambda df: df["dataset"] == "Current dataset", :]["Score"].values,
+                self.df_predict.loc[lambda df: df["dataset"] == self.dataset_names["df_baseline"].values[0], :][
+                    "Score"
+                ].values,
+                self.df_predict.loc[lambda df: df["dataset"] == self.dataset_names["df_current"].values[0], :][
+                    "Score"
+                ].values,
                 n_bins=20,
             )
 
@@ -405,22 +408,27 @@ class SmartDrift:
         new_cols = [c for c in self.df_baseline.columns if c not in self.df_current.columns]
         removed_cols = [c for c in self.df_current.columns if c not in self.df_baseline.columns]
         if len(new_cols) > 0:
-            print(f"""The following variables are no longer available in the
-                        current dataset and will not be analyzed: \n {new_cols}""")
+            print(
+                f"""The following variables are no longer available in the
+                        current dataset and will not be analyzed: \n {new_cols}"""
+            )
         if len(removed_cols) > 0:
-            print(f"""The following variables are only available in the
-            current dataset and will not be analyzed: \n {removed_cols}""")
+            print(
+                f"""The following variables are only available in the
+            current dataset and will not be analyzed: \n {removed_cols}"""
+            )
         common_cols = [c for c in self.df_current.columns if c in self.df_baseline.columns]
         # dtypes
         err_dtypes = [
             c for c in common_cols if self.df_baseline.dtypes.map(str)[c] != self.df_current.dtypes.map(str)[c]
         ]
         if len(err_dtypes) > 0:
-            print(f"""The following variables have mismatching dtypes
-             and will not be analyzed: \n {err_dtypes}""")
+            print(
+                f"""The following variables have mismatching dtypes
+             and will not be analyzed: \n {err_dtypes}"""
+            )
         # Feature values
         err_mods: Dict[Text, Dict] = {}
-        variables_mm_mods = []
         if full_validation is True:
             invalid_cols = ignore_cols + new_cols + removed_cols + err_dtypes
             for column in self.df_baseline.columns:
@@ -433,8 +441,10 @@ class SmartDrift:
                         err_mods[column] = {}
                         err_mods[column]["New distinct values"] = new_mods
                         err_mods[column]["Removed distinct values"] = removed_mods
-                        print(f"""The variable {column} has mismatching unique values:
-{new_mods} | {removed_mods}\n""")
+                        print(
+                            f"""The variable {column} has mismatching unique values:
+{new_mods} | {removed_mods}\n"""
+                        )
         return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
     def _predict(self, deployed_model=None, encoding=None):
@@ -716,13 +726,14 @@ class SmartDrift:
                     test = ksmirnov_test(current[features].to_numpy(), baseline[features].to_numpy())
             except BaseException as e:
                 raise Exception(
-                """
+                    """
                 There is a problem with the format of {} column between the two datasets.
                 Error:
                 """.format(
-                str(features)
+                        str(features)
+                    )
+                    + str(e)
                 )
-                + str(e))
             test_results[features] = test
 
         return pd.DataFrame.from_dict(test_results, orient="index")

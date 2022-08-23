@@ -557,7 +557,7 @@ class SmartPlotter:
         template: Optional[str] = None,
         title: Optional[str] = None,
         xaxis_title: Optional[str] = None,
-        yaxis_title: Optional[str] = None,
+        yaxis_title: Optional[dict] = None,
         xaxis: Optional[str] = None,
         height: Optional[str] = None,
         width: Optional[str] = None,
@@ -578,7 +578,7 @@ class SmartPlotter:
             Plot title
         xaxis_title: str, optional
             X axis title
-        yaxis_title: str, optional
+        yaxis_title: dict, optional
             y axis title
         xaxis: str, optional
             X axis options (spike line, margin, range ...)
