@@ -4,6 +4,7 @@ Utils is a group of function for the library
 from pathlib import Path
 
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 
 def convert_string_to_int_keys(input_dict: dict) -> dict:
@@ -91,3 +92,33 @@ def round_to_k(x, k):
         return int(new_x)  # Avoid the '.0' that can mislead the user that it may be a round number
     else:
         return new_x
+
+
+def convert_date_col_into_multiple_col(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transform datetime column into multiple columns
+        - year
+        - month
+        - day
+    Drop datetime column
+    Parameters
+    ----------
+    df: pd.Dataframe
+       input DataFrame with datetime columns
+    Returns
+    -------
+    pd.Dataframe
+        DataFrame without datetime columns
+    """
+
+    date_col_list = [column for column in df.columns if is_datetime(df[column])]
+
+    for col_date in date_col_list:
+        df[col_date + "_year"] = df[col_date].dt.year
+        df[col_date + "_month"] = df[col_date].dt.month
+        df[col_date + "_day"] = df[col_date].dt.day
+
+        # droping original date column
+        df = df.drop(col_date, axis=1)
+
+    return df

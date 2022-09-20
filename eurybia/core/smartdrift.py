@@ -13,6 +13,7 @@ from typing import Dict, Text
 
 import catboost
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from shapash.explainer.smart_explainer import SmartExplainer
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -22,7 +23,7 @@ from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
-from eurybia.utils.utils import base_100
+from eurybia.utils.utils import base_100, convert_date_col_into_multiple_col
 
 logging.getLogger("papermill").setLevel(logging.WARNING)
 logging.getLogger("blib2to3").setLevel(logging.WARNING)
@@ -422,6 +423,20 @@ class SmartDrift:
         err_dtypes = [
             c for c in common_cols if self.df_baseline.dtypes.map(str)[c] != self.df_current.dtypes.map(str)[c]
         ]
+
+        if len([column for column in self.df_current.columns if is_datetime(self.df_current[column])]) > 0:
+            if self.deployed_model is None:
+                print("""Datetime columns will be transform into df_current""")
+                self.df_current = convert_date_col_into_multiple_col(self.df_current)
+            else:
+                raise TypeError("df_current have datetime column. You should drop it")
+
+        if len([column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]) > 0:
+            if self.deployed_model is None:
+                print("""Datetime columns will be transform into df_baseline""")
+                self.df_baseline = convert_date_col_into_multiple_col(self.df_baseline)
+            else:
+                raise TypeError("df_baseline have datetime column. You should drop it")
         if len(err_dtypes) > 0:
             print(
                 f"""The following variables have mismatching dtypes
