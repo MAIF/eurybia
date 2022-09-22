@@ -472,7 +472,7 @@ class TestSmartDrift(unittest.TestCase):
         assert sd.plot._style_dict["contrib_colorscale"] == colors_dict["contrib_colorscale"]
         # not testing the shapash.explainer.smart_explainer
 
-    def test_datetime_column(self):
+    def test_datetime_column_transformation(self):
         """
         Test if SmartDrift can automatically handle datatime columns
         """
@@ -492,7 +492,7 @@ class TestSmartDrift(unittest.TestCase):
         auc = sd.auc
         assert auc > 0
 
-    def test_datetime_column(self):
+    def test_datetime_column_model_error(self):
         """
         Test if SmartDrift raised an error when their is datatime columns
         and deployed_model is filled
