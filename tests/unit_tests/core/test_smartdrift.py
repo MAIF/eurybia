@@ -7,7 +7,9 @@ from os import path
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import numpy as np
 import pandas as pd
+import pytest
 import shapash
 from category_encoders import OrdinalEncoder
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -469,3 +471,47 @@ class TestSmartDrift(unittest.TestCase):
         assert sd.plot._style_dict["featimportance_colorscale"] == colors_dict["featimportance_colorscale"]
         assert sd.plot._style_dict["contrib_colorscale"] == colors_dict["contrib_colorscale"]
         # not testing the shapash.explainer.smart_explainer
+
+    def test_datetime_column_transformation(self):
+        """
+        Test if SmartDrift can automatically handle datatime columns
+        """
+
+        date_list = pd.date_range(start="01/01/2022", end="01/30/2022")
+        X1 = np.random.rand(len(date_list))
+        X2 = np.random.rand(len(date_list))
+
+        df_current = pd.DataFrame(date_list, columns=["date"])
+        df_current["col1"] = X1
+        df_baseline = pd.DataFrame(date_list, columns=["date"])
+        df_baseline["col1"] = X2
+
+        sd = SmartDrift(df_current=df_current, df_baseline=df_baseline)
+        sd.compile(full_validation=True)
+        # Should pass this step
+        auc = sd.auc
+        assert auc > 0
+
+    def test_datetime_column_model_error(self):
+        """
+        Test if SmartDrift raised an error when their is datatime columns
+        and deployed_model is filled
+        """
+
+        date_list = pd.date_range(start="01/01/2022", end="01/30/2022")
+        X1 = np.random.rand(len(date_list))
+        X2 = np.random.rand(len(date_list))
+
+        df_current = pd.DataFrame(date_list, columns=["date"])
+        df_current["col1"] = X1
+        df_baseline = pd.DataFrame(date_list, columns=["date"])
+        df_baseline["col1"] = X2
+
+        # Random models
+        regressor = RandomForestRegressor(n_estimators=2).fit(df_baseline[["col1"]], df_baseline["col1"].ravel())
+
+        sd = SmartDrift(df_current=df_current, df_baseline=df_baseline, deployed_model=regressor)
+
+        # Should raise an error
+        with pytest.raises(TypeError, match="df_current have datetime column. You should drop it"):
+            sd.compile(full_validation=True)

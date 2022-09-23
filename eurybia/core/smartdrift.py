@@ -13,6 +13,7 @@ from typing import Dict, Text
 
 import catboost
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from shapash.explainer.smart_explainer import SmartExplainer
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -22,7 +23,7 @@ from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
-from eurybia.utils.utils import base_100
+from eurybia.utils.utils import base_100, convert_date_col_into_multiple_col
 
 logging.getLogger("papermill").setLevel(logging.WARNING)
 logging.getLogger("blib2to3").setLevel(logging.WARNING)
@@ -248,6 +249,9 @@ class SmartDrift:
         if sample_size is not None:
             self.df_baseline = self._sampling(sampling, sample_size, self.df_baseline)
             self.df_current = self._sampling(sampling, sample_size, self.df_current)
+
+        # Checking datasets
+        self._check_dataset(ignore_cols)
         # Consistency analysis
         pb_cols, err_mods = self._analyze_consistency(full_validation, ignore_cols)
 
@@ -385,6 +389,40 @@ class SmartDrift:
             if rm_working_dir:
                 shutil.rmtree(working_dir)
 
+    def _check_dataset(self, ignore_cols: list = list()):
+        """
+        Method to check if datasets are correct before to be analysed and if
+        it's not, try to modify them and informs the user. In worse case raise
+        an error.
+
+        Parameters
+        ----------
+        full_validation : bool, optional (default: False)
+            If True, analyze consistency on modalities between columns
+        ignore_cols: list, optional
+            list of feature to ignore in compute
+        """
+
+        if len([column for column in self.df_current.columns if is_datetime(self.df_current[column])]) > 0:
+            if self.deployed_model is None:
+                for col in [column for column in self.df_current.columns if is_datetime(self.df_current[column])]:
+                    print(
+                        f"""Column {col} will be dropped and transformed in df_current by : {col}_year, {col}_month, {col}_day"""
+                    )
+                self.df_current = convert_date_col_into_multiple_col(self.df_current)
+            else:
+                raise TypeError("df_current have datetime column. You should drop it")
+
+        if len([column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]) > 0:
+            if self.deployed_model is None:
+                for col in [column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]:
+                    print(
+                        f"""Column {col} will be dropped and transformed in df_baseline by : {col}_year, {col}_month, {col}_day"""
+                    )
+                self.df_baseline = convert_date_col_into_multiple_col(self.df_baseline)
+            else:
+                raise TypeError("df_baseline have datetime column. You should drop it")
+
     def _analyze_consistency(self, full_validation=False, ignore_cols: list = list()):
         """
         method to analyse consistency between the 2 datasets, in terms of columns and modalities
@@ -422,6 +460,7 @@ class SmartDrift:
         err_dtypes = [
             c for c in common_cols if self.df_baseline.dtypes.map(str)[c] != self.df_current.dtypes.map(str)[c]
         ]
+
         if len(err_dtypes) > 0:
             print(
                 f"""The following variables have mismatching dtypes
