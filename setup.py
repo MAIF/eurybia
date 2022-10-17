@@ -38,7 +38,7 @@ test_requirements = [
 setup(
     name="eurybia",  # Replace with your own username
     version=version_d["__version__"],
-    python_requires=">3.6, < 3.10",
+    python_requires=">3.6, < 3.11",
     url="https://github.com/MAIF/eurybia",
     author="Nicolas Roux, Johann Martin, Thomas Bouché",
     author_email="thomas.bouche@maif.fr",
@@ -50,6 +50,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
@@ -77,10 +78,15 @@ setup(
         ("data", ["eurybia/data/titanic_original.csv"]),
         ("data", ["eurybia/data/US_Accidents_extract.csv"]),
         ("style", ["eurybia/style/colors.json"]),
-        ("assets", ["eurybia/assets/local-report-base.css",
-            "eurybia/assets/local-report-base.js",
-            "eurybia/assets/logo_eurybia_dp.png",
-            "eurybia/assets/report_template.html"]),
+        (
+            "assets",
+            [
+                "eurybia/assets/local-report-base.css",
+                "eurybia/assets/local-report-base.js",
+                "eurybia/assets/logo_eurybia_dp.png",
+                "eurybia/assets/report_template.html",
+            ],
+        ),
     ],
     include_package_data=True,
     setup_requires=setup_requirements,

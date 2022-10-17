@@ -32,7 +32,7 @@
     ·
     <a href="https://medium.com/oss-by-maif/eurybia-maif-releases-a-new-open-source-solution-for-quality-ia-models-in-production-57bd0266a77e">Eurybia Quick Tour</a>
     ·
-    <a href="https://www.kdnuggets.com/2022/07/detecting-data-drift-ensuring-production-ml-model-quality-eurybia.html">Tutorial Article</a>    
+    <a href="https://www.kdnuggets.com/2022/07/detecting-data-drift-ensuring-production-ml-model-quality-eurybia.html">Tutorial Article</a>
   </p>
 </div>
 
@@ -61,13 +61,17 @@ The 3 steps to display results:
 
 ```python
 from eurybia import SmartDrift
+
 sd = SmartDrift(
-  df_current=df_current,
-  df_baseline=df_baseline,
-  deployed_model=my_model, # Optional: put in perspective result with importance on deployed model
-  encoding=my_encoder, # Optional: if deployed_model and encoder to use this model
-  dataset_names={"df_current": "Current dataset Name", "df_baseline": "Baseline dataset Name"} # Optional: Names for outputs
-  )
+    df_current=df_current,
+    df_baseline=df_baseline,
+    deployed_model=my_model,  # Optional: put in perspective result with importance on deployed model
+    encoding=my_encoder,  # Optional: if deployed_model and encoder to use this model
+    dataset_names={
+        "df_current": "Current dataset Name",
+        "df_baseline": "Baseline dataset Name",
+    },  # Optional: Names for outputs
+)
 ```
 
 - Step 2: Compile Model
@@ -75,10 +79,10 @@ sd = SmartDrift(
 
 ```python
 sd.compile(
-  full_validation=True, # Optional: to save time, leave the default False value. If True, analyze consistency on modalities between columns.
-  date_compile_auc='01/01/2022', # Optional: useful when computing the drift for a time that is not now
-  datadrift_file="datadrift_auc.csv", # Optional: name of the csv file that contains the performance history of data drift
-  )
+    full_validation=True,  # Optional: to save time, leave the default False value. If True, analyze consistency on modalities between columns.
+    date_compile_auc="01/01/2022",  # Optional: useful when computing the drift for a time that is not now
+    datadrift_file="datadrift_auc.csv",  # Optional: name of the csv file that contains the performance history of data drift
+)
 ```
 
 - Step 3: Generate report
@@ -87,18 +91,18 @@ sd.compile(
 
 ```python
 sd.generate_report(
-  output_file='output/my_report_name.html',
-  title_story="my_report_title",
-  title_description="my_report_subtitle", # Optional: add a subtitle to describe report
-  project_info_file='project_info.yml' # Optional: add information on report
-  )
+    output_file="output/my_report_name.html",
+    title_story="my_report_title",
+    title_description="my_report_subtitle",  # Optional: add a subtitle to describe report
+    project_info_file="project_info.yml",  # Optional: add information on report
+)
 ```
 
 [Report Example](https://eurybia.readthedocs.io/en/latest/report.html)
 
 ## 🛠 Installation
 
-Eurybia is intended to work with Python versions 3.7 to 3.9. Installation can be done with pip:
+Eurybia is intended to work with Python versions 3.7 to 3.10. Installation can be done with pip:
 
 ```
 pip install eurybia
