@@ -19,7 +19,7 @@ requirements = [
     "catboost>=0.22",
     "datapane==0.14.0",
     "ipywidgets>=7.4.2",
-    "jinja2>=2.11.0,<3.1.0",
+    "jinja2>=2.11.0",
     "scipy>=1.4.0",
     "seaborn>=0.10.1",
     "shapash>=2.0.0",
