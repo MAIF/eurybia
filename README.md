@@ -163,11 +163,11 @@ The visualization of the life cycle of a machine learning model can ease the und
 
 Let's respectively name features, target and prediction of a model X, Y and P(X, Y). P(X, Y) can be decompose as : P(X, Y) = P(Y|X)P(X), with P(Y|X), the conditional probability of ouput given the model features, and P(X) the probability density of the model features.
 
-Data Validation : Validate that data used for production prediction are similar to training data or test data before deployment. With formulas, P(Xtraining) similar to P(XtoDeploy)
-Data drift : Evolution of the production data over time compared to training or test data before deployment. With formulas, compare P(Xtraining) to P(XProduction)
+Data Validation : Validate that data used for production prediction are similar to training data or test data before deployment. With formulas, P(Xtraining) similar to P(XtoDeploy) <br />
+Data drift : Evolution of the production data over time compared to training or test data before deployment. With formulas, compare P(Xtraining) to P(XProduction) <br />
 Model drift : Model performances' evolution over time due to change in the target feature statistical properties (Concept drift), or due to change in data (Data drift). With formulas, when change in P(Y|XProduction) compared to P(Y|Xtraining) is concept drift. And change in P(Y,XProduction) compared to P(Y,Xtraining) is model drift
 
-Eurybia helps data analysts and data scientists to collaborate through a report that allows them to exchange on drift monitoring and data validation before deploying model into production.
+Eurybia helps data analysts and data scientists to collaborate through a report that allows them to exchange on drift monitoring and data validation before deploying model into production. <br />
 Eurybia also contributes to data science auditing by displaying usefull information about any model and data in a unique report.
 
 ## ⚙️ How Eurybia detect data drift
@@ -178,12 +178,12 @@ Eurybia also contributes to data science auditing by displaying usefull informat
   <img src="https://github.com/MAIF/eurybia/blob/master/docs/_static/data_drift_detection.png?raw=true" width="90%" />
 </p>
 
-As shown below on the diagram, there are 2 datasets, the baseline and the current one. Those datasets are those we wish to compare in order to assess if data drift occurred. On the first one we create a column named “target”, it will be filled only with 0, on the other hand on the second dataset we also add this column, but this time it will be filled only with 1 values.
+As shown below on the diagram, there are 2 datasets, the baseline and the current one. Those datasets are those we wish to compare in order to assess if data drift occurred. On the first one we create a column named “target”, it will be filled only with 0, on the other hand on the second dataset we also add this column, but this time it will be filled only with 1 values. <br />
 Our goal is to build a binary classification model on top of those 2 datasets (concatenated). Once trained, this model will be helpful to tell if there is any data drift. To do so we are looking at the model performance through AUC metric. The greater the AUC the greater the drift is. (AUC = 0.5 means no data drift and AUC close to 1 means data drift is occuring)
 
 The explainability of this datadrift classifier allows to prioritise features that are important for drift and to focus on those that have the most impact on the model in production.
 
-To use Eurybia to monitor drift over time, you can use a scheduler to make computations automatically and periodically.
+To use Eurybia to monitor drift over time, you can use a scheduler to make computations automatically and periodically. <br />
 One of the schedulers you can use is Apache Airflow. To use it, you can read the [official documentation](https://airflow.apache.org/) and read blogs like this one: [Getting started with Apache Airflow](https://towardsdatascience.com/getting-started-with-apache-airflow-df1aa77d7b1b)
 
 ## 🔬 Built With
