@@ -24,21 +24,37 @@ if __name__ == "__main__":
     df_accident_2018 = df_car_accident.loc[df_car_accident["year_acc"] == 2018]
     df_accident_2019 = df_car_accident.loc[df_car_accident["year_acc"] == 2019]
     df_accident_2020 = df_car_accident.loc[df_car_accident["year_acc"] == 2020]
+    df_accident_2021 = df_car_accident.loc[df_car_accident["year_acc"] == 2021]
 
-    y_df_learning = df_accident_baseline["cible"].to_frame()
-    X_df_learning = df_accident_baseline[df_accident_baseline.columns.difference(["cible", "year_acc"])]
+    y_df_learning = df_accident_baseline["target"].to_frame()
+    X_df_learning = df_accident_baseline[
+        df_accident_baseline.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
 
-    y_df_2017 = df_accident_2017["cible"].to_frame()
-    X_df_2017 = df_accident_2017[df_accident_2017.columns.difference(["cible", "year_acc"])]
+    y_df_2017 = df_accident_2017["target"].to_frame()
+    X_df_2017 = df_accident_2017[
+        df_accident_2017.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
 
-    y_df_2018 = df_accident_2018["cible"].to_frame()
-    X_df_2018 = df_accident_2018[df_accident_2018.columns.difference(["cible", "year_acc"])]
+    y_df_2018 = df_accident_2018["target"].to_frame()
+    X_df_2018 = df_accident_2018[
+        df_accident_2018.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
 
-    y_df_2019 = df_accident_2019["cible"].to_frame()
-    X_df_2019 = df_accident_2019[df_accident_2019.columns.difference(["cible", "year_acc"])]
+    y_df_2019 = df_accident_2019["target"].to_frame()
+    X_df_2019 = df_accident_2019[
+        df_accident_2019.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
 
-    y_df_2020 = df_accident_2020["cible"].to_frame()
-    X_df_2020 = df_accident_2020[df_accident_2020.columns.difference(["cible", "year_acc"])]
+    y_df_2020 = df_accident_2020["target"].to_frame()
+    X_df_2020 = df_accident_2020[
+        df_accident_2020.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
+
+    y_df_2021 = df_accident_2021["target"].to_frame()
+    X_df_2021 = df_accident_2021[
+        df_accident_2021.columns.difference(["target", "target_multi", "year_acc", "Description"])
+    ]
 
     features = [
         "Start_Lat",
@@ -47,8 +63,6 @@ if __name__ == "__main__":
         "Temperature(F)",
         "Humidity(%)",
         "Visibility(mi)",
-        "Wind_Direction",
-        "Weather_Condition",
         "day_of_week_acc",
         "Nautical_Twilight",
         "season_acc",
@@ -122,6 +136,17 @@ if __name__ == "__main__":
     proba = model.predict_proba(X_df_2020)
     performance = metrics.roc_auc_score(y_df_2020, proba[:, 1]).round(5)
     df_performance = df_performance.append({"annee": 2020, "mois": 1, "performance": performance}, ignore_index=True)
+
+    SD = SmartDrift(df_current=X_df_2021, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
+    SD.compile(
+        full_validation=True,
+        date_compile_auc="01/01/2021",  # optionnal, by default date of compile
+        datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
+    )
+
+    proba = model.predict_proba(X_df_2021)
+    performance = metrics.roc_auc_score(y_df_2021, proba[:, 1]).round(5)
+    df_performance = df_performance.append({"annee": 2021, "mois": 1, "performance": performance}, ignore_index=True)
     SD.add_data_modeldrift(dataset=df_performance, metric="performance")
 
     SD.generate_report(
