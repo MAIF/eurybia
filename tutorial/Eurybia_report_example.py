@@ -152,7 +152,7 @@ if __name__ == "__main__":
     SD.generate_report(
         output_file=os.path.join(cur_dir, "report.html"),
         title_story="Model drift Report",
-        title_description="""US Car accident model drift 2020""",
+        title_description="""US Car accident model drift 2021""",
         project_info_file=os.path.join(
             Path(os.path.abspath(__file__)).parent.parent, "eurybia/data", "project_info_car_accident.yml"
         ),
