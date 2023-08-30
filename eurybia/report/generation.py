@@ -1,43 +1,18 @@
 """
 Report generation helper module.
 """
-from base64 import b64encode
 from datetime import datetime
 from typing import Optional
 
 import datapane as dp
-import importlib_resources as ir
 import pandas as pd
-from jinja2 import Environment, FileSystemLoader
 from shapash.explainer.smart_explainer import SmartExplainer
 
 from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 
 
-def _load_custom_template(report: dp.Report) -> dp.Report:
-    """
-    This function feeds a customised html template to Datapane
-
-    Parameters
-    ----------
-    report : datapane.Report
-        Report object
-    Returns
-    ----------
-    datapane.Report
-    """
-    report._local_writer.assets = ir.files("eurybia.assets")
-    logo_img = (report._local_writer.assets / "logo_eurybia_dp.png").read_bytes()
-    report._local_writer.logo = f"data:image/png;base64,{b64encode(logo_img).decode('ascii')}"
-    template_loader = FileSystemLoader(report._local_writer.assets)
-    template_env = Environment(loader=template_loader)
-    template_env.globals["include_raw"] = dp.client.api.report.core.include_raw
-    report._local_writer.template = template_env.get_template("report_template.html")
-    return report
-
-
-def _get_index(dr: DriftReport, project_info_file: str, config: Optional[dict]) -> dp.Page:
+def _get_index(dr: DriftReport, project_info_file: str, config_report: Optional[dict]) -> dp.Page:
     """
     This function generates and returns a Datapane page containing the Eurybia report index
 
@@ -47,7 +22,7 @@ def _get_index(dr: DriftReport, project_info_file: str, config: Optional[dict]) 
         DriftReport object
     project_info_file : str
         Path to the file used to display some information about the project in the report.
-    config : dict, optional
+    config_report : dict, optional
         Report configuration options.
     Returns
     ----------
@@ -66,8 +41,12 @@ def _get_index(dr: DriftReport, project_info_file: str, config: Optional[dict]) 
     # Title and logo
     index_block += [dp.Group(dp.HTML(eurybia_logo), dp.Text(f"# {dr.title_story}"), columns=2)]
 
-    if config is not None and "title_description" in config.keys() and config["title_description"] != "":
-        raw_title = config["title_description"]
+    if (
+        config_report is not None
+        and "title_description" in config_report.keys()
+        and config_report["title_description"] != ""
+    ):
+        raw_title = config_report["title_description"]
         index_block += [dp.Text(f"## {raw_title}")]
     index_str = "## Eurybia Report contents  \n"
 
@@ -317,8 +296,8 @@ def _get_datadrift(dr: DriftReport) -> dp.Page:
         Features are sorted according to their respective importance in the datadrift classifier.
         For categorical features, the possible values are sorted by descending difference between the two datasets."""
         ),
-        dp.Select(blocks=plot_dataset_analysis),
-        dp.Select(blocks=table_dataset_analysis),
+        dp.Select(blocks=plot_dataset_analysis, type=dp.SelectType.DROPDOWN),
+        dp.Select(blocks=table_dataset_analysis, type=dp.SelectType.DROPDOWN),
     ]
     if dr.smartdrift.deployed_model is not None:
         blocks += [
@@ -350,7 +329,7 @@ def _get_datadrift(dr: DriftReport) -> dp.Page:
         This representation constitutes a support to understand the drift when the analysis of the dataset is unclear.
         In the drop-down menu, features are sorted by importance in the data drift detection."""
         ),
-        dp.Select(blocks=plot_datadrift_contribution),
+        dp.Select(blocks=plot_datadrift_contribution, type=dp.SelectType.DROPDOWN),
     ]
     if dr.smartdrift.historical_auc is not None:
         blocks += [
@@ -387,7 +366,7 @@ def _get_modeldrift(dr: DriftReport) -> dp.Page:
         else:
             for i in range(len(labels)):
                 plot_modeldrift.append(dp.Plot(fig_list[i], label=labels[i]))
-            modeldrift_plot = dp.Select(blocks=plot_modeldrift, label="reference_columns")
+            modeldrift_plot = dp.Select(blocks=plot_modeldrift, label="reference_columns", type=dp.SelectType.DROPDOWN)
     else:
         modeldrift_plot = dp.Text("## Smartdrift.data_modeldrift is None")
     blocks = [
@@ -409,7 +388,7 @@ def execute_report(
     explainer: SmartExplainer,
     project_info_file: str,
     output_file: str,
-    config: Optional[dict] = None,
+    config_report: Optional[dict] = None,
 ):
     """
     Creates the report
@@ -422,24 +401,24 @@ def execute_report(
         Compiled shapash explainer.
     project_info_file : str
         Path to the file used to display some information about the project in the report.
-    config : dict, optional
+    config_report : dict, optional
         Report configuration options.
     output_file : str
             Path to the HTML file to write
     """
 
-    if config is None:
-        config = {}
+    if config_report is None:
+        config_report = {}
 
     dr = DriftReport(
         smartdrift=smartdrift,
         explainer=explainer,  # rename to match kwarg
         project_info_file=project_info_file,
-        config=config,
+        config_report=config_report,
     )
 
     pages = []
-    pages.append(_get_index(dr, project_info_file, config))
+    pages.append(_get_index(dr, project_info_file, config_report))
     if project_info_file is not None:
         pages.append(_get_project_info(dr))
     pages.append(_get_consistency_analysis(dr))
@@ -447,8 +426,5 @@ def execute_report(
     if dr.smartdrift.data_modeldrift is not None:
         pages.append(_get_modeldrift(dr))
 
-    report = dp.Report(blocks=pages)
-    report = _load_custom_template(report)
-    report._save(
-        path=output_file, open=False, formatting=dp.ReportFormatting(light_prose=False, width=dp.ReportWidth.MEDIUM)
-    )
+    report = dp.View(blocks=pages)
+    dp.save_report(report, path=output_file, open=False, name="report.html")

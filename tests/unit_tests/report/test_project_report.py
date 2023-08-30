@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 
-expected_attrs = ["smartdrift", "explainer", "config"]
+expected_attrs = ["smartdrift", "explainer", "config_report"]
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,7 +67,7 @@ class TestDriftReport(unittest.TestCase):
             smartdrift=smartdrift,
             explainer=smartdrift.xpl,
             project_info_file=self.project_info_file,
-            config=dict(title_story="Drift Report", title_description="Test drift report"),
+            config_report=dict(title_story="Drift Report", title_description="Test drift report"),
         )
 
     def test_init_1(self):
@@ -143,7 +143,7 @@ class TestDriftReport(unittest.TestCase):
         report = DriftReport(
             smartdrift=smartdrift,
             explainer=smartdrift.xpl,
-            config=dict(title_story="Drift Report", title_description="Test drift report"),
+            config_report=dict(title_story="Drift Report", title_description="Test drift report"),
         )
         fig = report.display_data_modeldrift()
         assert isinstance(fig[0][0], plotly.graph_objs._figure.Figure)

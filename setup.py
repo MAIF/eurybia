@@ -16,8 +16,8 @@ with open(os.path.join(here, "eurybia", "__version__.py")) as f:
     exec(f.read(), version_d)
 
 requirements = [
-    "catboost>=0.22",
-    "datapane==0.14.0",
+    "catboost>=1.0.1",
+    "datapane>=0.16.7",
     "ipywidgets>=7.4.2",
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
@@ -84,7 +84,6 @@ setup(
                 "eurybia/assets/local-report-base.css",
                 "eurybia/assets/local-report-base.js",
                 "eurybia/assets/logo_eurybia_dp.png",
-                "eurybia/assets/report_template.html",
             ],
         ),
     ],

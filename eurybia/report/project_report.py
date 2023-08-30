@@ -46,7 +46,7 @@ class DriftReport:
         Dataframe of predicted values computed on both df_baseline and df_current
     feature_importance : pd.DataFrame, optional (default: None)
         Dataframe of feature importance from production model and drift model
-    config : dict, optional
+    config_report : dict, optional
         Configuration options for the report
     """
 
@@ -55,7 +55,7 @@ class DriftReport:
         smartdrift: SmartDrift,
         explainer: SmartExplainer,
         project_info_file: Optional[str] = None,
-        config: Optional[Dict] = None,
+        config_report: Optional[Dict] = None,
     ):
         """
         Parameters
@@ -66,7 +66,7 @@ class DriftReport:
             A shapash SmartExplainer object that has already be compiled
         project_info_file : str
             Path to the yml file containing information about the project (author, description, ...)
-        config : dict, optional
+        config_report : dict, optional
             Contains configuration options for the report
         features_imp_list : list
             list of features order by importance
@@ -79,7 +79,7 @@ class DriftReport:
         if self.explainer.features_imp is None:
             self.explainer.compute_features_import(force=True)
         self.features_imp_list = self.explainer.features_imp[0].sort_values(ascending=False).index.to_list()  # type: ignore
-        self.config = config if config is not None else dict()
+        self.config_report = config_report if config_report is not None else dict()
 
         self.data_concat = self._create_data_drift(
             df_current=self.smartdrift.df_current,
@@ -92,8 +92,8 @@ class DriftReport:
         else:
             self.metadata = load_yml(path=project_info_file)
 
-        if "title_story" in self.config.keys():
-            self.title_story = self.config["title_story"]
+        if "title_story" in self.config_report.keys():
+            self.title_story = self.config_report["title_story"]
         else:
             self.title_story = "Eurybia report"
 

@@ -382,7 +382,7 @@ class SmartDrift:
                 project_info_file=project_info_file,
                 explainer=self.xpl,
                 smartdrift=self,
-                config=dict(title_story=title_story, title_description=title_description),
+                config_report=dict(title_story=title_story, title_description=title_description),
                 output_file=output_file,
             )
         finally:

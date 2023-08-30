@@ -91,7 +91,7 @@ class TestGeneration(unittest.TestCase):
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
         )
 
         assert os.path.exists("./report.html")
@@ -107,7 +107,7 @@ class TestGeneration(unittest.TestCase):
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
         )
 
         assert os.path.exists("./report.html")
@@ -133,7 +133,7 @@ class TestGeneration(unittest.TestCase):
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
         )
 
         assert os.path.exists("./report.html")
