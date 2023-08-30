@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 from category_encoders import OrdinalEncoder
+from datapane.client import config
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -27,6 +28,7 @@ class TestGeneration(unittest.TestCase):
         """
         Initialize data for testing part
         """
+        config.init()
         script_path = Path(path.abspath(__file__)).parent.parent.parent
         titanic_original = path.join(script_path, "eurybia/data/titanicdata.csv")
         titan_df = pd.read_csv(titanic_original, index_col=0)
@@ -58,7 +60,6 @@ class TestGeneration(unittest.TestCase):
         """
         Test execute_report() method
         """
-
         execute_report(
             smartdrift=self.smartdrift,
             explainer=self.xpl,

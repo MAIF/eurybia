@@ -38,7 +38,7 @@ test_requirements = [
 setup(
     name="eurybia",  # Replace with your own username
     version=version_d["__version__"],
-    python_requires=">3.6, < 3.11",
+    python_requires=">3.7, < 3.11",
     url="https://github.com/MAIF/eurybia",
     author="Nicolas Roux, Johann Martin, Thomas Bouché",
     author_email="thomas.bouche@maif.fr",
