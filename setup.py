@@ -16,8 +16,8 @@ with open(os.path.join(here, "eurybia", "__version__.py")) as f:
     exec(f.read(), version_d)
 
 requirements = [
-    "catboost>=0.22",
-    "datapane==0.14.0",
+    "catboost>=1.0.1",
+    "datapane>=0.16.7",
     "ipywidgets>=7.4.2",
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
@@ -38,7 +38,7 @@ test_requirements = [
 setup(
     name="eurybia",  # Replace with your own username
     version=version_d["__version__"],
-    python_requires=">3.6, < 3.11",
+    python_requires=">3.7, < 3.11",
     url="https://github.com/MAIF/eurybia",
     author="Nicolas Roux, Johann Martin, Thomas Bouché",
     author_email="thomas.bouche@maif.fr",
@@ -47,7 +47,6 @@ setup(
     long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -84,7 +83,6 @@ setup(
                 "eurybia/assets/local-report-base.css",
                 "eurybia/assets/local-report-base.js",
                 "eurybia/assets/logo_eurybia_dp.png",
-                "eurybia/assets/report_template.html",
             ],
         ),
     ],
