@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, "..")
+sys.path.insert(0, "../..")
 
 import eurybia  # E402
 
