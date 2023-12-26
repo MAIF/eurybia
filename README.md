@@ -82,6 +82,15 @@ sd.compile(
     full_validation=True,  # Optional: to save time, leave the default False value. If True, analyze consistency on modalities between columns.
     date_compile_auc="01/01/2022",  # Optional: useful when computing the drift for a time that is not now
     datadrift_file="datadrift_auc.csv",  # Optional: name of the csv file that contains the performance history of data drift
+    filter_column="name",  # Optional: Name of the column you wish to filter
+    filter_values=[
+        "France",
+        "Ottomans",
+        "Austria",
+        "Poland",
+        "Brandenburg",
+        "Bohemia",
+    ],  # Optional: Names of the values from the column you chose above that you wish to filter.
 )
 ```
 
