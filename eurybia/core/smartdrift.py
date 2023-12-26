@@ -198,6 +198,8 @@ class SmartDrift:
     def compile(
         self,
         full_validation=False,
+        filter_column=None,
+        filter_values=None,
         ignore_cols: list = list(),
         sampling=True,
         sample_size=100000,
@@ -236,6 +238,10 @@ class SmartDrift:
         >>> SD.compile()
 
         """
+        print("FILTERING")
+        if filter_column and filter_values:
+            self.df_current = self.df_current[self.df_current[filter_column].isin(filter_values)]
+            self.df_baseline = self.df_baseline[self.df_baseline[filter_column].isin(filter_values)]
         if datadrift_file is not None:
             self.datadrift_file = datadrift_file
         if hyperparameter is not None:
