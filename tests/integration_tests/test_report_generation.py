@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 from category_encoders import OrdinalEncoder
-from datapane.client import config
+from eurybia.report.datapane.client import config
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -35,16 +35,24 @@ class TestGeneration(unittest.TestCase):
         y = titan_df["Survived"]
         X = titan_df.drop("Survived", axis=1).drop("Name", axis=1)
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(
+            cols=varcat, handle_unknown="ignore", return_df=True
+        ).fit(X)
         X_encoded = categ_encoding.transform(X)
 
-        Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=0.75, random_state=1)
-        Xtrain_e, Xtest_e, ytrain_e, ytest_e = train_test_split(X_encoded, y, train_size=0.75, random_state=1)
+        Xtrain, Xtest, ytrain, ytest = train_test_split(
+            X, y, train_size=0.75, random_state=1
+        )
+        Xtrain_e, Xtest_e, ytrain_e, ytest_e = train_test_split(
+            X_encoded, y, train_size=0.75, random_state=1
+        )
 
         rf = RandomForestClassifier(n_estimators=100, min_samples_leaf=3)
         rf.fit(Xtrain_e, ytrain_e)
 
-        smartdrift = SmartDrift(Xtrain, Xtest, deployed_model=rf, encoding=categ_encoding)
+        smartdrift = SmartDrift(
+            Xtrain, Xtest, deployed_model=rf, encoding=categ_encoding
+        )
         smartdrift.compile(full_validation=True)
         self.smartdrift = smartdrift
         self.xpl = smartdrift.xpl
@@ -92,7 +100,10 @@ class TestGeneration(unittest.TestCase):
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(
+                title_story="Test integration",
+                title_description="Title of test integration",
+            ),
         )
 
         assert os.path.exists("./report.html")
@@ -101,14 +112,23 @@ class TestGeneration(unittest.TestCase):
         """
         Test execute_report() method
         """
-        df_perf = pd.DataFrame({"mois": [1, 2, 3], "annee": [2018, 2019, 2020], "performance": [2, 3.46, 2.5]})
+        df_perf = pd.DataFrame(
+            {
+                "mois": [1, 2, 3],
+                "annee": [2018, 2019, 2020],
+                "performance": [2, 3.46, 2.5],
+            }
+        )
         self.smartdrift.add_data_modeldrift(dataset=df_perf, metric="performance")
         execute_report(
             smartdrift=self.smartdrift,
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(
+                title_story="Test integration",
+                title_description="Title of test integration",
+            ),
         )
 
         assert os.path.exists("./report.html")
@@ -127,14 +147,19 @@ class TestGeneration(unittest.TestCase):
             }
         )
         self.smartdrift.add_data_modeldrift(
-            dataset=df_perf2, metric="performance", reference_columns=["reference_column1", "reference_column2"]
+            dataset=df_perf2,
+            metric="performance",
+            reference_columns=["reference_column1", "reference_column2"],
         )
         execute_report(
             smartdrift=self.smartdrift,
             explainer=self.xpl,
             project_info_file=os.path.join(current_path, "../data/project_info.yml"),
             output_file="./report.html",
-            config_report=dict(title_story="Test integration", title_description="Title of test integration"),
+            config_report=dict(
+                title_story="Test integration",
+                title_description="Title of test integration",
+            ),
         )
 
         assert os.path.exists("./report.html")

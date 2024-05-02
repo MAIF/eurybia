@@ -46,7 +46,9 @@ class SmartPlotter:
 
     def __init__(self, smartdrift):
         self._palette_name = list(colors_loading().keys())[0]
-        self._style_dict = define_style(select_palette(colors_loading(), self._palette_name))
+        self._style_dict = define_style(
+            select_palette(colors_loading(), self._palette_name)
+        )
         self.smartdrift = smartdrift
 
     def generate_fig_univariate(
@@ -86,15 +88,24 @@ class SmartPlotter:
             hue = self.smartdrift._datadrift_target
         if df_all is None:
             df_all = self.smartdrift._df_concat
-            df_all.loc[df_all[hue] == 0, hue] = list(self.smartdrift.dataset_names.keys())[1]
-            df_all.loc[df_all[hue] == 1, hue] = list(self.smartdrift.dataset_names.keys())[0]
+            df_all.loc[df_all[hue] == 0, hue] = list(
+                self.smartdrift.dataset_names.keys()
+            )[1]
+            df_all.loc[df_all[hue] == 1, hue] = list(
+                self.smartdrift.dataset_names.keys()
+            )[0]
         if dict_color_palette is None:
             dict_color_palette = self._style_dict
         col_types = compute_col_types(df_all=df_all)
+
         if col_types[col] == VarType.TYPE_NUM:
-            fig = self.generate_fig_univariate_continuous(df_all, col, hue=hue, dict_color_palette=dict_color_palette)
+            fig = self.generate_fig_univariate_continuous(
+                df_all, col, hue=hue, dict_color_palette=dict_color_palette
+            )
         elif col_types[col] == VarType.TYPE_CAT:
-            fig = self.generate_fig_univariate_categorical(df_all, col, hue=hue, dict_color_palette=dict_color_palette)
+            fig = self.generate_fig_univariate_categorical(
+                df_all, col, hue=hue, dict_color_palette=dict_color_palette
+            )
         else:
             raise NotImplementedError("Series dtype not supported")
         return fig
@@ -114,7 +125,6 @@ class SmartPlotter:
         width: Optional[str] = None,
         hovermode: Optional[str] = None,
     ) -> plotly.graph_objs._figure.Figure:
-
         """
         Returns a plotly figure containing the distribution of a continuous feature.
 
@@ -147,7 +157,10 @@ class SmartPlotter:
         plotly.graph_objs._figure.Figure
         """
         df_all.loc[:, col].fillna(0, inplace=True)
-        datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
+        datasets = [
+            df_all[df_all[hue] == val][col].values.tolist()
+            for val in df_all[hue].unique()
+        ]
 
         fig = ff.create_distplot(
             datasets,
@@ -249,20 +262,33 @@ class SmartPlotter:
         -------
         plotly.graph_objs._figure.Figure
         """
-        df_cat = df_all.groupby([col, hue]).agg({col: "count"}).rename(columns={col: "count"}).reset_index()
-        df_cat["Percent"] = df_cat["count"] * 100 / df_cat.groupby(hue)["count"].transform("sum")
+        df_cat = (
+            df_all.groupby([col, hue])
+            .agg({col: "count"})
+            .rename(columns={col: "count"})
+            .reset_index()
+        )
+        df_cat["Percent"] = (
+            df_cat["count"] * 100 / df_cat.groupby(hue)["count"].transform("sum")
+        )
 
         if pd.api.types.is_numeric_dtype(df_cat[col].dtype):
             df_cat = df_cat.sort_values(col, ascending=True)
             df_cat[col] = df_cat[col].astype(str)
 
-        nb_cat = df_cat.groupby([col]).agg({"count": "sum"}).reset_index()[col].nunique()
+        nb_cat = (
+            df_cat.groupby([col]).agg({"count": "sum"}).reset_index()[col].nunique()
+        )
 
         if nb_cat > nb_cat_max:
-            df_cat = self._merge_small_categories(df_cat=df_cat, col=col, hue=hue, nb_cat_max=nb_cat_max)
+            df_cat = self._merge_small_categories(
+                df_cat=df_cat, col=col, hue=hue, nb_cat_max=nb_cat_max
+            )
 
         df_to_sort = df_cat.copy().reset_index(drop=True)
-        df_to_sort["Sorted_indicator"] = df_to_sort.sort_values([col]).groupby([col])["Percent"].diff()
+        df_to_sort["Sorted_indicator"] = (
+            df_to_sort.sort_values([col]).groupby([col])["Percent"].diff()
+        )
         df_to_sort["Sorted_indicator"] = np.abs(df_to_sort["Sorted_indicator"])
         df_sorted = df_to_sort.dropna()[[col, "Sorted_indicator"]]
 
@@ -272,7 +298,9 @@ class SmartPlotter:
             .drop("Sorted_indicator", axis=1)
         )
 
-        df_cat["Percent_displayed"] = df_cat["Percent"].apply(lambda row: str(round(row, 2)) + " %")
+        df_cat["Percent_displayed"] = df_cat["Percent"].apply(
+            lambda row: str(round(row, 2)) + " %"
+        )
 
         modalities = df_cat[hue].unique().tolist()
 
@@ -285,7 +313,10 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig1.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[0], showlegend=True)
+        fig1.update_traces(
+            marker_color=list(self._style_dict["univariate_cat_bar"].values())[0],
+            showlegend=True,
+        )
 
         fig2 = px.bar(
             df_cat[df_cat[hue] == modalities[1]],
@@ -296,7 +327,10 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig2.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[1], showlegend=True)
+        fig2.update_traces(
+            marker_color=list(self._style_dict["univariate_cat_bar"].values())[1],
+            showlegend=True,
+        )
 
         fig = fig1.add_trace(fig2.data[0])
 
@@ -336,21 +370,31 @@ class SmartPlotter:
 
         return fig
 
-    def _merge_small_categories(self, df_cat: pd.DataFrame, col: str, hue: str, nb_cat_max: int) -> pd.DataFrame:
+    def _merge_small_categories(
+        self, df_cat: pd.DataFrame, col: str, hue: str, nb_cat_max: int
+    ) -> pd.DataFrame:
         """
         Merges categories of column 'col' of df_cat into 'Other' category so that
         the number of categories is less than nb_cat_max.
         """
         df_cat_sum_hue = df_cat.groupby([col]).agg({"count": "sum"}).reset_index()
-        list_cat_to_merge = df_cat_sum_hue.sort_values("count", ascending=False)[col].to_list()[nb_cat_max - 1 :]
+        list_cat_to_merge = df_cat_sum_hue.sort_values("count", ascending=False)[
+            col
+        ].to_list()[nb_cat_max - 1 :]
         df_cat_other = (
-            df_cat.loc[df_cat[col].isin(list_cat_to_merge)].groupby(hue, as_index=False)[["count", "Percent"]].sum()
+            df_cat.loc[df_cat[col].isin(list_cat_to_merge)]
+            .groupby(hue, as_index=False)[["count", "Percent"]]
+            .sum()
         )
         df_cat_other[col] = "Other"
-        return pd.concat([df_cat.loc[~df_cat[col].isin(list_cat_to_merge)], df_cat_other])
+        return pd.concat(
+            [df_cat.loc[~df_cat[col].isin(list_cat_to_merge)], df_cat_other]
+        )
 
     def scatter_feature_importance(
-        self, feature_importance: pd.DataFrame = None, datadrift_stat_test: pd.DataFrame = None
+        self,
+        feature_importance: pd.DataFrame = None,
+        datadrift_stat_test: pd.DataFrame = None,
     ) -> plotly.graph_objs._figure.Figure:
         """
         Displays scatter of feature importance between drift
@@ -392,7 +436,16 @@ class SmartPlotter:
             + f"Datadrift test: {t} - pvalue: {pv:.5f}<br />"
             + f"Datadrift model Importance: {ddrimp*100:.1f}"
             for feat, depimp, t, pv, ddrimp in zip(
-                *map(data.get, ["features", "deployed_model", "testname", "pvalue", "datadrift_classifier"])
+                *map(
+                    data.get,
+                    [
+                        "features",
+                        "deployed_model",
+                        "testname",
+                        "pvalue",
+                        "datadrift_classifier",
+                    ],
+                )
             )
         ]
 
@@ -401,7 +454,9 @@ class SmartPlotter:
             go.Scatter(
                 x=data["datadrift_classifier"],
                 y=data["deployed_model"],
-                marker_symbol=datadrift_stat_test["testname"].apply(lambda x: symbol_dict[x]),
+                marker_symbol=datadrift_stat_test["testname"].apply(
+                    lambda x: symbol_dict[x]
+                ),
                 mode="markers",
                 showlegend=False,
                 hovertext=hv_text,
@@ -409,12 +464,20 @@ class SmartPlotter:
             )
         )
 
-        fig.update_traces(marker={"size": 15, "opacity": 0.8, "line": {"width": 0.8, "color": "white"}})
+        fig.update_traces(
+            marker={
+                "size": 15,
+                "opacity": 0.8,
+                "line": {"width": 0.8, "color": "white"},
+            }
+        )
 
         fig.data[0].marker.color = data["pvalue"]
         fig.data[0].marker.coloraxis = "coloraxis"
         fig.layout.coloraxis.colorscale = self._style_dict["featimportance_colorscale"]
-        fig.layout.coloraxis.colorbar = {"title": {"text": "Univariate<br />DataDrift Test<br />Pvalue"}}
+        fig.layout.coloraxis.colorbar = {
+            "title": {"text": "Univariate<br />DataDrift Test<br />Pvalue"}
+        }
 
         height = self._style_dict["height"]
         width = self._style_dict["width"]
@@ -476,24 +539,31 @@ class SmartPlotter:
             datadrift_historical = self.smartdrift.historical_auc
         if datadrift_historical is not None:
             if self.smartdrift.deployed_model is not None:
-                datadrift_historical = datadrift_historical[["date", "auc", "JS_predict"]]
+                datadrift_historical = datadrift_historical[
+                    ["date", "auc", "JS_predict"]
+                ]
                 datadrift_historical = (
-                    datadrift_historical.groupby(["date"])[["auc", "JS_predict"]].mean().reset_index()
+                    datadrift_historical.groupby(["date"])[["auc", "JS_predict"]]
+                    .mean()
+                    .reset_index()
                 )
                 datadrift_historical.sort_values(by="date", inplace=True)
             else:
                 datadrift_historical = datadrift_historical[["date", "auc"]]
-                datadrift_historical = datadrift_historical.groupby("date")["auc"].mean().reset_index()
+                datadrift_historical = (
+                    datadrift_historical.groupby("date")["auc"].mean().reset_index()
+                )
                 datadrift_historical.sort_values(by="date", inplace=True)
 
             datadrift_historical["auc_displayed"] = datadrift_historical["auc"].round(2)
 
             if self.smartdrift.deployed_model is not None:
-
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
                 fig.add_trace(
                     go.Scatter(
-                        x=datadrift_historical["date"], y=datadrift_historical["auc"], name="Datadrift classifier AUC"
+                        x=datadrift_historical["date"],
+                        y=datadrift_historical["auc"],
+                        name="Datadrift classifier AUC",
                     ),
                     secondary_y=False,
                 )
@@ -508,8 +578,13 @@ class SmartPlotter:
                 )
 
                 fig.update_layout(title_text="Evolution of data drift")
-                fig.update_yaxes(title_text="<b>Datadrift classifier AUC</b>  ", secondary_y=False)
-                fig.update_yaxes(title_text="<b>Jensen_Shannon Prediction Divergence</b> ", secondary_y=True)
+                fig.update_yaxes(
+                    title_text="<b>Datadrift classifier AUC</b>  ", secondary_y=False
+                )
+                fig.update_yaxes(
+                    title_text="<b>Jensen_Shannon Prediction Divergence</b> ",
+                    secondary_y=True,
+                )
                 fig.update_yaxes(range=[0.5, 1], secondary_y=False)
                 fig.update_yaxes(range=[0, 0.3], secondary_y=True)
             else:
@@ -600,7 +675,9 @@ class SmartPlotter:
                 For more information see the documentation"""
                 )
         data_modeldrift[metric] = data_modeldrift[metric].apply(
-            lambda row: round(row, len([char for char in str(row).split(".")[1] if char == "0"]) + 3)
+            lambda row: round(
+                row, len([char for char in str(row).split(".")[1] if char == "0"]) + 3
+            )
         )
 
         fig = px.line(
@@ -688,7 +765,12 @@ class SmartPlotter:
         color = sns.blend_palette(["green", "yellow", "orange", "red"], 100)
         color = color.as_hex()
         list_color_glob = list()
-        threshold = [i for i in np.arange(min_gauge, max_gauge, (max_gauge - min_gauge) / len(color))]
+        threshold = [
+            i
+            for i in np.arange(
+                min_gauge, max_gauge, (max_gauge - min_gauge) / len(color)
+            )
+        ]
         for i in range(1, len(threshold) + 1):
             dict_color = dict()
             if i == len(threshold):
@@ -705,7 +787,11 @@ class SmartPlotter:
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": title, "align": "center", "font": {"size": 20}},
                 gauge={
-                    "axis": {"range": [min_gauge, max_gauge], "ticktext": ["No Drift", "High Drift"], "tickwidth": 1},
+                    "axis": {
+                        "range": [min_gauge, max_gauge],
+                        "ticktext": ["No Drift", "High Drift"],
+                        "tickwidth": 1,
+                    },
                     "bar": {"color": "black"},
                     "borderwidth": 0,
                     "steps": list_color_glob,

@@ -1,10 +1,11 @@
 """
 Report generation helper module.
 """
+
 from datetime import datetime
 from typing import Optional
 
-import datapane as dp
+import eurybia.report.datapane as dp
 import pandas as pd
 from shapash.explainer.smart_explainer import SmartExplainer
 
@@ -12,7 +13,9 @@ from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 
 
-def _get_index(dr: DriftReport, project_info_file: str, config_report: Optional[dict]) -> dp.Page:
+def _get_index(
+    dr: DriftReport, project_info_file: str, config_report: Optional[dict]
+) -> dp.Page:
     """
     This function generates and returns a Datapane page containing the Eurybia report index
 
@@ -39,7 +42,9 @@ def _get_index(dr: DriftReport, project_info_file: str, config_report: Optional[
     index_block = []
 
     # Title and logo
-    index_block += [dp.Group(dp.HTML(eurybia_logo), dp.Text(f"# {dr.title_story}"), columns=2)]
+    index_block += [
+        dp.Group(dp.HTML(eurybia_logo), dp.Text(f"# {dr.title_story}"), columns=2)
+    ]
 
     if (
         config_report is not None
@@ -53,7 +58,9 @@ def _get_index(dr: DriftReport, project_info_file: str, config_report: Optional[
     # Tabs index
     if project_info_file is not None:
         index_str += "- Project information: report context and information  \n"
-    index_str += "- Consistency Analysis: highlighting differences between the two datasets  \n"
+    index_str += (
+        "- Consistency Analysis: highlighting differences between the two datasets  \n"
+    )
     index_str += "- Data drift: In-depth data drift analysis \n"
 
     if dr.smartdrift.data_modeldrift is not None:
@@ -63,7 +70,10 @@ def _get_index(dr: DriftReport, project_info_file: str, config_report: Optional[
 
     # AUC
     auc_block = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC"
+        fig_value=dr.smartdrift.auc,
+        height=280,
+        width=500,
+        title="Datadrift classifier AUC",
     )
 
     # Jensen-Shannon
@@ -110,7 +120,11 @@ def _dict_to_text_blocks(text_dict, level=1):
                 blocks.append(dp.Text(text))
                 text = ""
             blocks.append(
-                dp.Group(dp.Text("#" * min(level, 6) + " " + str(k)), _dict_to_text_blocks(v, level + 1), columns=1)
+                dp.Group(
+                    dp.Text("#" * min(level, 6) + " " + str(k)),
+                    _dict_to_text_blocks(v, level + 1),
+                    columns=1,
+                )
             )
     if text != "":
         blocks.append(dp.Text(text))
@@ -198,12 +212,20 @@ def _get_consistency_analysis(dr: DriftReport) -> dp.Page:
         blocks += [
             dp.Table(
                 data=pd.DataFrame(dr.smartdrift.err_mods)
-                .rename(columns={"err_mods": "Modalities present in one dataset and absent in the other :"})
+                .rename(
+                    columns={
+                        "err_mods": "Modalities present in one dataset and absent in the other :"
+                    }
+                )
                 .transpose()
             )
         ]
     else:
-        blocks += [dp.Text("- No modalities have been detected as present in one dataset and absent in the other.")]
+        blocks += [
+            dp.Text(
+                "- No modalities have been detected as present in one dataset and absent in the other."
+            )
+        ]
 
     page_consistency = dp.Page(title="Consistency Analysis", blocks=blocks)
     return page_consistency
@@ -225,7 +247,9 @@ def _get_datadrift(dr: DriftReport) -> dp.Page:
     # Loop for save in list plots of display analysis
     plot_dataset_analysis = []
     table_dataset_analysis = []
-    fig_list, labels, table_list = dr.display_dataset_analysis(global_analysis=False)["univariate"]
+    fig_list, labels, table_list = dr.display_dataset_analysis(global_analysis=False)[
+        "univariate"
+    ]
     for i in range(len(labels)):
         plot_dataset_analysis.append(dp.Plot(fig_list[i], label=labels[i]))
         table_dataset_analysis.append(dp.Table(table_list[i], label=labels[i]))
@@ -254,7 +278,10 @@ def _get_datadrift(dr: DriftReport) -> dp.Page:
         ),
         dp.Plot(
             dr.smartdrift.plot.generate_indicator(
-                fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
+                fig_value=dr.smartdrift.auc,
+                height=300,
+                width=500,
+                title="Datadrift classifier AUC",
             )
         ),
         dp.Text("## Importance of features in data drift"),
@@ -306,7 +333,9 @@ def _get_datadrift(dr: DriftReport) -> dp.Page:
                 "Histogram density showing the distributions of the production model outputs on both baseline and current datasets."
             ),
             dp.Plot(
-                dr.smartdrift.plot.generate_fig_univariate(df_all=dr.smartdrift.df_predict, col="Score", hue="dataset")
+                dr.smartdrift.plot.generate_fig_univariate(
+                    df_all=dr.smartdrift.df_predict, col="Score", hue="dataset"
+                )
             ),
             dp.Text(
                 """Jensen Shannon Divergence (JSD). The JSD measures the effect of a data drift on the deployed model performance.
@@ -366,7 +395,11 @@ def _get_modeldrift(dr: DriftReport) -> dp.Page:
         else:
             for i in range(len(labels)):
                 plot_modeldrift.append(dp.Plot(fig_list[i], label=labels[i]))
-            modeldrift_plot = dp.Select(blocks=plot_modeldrift, label="reference_columns", type=dp.SelectType.DROPDOWN)
+            modeldrift_plot = dp.Select(
+                blocks=plot_modeldrift,
+                label="reference_columns",
+                type=dp.SelectType.DROPDOWN,
+            )
     else:
         modeldrift_plot = dp.Text("## Smartdrift.data_modeldrift is None")
     blocks = [

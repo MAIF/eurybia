@@ -1,13 +1,17 @@
 """
 Common functions used in report
 """
+
 import os
 from enum import Enum
 from numbers import Number
 from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
-from pandas.api.types import is_bool_dtype, is_categorical_dtype, is_numeric_dtype, is_string_dtype
+from pandas.api.types import (
+    is_numeric_dtype,
+    infer_dtype,
+)
 
 
 class VarType(Enum):
@@ -23,7 +27,9 @@ class VarType(Enum):
         return str(self.value)
 
 
-def display_value(value: float, thousands_separator: str = ",", decimal_separator: str = ".") -> str:
+def display_value(
+    value: float, thousands_separator: str = ",", decimal_separator: str = "."
+) -> str:
     """
     Display a value as a string with specific format.
     Parameters
@@ -43,7 +49,9 @@ def display_value(value: float, thousands_separator: str = ",", decimal_separato
     '1,255,000'
     """
     value_str = f"{value:,}".replace(",", "/thousands/").replace(".", "/decimal/")
-    return value_str.replace("/thousands/", thousands_separator).replace("/decimal/", decimal_separator)
+    return value_str.replace("/thousands/", thousands_separator).replace(
+        "/decimal/", decimal_separator
+    )
 
 
 def replace_dict_values(obj: Dict, replace_fn: Callable, *args) -> dict:
@@ -76,11 +84,11 @@ def series_dtype(s: pd.Series) -> VarType:
     -------
     VarType
     """
-    if is_bool_dtype(s):
+    if infer_dtype(s) == "boolean":
         return VarType.TYPE_CAT
-    elif is_string_dtype(s):
+    elif infer_dtype(s, skipna=True) == "string":
         return VarType.TYPE_CAT
-    elif is_categorical_dtype(s):
+    elif isinstance(s.dtype, pd.CategoricalDtype):
         return VarType.TYPE_CAT
     elif is_numeric_dtype(s):
         if numeric_is_continuous(s):
@@ -139,7 +147,9 @@ def get_callable(path: str):
             try:
                 import_module(mod)
             except Exception as e:
-                raise ImportError(f"Encountered error: `{e}` when loading module '{path}'") from e
+                raise ImportError(
+                    f"Encountered error: `{e}` when loading module '{path}'"
+                ) from e
         obj = getattr(obj, part)
     if isinstance(obj, type):
         obj_type: type = obj
