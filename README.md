@@ -225,3 +225,8 @@ Detecting drift concept and get analyses and explainability of this drift. An is
 Adapting Eurybia for models consumed in API mode. An issue is open: [Adapt Eurybia to API mode](https://github.com/MAIF/eurybia/issues/9)
 
 If you want to contribute, you can contact us in the [discussion tab](https://github.com/MAIF/eurybia/discussions)
+
+
+## Note
+
+Eurybia uses [datapane](https://github.com/datapane/datapane) to generate its reports. The support of datapane being dropped since 2023, the package has been embedded as a module of Eurybia.
