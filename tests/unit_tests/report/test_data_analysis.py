@@ -9,7 +9,10 @@ import numpy as np
 import pandas as pd
 
 from eurybia.report.common import compute_col_types
-from eurybia.report.data_analysis import perform_global_dataframe_analysis, perform_univariate_dataframe_analysis
+from eurybia.report.data_analysis import (
+    perform_global_dataframe_analysis,
+    perform_univariate_dataframe_analysis,
+)
 
 
 class TestDataAnalysis(unittest.TestCase):
@@ -60,7 +63,9 @@ class TestDataAnalysis(unittest.TestCase):
                 "float_cat_data": [0.2, 0.2, 0.2, 0.6, 0.6, 0.6] * 10,
             }
         )
-        dico = perform_univariate_dataframe_analysis(df, col_types=compute_col_types(df))
+        dico = perform_univariate_dataframe_analysis(
+            df, col_types=compute_col_types(df)
+        )
         expected_d = {
             "int_continuous_data": {
                 "count": "60",
@@ -94,5 +99,7 @@ class TestDataAnalysis(unittest.TestCase):
         Unit test 2 perform_univariate_dataframe_analysis method
         """
         df = None
-        dico = perform_univariate_dataframe_analysis(df, col_types=compute_col_types(df))
+        dico = perform_univariate_dataframe_analysis(
+            df, col_types=compute_col_types(df)
+        )
         assert dico == {}

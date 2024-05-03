@@ -31,7 +31,9 @@ class TestSmartPlotter(unittest.TestCase):
         script_path = Path(path.abspath(__file__)).parent.parent.parent.parent
         titanic_csv = path.join(script_path, TITANIC_PATH)
         titanic_df = pd.read_csv(titanic_csv)
-        titanic_df_1, titanic_df_2 = train_test_split(titanic_df, test_size=0.5, random_state=42)
+        titanic_df_1, titanic_df_2 = train_test_split(
+            titanic_df, test_size=0.5, random_state=42
+        )
         self.smartdrift = SmartDrift(titanic_df_1, titanic_df_2)
 
     @patch("eurybia.core.smartplotter.SmartPlotter.generate_fig_univariate_continuous")
@@ -70,7 +72,10 @@ class TestSmartPlotter(unittest.TestCase):
         Unit test for generate_fig_univariate()'s method
         """
         df = pd.DataFrame(
-            {"int_data": list(range(50)), "data_train_test": ["train", "train", "train", "train", "test"] * 10}
+            {
+                "int_data": list(range(50)),
+                "data_train_test": ["train", "train", "train", "train", "test"] * 10,
+            }
         )
 
         dict_color_palette = {
@@ -149,7 +154,10 @@ class TestSmartPlotter(unittest.TestCase):
         Unit test for generate_fig_univariate_categorical()'s method
         """
         df = pd.DataFrame(
-            {"int_data": [0, 0, 0, 1, 1, 0], "data_train_test": ["train", "train", "train", "train", "test", "test"]}
+            {
+                "int_data": [0, 0, 0, 1, 1, 0],
+                "data_train_test": ["train", "train", "train", "train", "test", "test"],
+            }
         )
         dict_color_palette = {
             "df_Baseline": (74 / 255, 99 / 255, 138 / 255, 0.7),
@@ -165,7 +173,9 @@ class TestSmartPlotter(unittest.TestCase):
         fig = self.smartdrift.plot.generate_fig_univariate_categorical(
             df, "int_data", "data_train_test", dict_color_palette=dict_color_palette
         )
-        nb_bars = len(fig.to_dict()["data"][0]["y"]) + len(fig.to_dict()["data"][1]["y"])
+        nb_bars = len(fig.to_dict()["data"][0]["y"]) + len(
+            fig.to_dict()["data"][1]["y"]
+        )
         assert nb_bars == 4  # Number of bars
 
     def test_scatter_feature_importance(self):
@@ -173,13 +183,49 @@ class TestSmartPlotter(unittest.TestCase):
         Unit test for scatter_feature_importance()'s method
         """
         importances = {
-            "feature": ["Parch", "Embarked", "SibSp", "Age", "Fare", "Pclass", "Title", "Sex"],
-            "deployed_model": [0.014573, 0.046866, 0.054405, 0.068945, 0.102350, 0.155283, 0.255974, 0.263060],
-            "datadrift_classifier": [0.045921, 0.118159, 0.018614, 0.137789, 0.184038, 0.143481, 0.000000, 0.162925],
+            "feature": [
+                "Parch",
+                "Embarked",
+                "SibSp",
+                "Age",
+                "Fare",
+                "Pclass",
+                "Title",
+                "Sex",
+            ],
+            "deployed_model": [
+                0.014573,
+                0.046866,
+                0.054405,
+                0.068945,
+                0.102350,
+                0.155283,
+                0.255974,
+                0.263060,
+            ],
+            "datadrift_classifier": [
+                0.045921,
+                0.118159,
+                0.018614,
+                0.137789,
+                0.184038,
+                0.143481,
+                0.000000,
+                0.162925,
+            ],
         }
         features_importances = pd.DataFrame(importances)
         stat_test = {
-            "feature": ["Parch", "Embarked", "SibSp", "Age", "Fare", "Pclass", "Title", "Sex"],
+            "feature": [
+                "Parch",
+                "Embarked",
+                "SibSp",
+                "Age",
+                "Fare",
+                "Pclass",
+                "Title",
+                "Sex",
+            ],
             "testname": [
                 "Chi-Square",
                 "Chi-Square",
@@ -225,9 +271,14 @@ class TestSmartPlotter(unittest.TestCase):
         """
         Unit test for generate_historical_datadrift_metric()'s method
         """
-        auc = {"date": ["23/09/2021", "23/08/2021", "23/07/2021"], "auc": [0.528107, 0.532106, 0.510653]}
+        auc = {
+            "date": ["23/09/2021", "23/08/2021", "23/07/2021"],
+            "auc": [0.528107, 0.532106, 0.510653],
+        }
         datadrift_historical = pd.DataFrame(auc)
-        fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
+        fig = self.smartdrift.plot.generate_historical_datadrift_metric(
+            datadrift_historical
+        )
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
 
     def test_generate_historical_datadrift_metric_2(self):
@@ -240,7 +291,9 @@ class TestSmartPlotter(unittest.TestCase):
             "JS_predict": [0.28107, 0.32106, 0.50653],
         }
         datadrift_historical = pd.DataFrame(auc)
-        fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
+        fig = self.smartdrift.plot.generate_historical_datadrift_metric(
+            datadrift_historical
+        )
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
 
     def test_generate_modeldrift_data_1(self):
@@ -273,7 +326,9 @@ class TestSmartPlotter(unittest.TestCase):
         df_lift = pd.DataFrame(lift_info)
 
         fig = self.smartdrift.plot.generate_modeldrift_data(
-            df_lift, metric="lift", reference_columns=["plage_historique", "target", "type_lift"]
+            df_lift,
+            metric="lift",
+            reference_columns=["plage_historique", "target", "type_lift"],
         )
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
 
@@ -292,5 +347,7 @@ class TestSmartPlotter(unittest.TestCase):
         Unit test for generate_indicator()'s method
         """
         self.smartdrift.compile()
-        fig = self.smartdrift.plot.generate_indicator(fig_value=self.smartdrift.auc, height=300, width=500, title="AUC")
+        fig = self.smartdrift.plot.generate_indicator(
+            fig_value=self.smartdrift.auc, height=300, width=500, title="AUC"
+        )
         assert isinstance(fig, plotly.graph_objs._figure.Figure)

@@ -1,0 +1,16 @@
+% rebase("ipython_base.html")
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    % include("head_chrome.html")
+  </head>
+  <script>
+    window.isIPythonEmbed = true;
+  </script>
+  <body>
+    <main class="{{ report_width_class }} w-full mx-auto">
+      <div id="report" class="w-full"></div>
+    </main>
+    <script src="{{ cdn_base }}/assets/iframeResizer.contentWindow.min.js"></script>
+  </body>
+</html>

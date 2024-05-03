@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """The setup script."""
+
 import os
 
 from setuptools import setup
@@ -17,13 +18,20 @@ with open(os.path.join(here, "eurybia", "__version__.py")) as f:
 
 requirements = [
     "catboost>=1.0.1",
-    "datapane>=0.16.7",
     "ipywidgets>=7.4.2",
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
     "seaborn>=0.10.1",
     "shapash>=2.0.0",
     "jupyter",
+    # datapane dependencies
+    "altair>=5.0.0",
+    "pyarrow>=9.0.0",
+    "chardet>=5.0.0,<6.0.0",
+    "lxml>=4.7.1,<5.0.0",
+    "micawber>=0.5.3",
+    "dominate>=2.7.0,<3.0.0",
+    "multimethod>=1.9.0,<2.0.0",
 ]
 
 
@@ -65,7 +73,14 @@ setup(
         "eurybia.style": "eurybia/style",
         "eurybia.utils": "eurybia/utils",
     },
-    packages=["eurybia", "eurybia.data", "eurybia.core", "eurybia.report", "eurybia.style", "eurybia.utils"],
+    packages=[
+        "eurybia",
+        "eurybia.data",
+        "eurybia.core",
+        "eurybia.report",
+        "eurybia.style",
+        "eurybia.utils",
+    ],
     data_files=[
         ("data", ["eurybia/data/house_prices_dataset.csv"]),
         ("data", ["eurybia/data/house_prices_labels.json"]),

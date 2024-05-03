@@ -1,0 +1,12 @@
+<style>
+  #dp-{{ report_id }} {
+    width: 1px;
+    min-width: 100%;
+  }
+</style>
+<iframe id="dp-{{ report_id }}" srcdoc="{{ base }}" style="border: none">
+</iframe>
+<script type="module">
+  import { iframeResize } from "{{ cdn_base }}/report/index.es.js";
+  iframeResize({ log: true, checkOrigin: false }, "#dp-{{ report_id }}");
+</script>
