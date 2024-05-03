@@ -29,3 +29,10 @@ notebook>=6.0.0
 Jinja2>=2.11.0
 scipy>=1.1.0
 pre-commit==2.18.1
+altair>=5.0.0
+pyarrow>=9.0.0
+chardet>=5.0.0,<6.0.0
+lxml>=4.7.1,<5.0.0
+micawber>=0.5.3
+dominate>=2.7.0,<3.0.0
+multimethod>=1.9.0,<2.0.0
