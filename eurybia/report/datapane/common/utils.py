@@ -11,7 +11,7 @@ import chardet
 if sys.version_info < (3, 10):
     import importlib_resources as ir
 else:
-    from importlib import ir
+    from importlib import resources as ir
 from chardet.universaldetector import UniversalDetector
 
 from .dp_types import MIME
