@@ -7,7 +7,11 @@ import typing as t
 from pathlib import Path
 
 import chardet
-import importlib_resources as ir
+
+if sys.version_info < (3, 10):
+    import importlib_resources as ir
+else:
+    from importlib import ir
 from chardet.universaldetector import UniversalDetector
 
 from .dp_types import MIME
