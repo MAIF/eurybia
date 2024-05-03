@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import typing as t
 from abc import ABC
 from copy import copy
@@ -11,7 +12,11 @@ from os import path as osp
 from pathlib import Path
 from uuid import uuid4
 
-import importlib_resources as ir
+if sys.version_info < (3, 10):
+    import importlib_resources as ir
+else:
+    from importlib import resources as ir
+
 from lxml import etree
 
 from eurybia.report.datapane import blocks as b

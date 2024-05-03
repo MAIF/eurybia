@@ -5,9 +5,14 @@ Datapane built-in helper functions to make creating your reports a bit simpler a
 import random
 import typing as t
 from pathlib import Path
+import sys
 
 import altair as alt
-import importlib_resources as ir
+
+if sys.version_info < (3, 10):
+    import importlib_resources as ir
+else:
+    from importlib import resources as ir
 import numpy as np
 import pandas as pd
 

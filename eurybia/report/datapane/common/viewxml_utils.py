@@ -3,10 +3,14 @@ import json
 import math
 import re
 import typing as t
+import sys
 from collections.abc import Sized
 from numbers import Number
 
-import importlib_resources as ir
+if sys.version_info < (3, 10):
+    import importlib_resources as ir
+else:
+    from importlib import resources as ir
 from lxml import etree
 from lxml.etree import DocumentInvalid
 from lxml.etree import _Element as ElementT
