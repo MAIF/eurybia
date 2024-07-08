@@ -3,7 +3,7 @@ catboost>=1.0.1
 category-encoders>=2.6.0
 lightgbm>=2.3.1
 numpy>=1.18.0
-pandas==1.5.3
+pandas
 plotly>=4.12.0
 shapash>=2.0.0
 Sphinx==4.5.0
