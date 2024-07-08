@@ -189,7 +189,7 @@ One of the schedulers you can use is Apache Airflow. To use it, you can read the
 ## 🔬 Built With
 This section list libraries used in Eurybia.
 - [Shapash](https://github.com/MAIF/shapash/tree/master/shapash)
-- [Datapane](https://github.com/datapane/datapane)
+- [Panel](https://github.com/holoviz/panel)
 - [Plotly](https://github.com/plotly/plotly.py)
 - [Catboost](https://github.com/catboost/catboost)
 

@@ -16,8 +16,9 @@ with open(os.path.join(here, "eurybia", "__version__.py")) as f:
     exec(f.read(), version_d)
 
 requirements = [
+    "pandas==1.5.3",
     "catboost>=1.0.1",
-    "datapane>=0.16.7",
+    "panel>=1.4.1",
     "ipywidgets>=7.4.2",
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
