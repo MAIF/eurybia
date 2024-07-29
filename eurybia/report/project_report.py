@@ -1,6 +1,7 @@
 """
 Module used in the base_report notebook to generate report
 """
+
 import copy
 import logging
 import os
@@ -221,12 +222,10 @@ class DriftReport:
 
             except BaseException as e:
                 raise Exception(
-                    """
-                There is a problem with the format of {} column between the two datasets.
+                    f"""
+                There is a problem with the format of {str(col)} column between the two datasets.
                 Error:
-                """.format(
-                        str(col)
-                    )
+                """
                     + str(e)
                 )
         return plot_list, labels, table_list
@@ -251,7 +250,6 @@ class DriftReport:
         plot_list = []
         labels = []
         for index_label, label in enumerate(c_list):  # Iterating over all labels in multiclass case
-
             for feature in self.features_imp_list:
                 fig = self.explainer.plot.contribution_plot(feature, label=label, max_points=200)
                 plot_list.append(fig)

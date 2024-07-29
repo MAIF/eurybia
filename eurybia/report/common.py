@@ -1,14 +1,16 @@
 """
 Common functions used in report
 """
+
 import os
 from enum import Enum
 from numbers import Number
 from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
+
 # from pandas.api.types import is_bool_dtype, is_categorical_dtype, is_numeric_dtype, is_string_dtype
-from pandas.api.types import is_numeric_dtype, infer_dtype
+from pandas.api.types import infer_dtype, is_numeric_dtype
 
 
 class VarType(Enum):

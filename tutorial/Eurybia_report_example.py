@@ -12,7 +12,7 @@ import pandas as pd
 from category_encoders import OrdinalEncoder
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
- 
+
 sys.path.insert(0, "../..")
 
 from eurybia import SmartDrift

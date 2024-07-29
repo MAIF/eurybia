@@ -114,7 +114,6 @@ class SmartPlotter:
         width: Optional[str] = None,
         hovermode: Optional[str] = None,
     ) -> plotly.graph_objs._figure.Figure:
-
         """
         Returns a plotly figure containing the distribution of a continuous feature.
 
@@ -150,8 +149,8 @@ class SmartPlotter:
         datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
         group_labels = [str(val) for val in df_all[hue].unique()]
         colors = list(self._style_dict["univariate_cont_bar"].values())
-        if group_labels[0] == 'Current dataset':
-            group_labels = ['Baseline dataset', 'Current dataset']
+        if group_labels[0] == "Current dataset":
+            group_labels = ["Baseline dataset", "Current dataset"]
 
         fig = ff.create_distplot(
             datasets,
@@ -493,7 +492,6 @@ class SmartPlotter:
             datadrift_historical["auc_displayed"] = datadrift_historical["auc"].round(2)
 
             if self.smartdrift.deployed_model is not None:
-
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
                 fig.add_trace(
                     go.Scatter(

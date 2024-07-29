@@ -1,10 +1,11 @@
 """
 Statistical test functions
 """
+
 import numpy as np
 import pandas as pd
-from scipy import stats
 import scipy.spatial
+from scipy import stats
 
 
 def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
@@ -16,7 +17,7 @@ def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
     obs_a : np.array
         1D array containing the feature values in the first sample
     obs_b : np.array
-        1D array containing the feature values ​​in the second sample
+        1D array containing the feature values \u200b\u200bin the second sample
 
     Returns
     -------
@@ -37,7 +38,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     obs_a : np.array
         1D array containing the feature values in the first sample
     obs_b : np.array
-        1D array containing the feature values ​​in the second sample
+        1D array containing the feature values \u200b\u200bin the second sample
 
     Returns
     -------
@@ -58,11 +59,10 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     return output
 
 
-
 def prob_mass_fun(data, n, range):
     """
     Computing the probability mass function using NumPy’s histogram.
-    
+
     Parameters
     ----------
     data: pandas.Series
@@ -100,7 +100,7 @@ def compute_js_divergence(df_1, df_2, n_bins=30):
     and 1 (The two score distributions maximally different).
     """
     a = np.concatenate((df_1, df_2), axis=0)
-    e, p = prob_mass_fun(df_1, n = n_bins, range = (a.min(), a.max()))
-    _, q = prob_mass_fun(df_2, n = e, range = (a.min(), a.max()))
+    e, p = prob_mass_fun(df_1, n=n_bins, range=(a.min(), a.max()))
+    _, q = prob_mass_fun(df_2, n=e, range=(a.min(), a.max()))
 
     return scipy.spatial.distance.jensenshannon(p, q)

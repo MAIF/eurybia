@@ -53,7 +53,7 @@ class TestGeneration(unittest.TestCase):
         method that tidies up after the test method has been run
         """
         os.remove("./report.html")
-        
+
     def test_execute_report_1(self) -> None:
         """
         Test execute_report() method
@@ -115,7 +115,7 @@ class TestGeneration(unittest.TestCase):
         """
         Test execute_report() method
         """
-        
+
         import random
         annees = [2020, 2020, 2021, 2021, 2021] * 6
         mois = [11, 12, 1, 2, 3] * 6

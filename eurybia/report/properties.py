@@ -71,22 +71,19 @@ report_text: Dict[str, Any] = {
             "Features are sorted according to their respective importance in the datadrift classifier. "
             "For categorical features, the possible values are sorted by descending difference "
             "between the two datasets."
-
         ),
         "09": (
             "This graph represents the contribution of a variable to the data drift detection. "
             "This representation constitutes a support to understand the drift "
             "when the analysis of the dataset is unclear."
-        )
+        ),
     },
     "Model drift": {
         "01": (
             "This section provides support to monitor the production model's performance over time. "
             "This requires the performance history as input."
         ),
-        "02": (
-            "Line chart of deployed model performances as a function of time."
-        ),
+        "02": ("Line chart of deployed model performances as a function of time."),
     },
 }
 

@@ -5,14 +5,13 @@ Report generation helper module.
 from datetime import datetime
 from typing import Any, Optional
 
-import panel as pn
 import pandas as pd
+import panel as pn
 from shapash.explainer.smart_explainer import SmartExplainer
 
 from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 from eurybia.report.properties import report_css, report_jscallback, report_text
-
 
 pn.extension("plotly")
 
@@ -113,7 +112,6 @@ def get_project_information_panel(dr: DriftReport) -> Optional[pn.Column]:
 
 
 def get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
-
     # Title
     blocks = [pn.pane.Markdown("# Consistency Analysis")]
 
@@ -185,7 +183,7 @@ def get_data_drift_features_importance(dr: DriftReport) -> list:
         blocks += [
             pn.pane.Markdown("### Feature importance overview"),
             pn.pane.Markdown(report_text["Data drift"]["04"]),
-            pn.pane.Plotly(fig_scatter_feature_importance)
+            pn.pane.Plotly(fig_scatter_feature_importance),
             # pn.pane.Plotly(dr.smartdrift.plot.scatter_feature_importance()),
         ]
     return blocks
@@ -218,10 +216,7 @@ def get_data_drift_dataset_analysis(dr: DriftReport) -> list:
         )
         blocks += [pn.pane.Plotly(js_fig)]
 
-    blocks += [
-        pn.pane.Markdown("### Univariate analysis"),
-        pn.pane.Markdown(report_text["Data drift"]["08"])
-    ]
+    blocks += [pn.pane.Markdown("### Univariate analysis"), pn.pane.Markdown(report_text["Data drift"]["08"])]
     plot_datadrift_contribution = {}
     frame_datadrift_contribution = {}
     plot_feature_contribution = {}
@@ -308,7 +303,7 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
         blocks += [modeldrift_plot]
     else:
         blocks += [plot_modeldrift_panel]
-    return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=['modeldrift-panel'])
+    return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=["modeldrift-panel"])
 
 
 def execute_report(
@@ -351,6 +346,6 @@ def execute_report(
         tab_list.append(get_model_drift_panel(dr))
 
     pn.config.raw_css.append(report_css)
-    report = pn.Tabs(*tab_list, css_classes=['main-report'])
+    report = pn.Tabs(*tab_list, css_classes=["main-report"])
     report.jscallback(args={"active": report}, active=report_jscallback)
     report.save(output_file, embed=True)

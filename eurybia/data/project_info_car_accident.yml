@@ -6,13 +6,13 @@ General information:
   Contributors: Thomas Bouche, Nicolas Roux, Johann Martin
   Description: Make sure that both datasets has the same properties
   Source code: https://github.com/MAIF/eurybia
- 
+
 Dataset information:
   Path: https://www.kaggle.com/sobhanmoosavi/us-accidents/version/10
   Origin: Kaggle datasets
   Description: Dataset of Car accident to predict severity of accident
   Depth: accidents between 2016 and 2020
-  Perimeter: Samples from both learning and production datasets. 
+  Perimeter: Samples from both learning and production datasets.
   Target feature: Cible by transforming Severity in two class 0 and 1
   Target description: 0 for a less severe accident and 1 for a severe accident
 
