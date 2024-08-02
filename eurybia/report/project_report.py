@@ -128,12 +128,16 @@ class DriftReport:
             return None
         return pd.concat(
             [
-                df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
-                if df_current is not None
-                else None,
-                df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
-                if df_baseline is not None
-                else None,
+                (
+                    df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
+                    if df_current is not None
+                    else None
+                ),
+                (
+                    df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
+                    if df_baseline is not None
+                    else None
+                ),
             ]
         ).reset_index(drop=True)
 
@@ -246,7 +250,7 @@ class DriftReport:
         Displays explainability of the model as computed in SmartPlotter object
         """
         multiclass = True if (self.explainer._classes and len(self.explainer._classes) > 2) else False
-        c_list = self.explainer._classes if multiclass else [0, 1]  # list just used for multiclass
+        c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
         plot_list = []
         labels = []
         for index_label, label in enumerate(c_list):  # Iterating over all labels in multiclass case

@@ -5,7 +5,7 @@ __email__ = "thomas.bouche@maif.fr"
 
 from eurybia.core.smartdrift import SmartDrift
 
-VERSION = (1, 1, 1)
+VERSION = (1, 2, 0)
 
 __version__ = ".".join(map(str, VERSION))
 

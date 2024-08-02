@@ -59,13 +59,13 @@ report_text: Dict[str, Any] = {
             "Histogram density showing the distributions of the production model outputs on "
             "both baseline and current datasets."
         ),
-        "07": (
+        "08": (
             "Jensen Shannon Divergence (JSD). "
             "The JSD measures the effect of a data drift on the deployed model performance. "
             "A value close to 0 indicates similar data distributions, while a value close to 1 "
             "tend to indicate distinct data distributions with a negative effect on the deployed model performance."
         ),
-        "08": (
+        "07": (
             "Bar chart showing the unique values distribution of a feature. "
             "Using the drop-down menu, it is possible to select the feature of interest. "
             "Features are sorted according to their respective importance in the datadrift classifier. "
@@ -77,6 +77,7 @@ report_text: Dict[str, Any] = {
             "This representation constitutes a support to understand the drift "
             "when the analysis of the dataset is unclear."
         ),
+        "10": ("Line chart showing the metrics evolution of the datadrift classifier over the given period of time."),
     },
     "Model drift": {
         "01": (
@@ -206,11 +207,11 @@ select {
     font-weight: 700;
 }
 
-.bk-panel-models-widgets-CustomSelect {
-    position: sticky;
-    top: 80px;
-    z-index: 100;
+
+.hidden {
+    display: none;
 }
+
 """
 
 report_jscallback: str = """
@@ -233,4 +234,28 @@ for (var i=0 ; i<elements.length ; i++) {
     }
 }
 window.scrollTo(0, 0);
+"""
+
+select_callback: str = """
+console.log("Tab = " + tab);
+console.log("Key = " + key);
+var f_class = this.value.replace(" ", "-").toLowerCase();
+console.log("Feature = " + f_class);
+var elts = document.querySelectorAll(".bk-above");
+console.log("Elts : " + elts + " - length: " + elts.length);
+for (let i=0; i<elts.length; i++) {
+  var columns = elts[i].shadowRoot.querySelectorAll(tab);
+  console.log("Columns : " + columns + " - length: " + columns.length);
+  for (let j=0; j<columns.length; j++) {
+    var nodes = columns[j].shadowRoot.querySelectorAll(key);
+    console.log("Nodes : " + nodes + " - length: " + nodes.length);
+    for (let k=0; k<nodes.length; k++) {
+      if (nodes[k].classList.contains(f_class)) {
+        nodes[k].classList.remove("hidden");
+      } else {
+        nodes[k].classList.add("hidden");
+      }
+    }
+  }
+}
 """

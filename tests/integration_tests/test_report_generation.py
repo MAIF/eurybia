@@ -117,10 +117,11 @@ class TestGeneration(unittest.TestCase):
         """
 
         import random
+
         annees = [2020, 2020, 2021, 2021, 2021] * 6
         mois = [11, 12, 1, 2, 3] * 6
         historical_range = [3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1] * 2
-        metric = ["lift_devis"]*15 + ["lift_souscription"] * 15
+        metric = ["lift_devis"] * 15 + ["lift_souscription"] * 15
         metric_value = [random.uniform(3.0, 7.0) for _ in range(30)]
 
         df_perf2 = pd.DataFrame(

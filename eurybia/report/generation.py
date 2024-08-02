@@ -3,15 +3,16 @@ Report generation helper module.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 import panel as pn
+from plotly.graph_objects import Violin
 from shapash.explainer.smart_explainer import SmartExplainer
 
 from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
-from eurybia.report.properties import report_css, report_jscallback, report_text
+from eurybia.report.properties import report_css, report_jscallback, report_text, select_callback
 
 pn.extension("plotly")
 
@@ -67,7 +68,7 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Opti
         indicators = pn.Row(auc_indicator)
     parts.append(indicators)
 
-    return pn.Column(*parts, name="Index")
+    return pn.Column(*parts, name="Index", css_classes=["index"])
 
 
 def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
@@ -155,28 +156,65 @@ def get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
             pn.pane.Markdown("- No modalities have been detected as present in one dataset and absent in the other.")
         ]
 
-    return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"))
+    return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"), css_classes=["information"])
 
 
-def get_data_drift_detecting(dr: DriftReport) -> list:
-    blocks = [pn.pane.Markdown("## Detecting data drift")]
-    blocks.append(pn.pane.Markdown("### Datadrift classifier model perfomances"))
-    blocks.append(pn.pane.Markdown(report_text["Data drift"]["02"]))
-    auc = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
-    )
-    blocks.append(pn.pane.Plotly(auc))
+def get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
+    blocks = []
+    select = pn.widgets.Select(value=labels[0], options=labels)
+    select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
+    blocks += [select]
+    for i in range(len(labels)):
+        f_class = labels[i].replace(" ", "-").lower()
+        css_classes = [f_class, key]
+        if labels[i] != labels[0]:
+            css_classes.append("hidden")
+        for figure_trace in figures[i].data:
+            if isinstance(figure_trace, Violin):
+                figure_trace.update(side="both")
+        figures[i].update_layout(width=1240)
+        node = pn.pane.Plotly(figures[i], name=labels[i], css_classes=css_classes)
+        blocks += [node]
     return blocks
 
 
-def get_data_drift_features_importance(dr: DriftReport) -> list:
-    blocks = [pn.pane.Markdown("## Importance of features in data drift")]
-    blocks.append(pn.pane.Markdown("### Global feature importance plot"))
-    blocks.append(pn.pane.Markdown(report_text["Data drift"]["03"]))
+def get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
+    blocks = []
+    select = pn.widgets.Select(value=labels[0], options=labels)
+    select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
+    blocks += [select]
+    for i in range(len(labels)):
+        f_class = labels[i].replace(" ", "-").lower()
+        css_classes = [f_class, key]
+        if i > 0:
+            css_classes.append("hidden")
+        node = pn.pane.DataFrame(tables[i], css_classes=css_classes)
+        blocks += [node]
+    return blocks
+
+
+def get_data_drift_panel(dr: DriftReport) -> pn.Column:
+    blocks = [
+        pn.pane.Markdown("# Data drift"),
+        pn.pane.Markdown(report_text["Data drift"]["01"]),
+        pn.pane.Markdown("## Detecting data drift"),
+        pn.pane.Markdown("### Datadrift classifier model perfomances"),
+        pn.pane.Markdown(report_text["Data drift"]["02"]),
+    ]
+    auc = dr.smartdrift.plot.generate_indicator(
+        fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
+    )
+    blocks += [pn.pane.Plotly(auc)]
+
+    blocks += [
+        pn.pane.Markdown("## Importance of features in data drift"),
+        pn.pane.Markdown("### Global feature importance plot"),
+        pn.pane.Markdown(report_text["Data drift"]["03"]),
+    ]
+
     fig_features_importance = dr.explainer.plot.features_importance()
     fig_features_importance.update_layout(width=1240)
-    blocks.append(pn.pane.Plotly(fig_features_importance))
-    # blocks.append(pn.pane.Plotly(dr.explainer.plot.features_importance(width=1240)))
+    blocks += [pn.pane.Plotly(fig_features_importance)]
     if dr.smartdrift.deployed_model is not None:
         fig_scatter_feature_importance = dr.smartdrift.plot.scatter_feature_importance()
         fig_scatter_feature_importance.update_layout(width=1240)
@@ -184,18 +222,27 @@ def get_data_drift_features_importance(dr: DriftReport) -> list:
             pn.pane.Markdown("### Feature importance overview"),
             pn.pane.Markdown(report_text["Data drift"]["04"]),
             pn.pane.Plotly(fig_scatter_feature_importance),
-            # pn.pane.Plotly(dr.smartdrift.plot.scatter_feature_importance()),
         ]
-    return blocks
 
-
-def get_data_drift_dataset_analysis(dr: DriftReport) -> list:
-    blocks = [pn.pane.Markdown("## Dataset analysis")]
     blocks += [
+        pn.pane.Markdown("## Dataset analysis"),
         pn.pane.Markdown(report_text["Data drift"]["05"]),
         pn.pane.Markdown("### Global analysis"),
         pn.pane.DataFrame(dr._display_dataset_analysis_global()),
+        pn.pane.Markdown("### Univariate analysis"),
+        pn.pane.Markdown(report_text["Data drift"]["07"]),
     ]
+    contribution_figures, contribution_labels = dr.display_model_contribution()
+
+    distribution_figures, labels, distribution_tables = dr.display_dataset_analysis(global_analysis=False)["univariate"]
+    distribution_plots_blocks = get_select_plots(
+        labels=labels, key="distribution-plot", tab=".data-drift", figures=distribution_figures
+    )
+    blocks += distribution_plots_blocks
+    distribute_tables_blocks = get_select_tables(
+        labels=labels, key="distribution-table", tab=".data-drift", tables=distribution_tables
+    )
+    blocks += distribute_tables_blocks
 
     if dr.smartdrift.deployed_model is not None:
         fig_01 = dr.smartdrift.plot.generate_fig_univariate(df_all=dr.smartdrift.df_predict, col="Score", hue="dataset")
@@ -204,7 +251,7 @@ def get_data_drift_dataset_analysis(dr: DriftReport) -> list:
             pn.pane.Markdown("### Distribution of predicted values"),
             pn.pane.Markdown(report_text["Data drift"]["06"]),
             pn.pane.Plotly(fig_01),
-            pn.pane.Markdown(report_text["Data drift"]["07"]),
+            pn.pane.Markdown(report_text["Data drift"]["08"]),
         ]
         js_fig = dr.smartdrift.plot.generate_indicator(
             fig_value=dr.smartdrift.js_divergence,
@@ -215,53 +262,26 @@ def get_data_drift_dataset_analysis(dr: DriftReport) -> list:
             max_gauge=0.2,
         )
         blocks += [pn.pane.Plotly(js_fig)]
-
-    blocks += [pn.pane.Markdown("### Univariate analysis"), pn.pane.Markdown(report_text["Data drift"]["08"])]
-    plot_datadrift_contribution = {}
-    frame_datadrift_contribution = {}
-    plot_feature_contribution = {}
-    fig_contribution_list, labels = dr.display_model_contribution()
-    fig_list, labels, table_list = dr.display_dataset_analysis(global_analysis=False)["univariate"]
-    for i in range(len(labels)):
-        fig_list[i].update_layout(width=1240)
-        fig_contribution_list[i].update_layout(width=1240)
-        plot_datadrift_contribution[labels[i]] = pn.pane.Plotly(fig_list[i])
-        frame_datadrift_contribution[labels[i]] = pn.pane.DataFrame(table_list[i])
-        plot_feature_contribution[labels[i]] = pn.pane.Plotly(fig_contribution_list[i])
-    plot_dataset_panel = pn.Column(plot_datadrift_contribution[labels[0]])
-    frame_dataset_panel = pn.Column(plot_datadrift_contribution[labels[0]])
-    feature_contribution_panel = pn.Column(plot_feature_contribution[labels[0]])
-    feature_select = pn.widgets.Select(value=labels[0], options=list(plot_datadrift_contribution.keys()))
-
-    def update_feature(event: Any) -> None:
-        plot_dataset_panel[0] = plot_datadrift_contribution[feature_select.value]
-        frame_dataset_panel[0] = frame_datadrift_contribution[feature_select.value]
-        feature_contribution_panel[0] = plot_feature_contribution[feature_select.value]
-
-    feature_select.param.watch(update_feature, "value")
     blocks += [
-        feature_select,
-        pn.pane.Markdown("#### Distribution of feature"),
-        plot_dataset_panel,
-        frame_dataset_panel,
-        pn.pane.Markdown("#### Contribution of feature on data drift's detection"),
+        pn.pane.Markdown("## Feature contribution on data drift's detection"),
         pn.pane.Markdown(report_text["Data drift"]["09"]),
-        feature_contribution_panel,
     ]
-
-    return blocks
-
-
-def get_data_drift_panel(dr: DriftReport) -> pn.Column:
-    blocks = [
-        pn.pane.Markdown("# Data drift"),
-        pn.pane.Markdown(report_text["Data drift"]["01"]),
-    ]
-    blocks += get_data_drift_detecting(dr)
-    blocks += get_data_drift_features_importance(dr)
-    blocks += get_data_drift_dataset_analysis(dr)
-
-    return pn.Column(*blocks, name="Data drift", styles=dict(display="none"))
+    contribution_plots_blocks = get_select_plots(
+        labels=contribution_labels,
+        key="contribution-plot",
+        tab=".data-drift",
+        figures=contribution_figures,
+    )
+    blocks += contribution_plots_blocks
+    if dr.smartdrift.historical_auc is not None:
+        fig = dr.smartdrift.plot.generate_historical_datadrift_metric()
+        fig.update_layout(width=1240)
+        blocks += [
+            pn.pane.Markdown("## Historical Data drift"),
+            pn.pane.Markdown(report_text["Data drift"]["10"]),
+            pn.pane.Plotly(fig),
+        ]
+    return pn.Column(*blocks, name="Data drift", styles=dict(display="none"), css_classes=["data-drift"])
 
 
 def get_model_drift_panel(dr: DriftReport) -> pn.Column:
@@ -278,32 +298,25 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
     pn.Column
     """
 
-    # Loop for save in list plots of display model drift
-    modeldrift_plot = None
-    if dr.smartdrift.data_modeldrift is not None:
-        fig_list, labels = dr.display_data_modeldrift()
-        if labels == []:
-            fig_list[0].update_layout(width=1240)
-            modeldrift_plot = pn.pane.Plotly(fig_list[0])
-        else:
-            elements = []
-            for i in range(len(labels)):
-                fig_list[i].update_layout(width=1100)
-                elements.append(pn.Column(pn.pane.Plotly(fig_list[i]), name=labels[i], styles={"text-align": "left"}))
-            plot_modeldrift_panel = pn.Tabs(*elements, tabs_location="left")
-    else:
-        modeldrift_plot = pn.pane.Markdown("## Smartdrift.data_modeldrift is None")
     blocks = [
         pn.pane.Markdown("# Model drift"),
         pn.pane.Markdown(report_text["Model drift"]["01"]),
         pn.pane.Markdown("## Performance evolution of the deployed model"),
         pn.pane.Markdown(report_text["Model drift"]["02"]),
     ]
-    if modeldrift_plot is not None:
-        blocks += [modeldrift_plot]
+
+    if dr.smartdrift.data_modeldrift is None:
+        blocks += [pn.pane.Markdown("## Smartdrift.data_modeldrift is None")]
     else:
-        blocks += [plot_modeldrift_panel]
-    return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=["modeldrift-panel"])
+        figures, labels = dr.display_data_modeldrift()
+        if labels == []:
+            figures[0].update_layout(width=1240)
+            blocks += [pn.pane.Plotly(figures[0])]
+        else:
+            list_blocks = get_select_plots(labels=labels, key="modeldrift-plot", tab=".model-drift", figures=figures)
+            blocks += list_blocks
+
+    return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=["model-drift"])
 
 
 def execute_report(

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurybia"
-version = "1.1.1"
+version = "1.2.0"
 authors = [
     {name = "Nicolas Roux"},
     {name = "Thomas Bouché", email = "thomas.bouche@maif.fr"},
@@ -64,7 +64,7 @@ ignore_missing_imports = true
 line-length = 120
 exclude = [
     "tests",
-    "docs", 
+    "docs",
     "tutorial",
 ]
 
