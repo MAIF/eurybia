@@ -12,18 +12,18 @@ authors = [
 ]
 description = "Eurybia monitor model drift over time and securize model deployment with data validation"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "Apache Software License 2.0"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pandas",
+    "pandas>=2",
     "catboost>=1.0.1",
     "panel>=1.4.1",
     "ipywidgets>=7.4.2",
