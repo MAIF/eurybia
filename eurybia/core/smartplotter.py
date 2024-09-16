@@ -145,7 +145,7 @@ class SmartPlotter:
         -------
         plotly.graph_objs._figure.Figure
         """
-        df_all.loc[:, col].fillna(0, inplace=True)
+        df_all[col] = df_all[col].fillna(0)
         datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
         group_labels = [str(val) for val in df_all[hue].unique()]
         colors = list(self._style_dict["univariate_cont_bar"].values())
