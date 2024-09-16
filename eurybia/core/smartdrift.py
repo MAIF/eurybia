@@ -1,6 +1,7 @@
 """
 - SmartDrift module
 """
+
 import copy
 import datetime
 import io
@@ -9,7 +10,7 @@ import pickle
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Text
+from typing import Dict
 
 import catboost
 import pandas as pd
@@ -467,7 +468,7 @@ class SmartDrift:
              and will not be analyzed: \n {err_dtypes}"""
             )
         # Feature values
-        err_mods: Dict[Text, Dict] = {}
+        err_mods: Dict[str, Dict] = {}
         if full_validation is True:
             invalid_cols = ignore_cols + new_cols + removed_cols + err_dtypes
             for column in self.df_baseline.columns:
@@ -743,7 +744,7 @@ class SmartDrift:
         max_size : int
             Sets the maximum number of rows. If the datasets are larger there is sampling
         categ_max: int
-            Maximum number of values ​​per feature to apply the chi square test
+            Maximum number of values \u200b\u200bper feature to apply the chi square test
 
         Returns :
         -------
@@ -765,12 +766,10 @@ class SmartDrift:
                     test = ksmirnov_test(current[features].to_numpy(), baseline[features].to_numpy())
             except BaseException as e:
                 raise Exception(
-                    """
-                There is a problem with the format of {} column between the two datasets.
+                    f"""
+                There is a problem with the format of {str(features)} column between the two datasets.
                 Error:
-                """.format(
-                        str(features)
-                    )
+                """
                     + str(e)
                 )
             test_results[features] = test

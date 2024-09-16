@@ -1,6 +1,7 @@
 """
 Module used in the base_report notebook to generate report
 """
+
 import copy
 import logging
 import os
@@ -127,12 +128,16 @@ class DriftReport:
             return None
         return pd.concat(
             [
-                df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
-                if df_current is not None
-                else None,
-                df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
-                if df_baseline is not None
-                else None,
+                (
+                    df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
+                    if df_current is not None
+                    else None
+                ),
+                (
+                    df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
+                    if df_baseline is not None
+                    else None
+                ),
             ]
         ).reset_index(drop=True)
 
@@ -221,12 +226,10 @@ class DriftReport:
 
             except BaseException as e:
                 raise Exception(
-                    """
-                There is a problem with the format of {} column between the two datasets.
+                    f"""
+                There is a problem with the format of {str(col)} column between the two datasets.
                 Error:
-                """.format(
-                        str(col)
-                    )
+                """
                     + str(e)
                 )
         return plot_list, labels, table_list
@@ -247,11 +250,10 @@ class DriftReport:
         Displays explainability of the model as computed in SmartPlotter object
         """
         multiclass = True if (self.explainer._classes and len(self.explainer._classes) > 2) else False
-        c_list = self.explainer._classes if multiclass else [0, 1]  # list just used for multiclass
+        c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
         plot_list = []
         labels = []
         for index_label, label in enumerate(c_list):  # Iterating over all labels in multiclass case
-
             for feature in self.features_imp_list:
                 fig = self.explainer.plot.contribution_plot(feature, label=label, max_points=200)
                 plot_list.append(fig)

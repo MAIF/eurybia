@@ -1,6 +1,7 @@
 """
 functions for loading and manipulating colors
 """
+
 import json
 import os
 

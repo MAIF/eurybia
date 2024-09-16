@@ -114,7 +114,6 @@ class SmartPlotter:
         width: Optional[str] = None,
         hovermode: Optional[str] = None,
     ) -> plotly.graph_objs._figure.Figure:
-
         """
         Returns a plotly figure containing the distribution of a continuous feature.
 
@@ -148,11 +147,15 @@ class SmartPlotter:
         """
         df_all.loc[:, col].fillna(0, inplace=True)
         datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
+        group_labels = [str(val) for val in df_all[hue].unique()]
+        colors = list(self._style_dict["univariate_cont_bar"].values())
+        if group_labels[0] == "Current dataset":
+            group_labels = ["Baseline dataset", "Current dataset"]
 
         fig = ff.create_distplot(
             datasets,
-            group_labels=[str(val) for val in df_all[hue].unique()],
-            colors=list(self._style_dict["univariate_cont_bar"].values()),
+            group_labels=group_labels,
+            colors=list(colors),
             show_hist=False,
             show_curve=True,
             show_rug=False,
@@ -285,7 +288,7 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig1.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[0], showlegend=True)
+        fig1.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[1], showlegend=True)
 
         fig2 = px.bar(
             df_cat[df_cat[hue] == modalities[1]],
@@ -296,7 +299,7 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig2.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[1], showlegend=True)
+        fig2.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[0], showlegend=True)
 
         fig = fig1.add_trace(fig2.data[0])
 
@@ -489,7 +492,6 @@ class SmartPlotter:
             datadrift_historical["auc_displayed"] = datadrift_historical["auc"].round(2)
 
             if self.smartdrift.deployed_model is not None:
-
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
                 fig.add_trace(
                     go.Scatter(

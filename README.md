@@ -19,6 +19,11 @@
   <a href="https://eurybia.readthedocs.io/en/latest/">
     <img src="https://readthedocs.org/projects/eurybia/badge/?version=latest" alt="doc">
   </a>
+  <!-- Pre-commit -->
+  <a href="https://github.com/pre-commit/pre-commit">
+    <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" alt="pre-commit">
+  </a>
+
 </p>
 
 <p align="center">
@@ -189,7 +194,7 @@ One of the schedulers you can use is Apache Airflow. To use it, you can read the
 ## 🔬 Built With
 This section list libraries used in Eurybia.
 - [Shapash](https://github.com/MAIF/shapash/tree/master/shapash)
-- [Datapane](https://github.com/datapane/datapane)
+- [Panel](https://github.com/holoviz/panel)
 - [Plotly](https://github.com/plotly/plotly.py)
 - [Catboost](https://github.com/catboost/catboost)
 

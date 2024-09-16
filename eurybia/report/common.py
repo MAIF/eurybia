@@ -1,13 +1,16 @@
 """
 Common functions used in report
 """
+
 import os
 from enum import Enum
 from numbers import Number
 from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
-from pandas.api.types import is_bool_dtype, is_categorical_dtype, is_numeric_dtype, is_string_dtype
+
+# from pandas.api.types import is_bool_dtype, is_categorical_dtype, is_numeric_dtype, is_string_dtype
+from pandas.api.types import infer_dtype, is_numeric_dtype
 
 
 class VarType(Enum):
@@ -19,7 +22,7 @@ class VarType(Enum):
     TYPE_NUM = "Numeric"
     TYPE_UNSUPPORTED = "Unsupported"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
 
@@ -76,11 +79,11 @@ def series_dtype(s: pd.Series) -> VarType:
     -------
     VarType
     """
-    if is_bool_dtype(s):
+    if infer_dtype(s) == "boolean":
         return VarType.TYPE_CAT
-    elif is_string_dtype(s):
+    elif infer_dtype(s, skipna=True) == "string":
         return VarType.TYPE_CAT
-    elif is_categorical_dtype(s):
+    elif isinstance(s.dtype, pd.CategoricalDtype):
         return VarType.TYPE_CAT
     elif is_numeric_dtype(s):
         if numeric_is_continuous(s):
