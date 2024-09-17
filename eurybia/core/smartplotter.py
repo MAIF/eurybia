@@ -597,7 +597,7 @@ class SmartPlotter:
         if data_modeldrift is None:
             data_modeldrift = self.smartdrift.data_modeldrift
             if data_modeldrift is None:
-                raise Exception(
+                raise ValueError(
                     """You should run the add_data_modeldrift method before displaying model drift performances.
                 For more information see the documentation"""
                 )

@@ -107,7 +107,7 @@ sd.generate_report(
 
 ## 🛠 Installation
 
-Eurybia is intended to work with Python versions 3.9 to 3.11. Installation can be done with pip:
+Eurybia is intended to work with Python versions 3.9 to 3.12. Installation can be done with pip:
 
 ```
 pip install eurybia

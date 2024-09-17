@@ -1,6 +1,6 @@
-from typing import Any, Dict
+from typing import Any
 
-report_text: Dict[str, Any] = {
+report_text: dict[str, Any] = {
     "Index": {
         "01": "- Project information: report context and information",
         "02": "- Consistency Analysis: highlighting differences between the two datasets",
@@ -77,7 +77,12 @@ report_text: Dict[str, Any] = {
             "This representation constitutes a support to understand the drift "
             "when the analysis of the dataset is unclear."
         ),
-        "10": ("Line chart showing the metrics evolution of the datadrift classifier over the given period of time."),
+        "10": (
+            "This graph represents the interactions between couple of variable to the data drift detection. "
+            "This representation constitutes a support to understand the drift "
+            "when the analysis of the dataset is unclear."
+        ),
+        "11": ("Line chart showing the metrics evolution of the datadrift classifier over the given period of time."),
     },
     "Model drift": {
         "01": (

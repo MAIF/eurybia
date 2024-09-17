@@ -10,7 +10,6 @@ import pickle
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict
 
 import catboost
 import pandas as pd
@@ -199,12 +198,12 @@ class SmartDrift:
     def compile(
         self,
         full_validation=False,
-        ignore_cols: list = list(),
+        ignore_cols: list = None,
         sampling=True,
         sample_size=100000,
         datadrift_file=None,
         date_compile_auc=None,
-        hyperparameter: Dict = catboost_hyperparameter_init.copy(),
+        hyperparameter: dict = catboost_hyperparameter_init.copy(),
         attr_importance="feature_importances_",
     ):
         r"""
@@ -237,6 +236,8 @@ class SmartDrift:
         >>> SD.compile()
 
         """
+        if ignore_cols is None:
+            ignore_cols = []
         if datadrift_file is not None:
             self.datadrift_file = datadrift_file
         if hyperparameter is not None:
@@ -468,7 +469,7 @@ class SmartDrift:
              and will not be analyzed: \n {err_dtypes}"""
             )
         # Feature values
-        err_mods: Dict[str, Dict] = {}
+        err_mods: dict[str, dict] = {}
         if full_validation is True:
             invalid_cols = ignore_cols + new_cols + removed_cols + err_dtypes
             for column in self.df_baseline.columns:
