@@ -232,7 +232,6 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
         pn.pane.Markdown("### Univariate analysis"),
         pn.pane.Markdown(report_text["Data drift"]["07"]),
     ]
-    contribution_figures, contribution_labels = dr.display_model_contribution()
 
     distribution_figures, labels, distribution_tables = dr.display_dataset_analysis(global_analysis=False)["univariate"]
     distribution_plots_blocks = get_select_plots(
@@ -262,6 +261,9 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
             max_gauge=0.2,
         )
         blocks += [pn.pane.Plotly(js_fig)]
+
+    contribution_figures, contribution_labels = dr.display_model_contribution()
+
     blocks += [
         pn.pane.Markdown("## Feature contribution on data drift's detection"),
         pn.pane.Markdown(report_text["Data drift"]["09"]),
@@ -273,14 +275,24 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
         figures=contribution_figures,
     )
     blocks += contribution_plots_blocks
+
+    fig_02 = dr.explainer.plot.top_interactions_plot(nb_top_interactions=10)
+    fig_02.update_layout(width=1240)
+    blocks += [
+        pn.pane.Markdown("## Feature interaction on data drift's detection"),
+        pn.pane.Markdown(report_text["Data drift"]["10"]),
+        pn.pane.Plotly(fig_02),
+    ]
+
     if dr.smartdrift.historical_auc is not None:
         fig = dr.smartdrift.plot.generate_historical_datadrift_metric()
         fig.update_layout(width=1240)
         blocks += [
             pn.pane.Markdown("## Historical Data drift"),
-            pn.pane.Markdown(report_text["Data drift"]["10"]),
+            pn.pane.Markdown(report_text["Data drift"]["11"]),
             pn.pane.Plotly(fig),
         ]
+
     return pn.Column(*blocks, name="Data drift", styles=dict(display="none"), css_classes=["data-drift"])
 
 

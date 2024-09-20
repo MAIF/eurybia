@@ -5,7 +5,7 @@ Module used in the base_report notebook to generate report
 import copy
 import logging
 import os
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 import jinja2
 import pandas as pd
@@ -36,11 +36,11 @@ class DriftReport:
     Attributes
     ----------
     smartdrift: object
-            SmartDrift object
+        SmartDrift object
     explainer : shapash.explainer.smart_explainer.SmartExplainer
-         A shapash SmartExplainer object that has already be compiled
+        A shapash SmartExplainer object that has already be compiled
     title_story : str
-            Report title
+        Report title
     metadata : dict
         Information about the project (author, description, ...)
     df_predict : pd.DataFrame
@@ -56,7 +56,7 @@ class DriftReport:
         smartdrift: SmartDrift,
         explainer: SmartExplainer,
         project_info_file: Optional[str] = None,
-        config_report: Optional[Dict] = None,
+        config_report: Optional[dict] = None,
     ):
         """
         Parameters
@@ -253,7 +253,7 @@ class DriftReport:
         c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
         plot_list = []
         labels = []
-        for index_label, label in enumerate(c_list):  # Iterating over all labels in multiclass case
+        for label in c_list:  # Iterating over all labels in multiclass case
             for feature in self.features_imp_list:
                 fig = self.explainer.plot.contribution_plot(feature, label=label, max_points=200)
                 plot_list.append(fig)
