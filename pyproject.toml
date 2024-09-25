@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurybia"
-version = "1.3.0"
+version = "1.3.1"
 authors = [
     {name = "Nicolas Roux"},
     {name = "Thomas Bouché", email = "thomas.bouche@maif.fr"},
@@ -50,9 +50,8 @@ package-dir = {"" = "."}
 [tool.setuptools.packages.find]
 where = ["."]
 
-
 [tool.setuptools.package-data]
-"eurybia" = ["*.csv", "*json", "*.yml", "*.css", "*.js", "*.png"]
+"*" = ["*.csv", "*json", "*.yml", "*.css", "*.js", "*.png"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
