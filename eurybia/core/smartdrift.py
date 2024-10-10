@@ -273,6 +273,7 @@ class SmartDrift:
         dtypes = df_concat[varz].dtypes.map(str)
         cat_features = list(dtypes[dtypes.isin(["object"])].index)
         df_concat[cat_features] = df_concat[cat_features].fillna("NA")
+        df_concat = df_concat.fillna(0)
         self._df_concat = df_concat
 
         train, test = train_test_split(df_concat[varz + [self._datadrift_target]], test_size=0.25, random_state=42)
