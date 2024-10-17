@@ -27,6 +27,7 @@
       "rgb(0, 98, 128)",
       "rgb(0, 70, 92)"
     ],
+    "contrib_distribution": "rgb(211, 211, 211)",
     "datadrift_historical": "rgba(0,154,203,255)",
     "featimportance_colorscale": [
       [
@@ -62,14 +63,25 @@
         "rgb(0, 154, 203)"
       ]
     ],
+    "feature_contributions_cumulative": [
+      "rgb(255, 55, 55)",
+      "rgb(255, 166, 0)",
+      "rgb(255, 200, 100)",
+      "rgb(55, 190, 255)",
+      "rgb(0, 0, 255)",
+      "rgb(0, 0, 0)"
+    ],
     "featureimp_bar": {
-      "1": "rgba(0,154,203,255)",
-      "2": "rgba(223, 103, 0, 0.8)"
+      "1": "rgba(0, 154, 203, 1)",
+      "2": "rgba(223, 103, 0, 0.8)",
+      "3": "rgba(240, 195, 162, 0.8)",
+      "4": "rgba(245, 122, 0, 0.8)"
     },
     "featureimp_groups": {
       "0": "rgb(10, 204, 143)",
       "1": "rgb(176, 140, 104)"
     },
+    "featureimp_line": "rgba(52, 55, 54, 0.8)",
     "interaction_discrete": [
       "rgb(95, 70, 144)",
       "rgb(29, 105, 150)",
@@ -99,6 +111,21 @@
       "-2": "rgba(27, 28, 28, 1.0)",
       "0": "rgba(52, 55, 54, 0.8)",
       "1": "rgba(52, 55, 54, 0.8)"
+    },
+    "prediction_plot": {
+      "0": "rgba(0, 70, 92, 0.9)",
+      "1": "rgba(168, 84, 0, 0.9)"
+    },
+    "report_confusion_matrix": [
+      "rgb(255, 255, 255)",
+      "rgb(244, 192, 0)",
+      "rgb(255, 166, 17)"
+    ],
+    "report_feature_distribution": {
+      "pred": "rgba(230, 111, 0, 0.9)",
+      "test": "rgba(230, 111, 0, 0.9)",
+      "train": "rgba(0, 154, 203, 0.9)",
+      "true": "rgba(0, 154, 203, 0.9)"
     },
     "scatter_line": {
       "horizontal": "rgba(17, 136, 240, 0.8)",
