@@ -55,13 +55,6 @@ class TestSmartDrift(unittest.TestCase):
         self.script_path = script_path
         self.X = X
 
-    def test_init_1(self):
-        """
-        test init 1 SmartDrift
-        """
-        smart_drift = SmartDrift()
-        assert hasattr(smart_drift, "df_baseline")
-
     def test_compile_nooptions(self):
         """
         Test compile()

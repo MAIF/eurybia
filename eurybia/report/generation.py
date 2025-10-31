@@ -18,7 +18,9 @@ from eurybia.report.properties import report_css, report_jscallback, report_text
 pn.extension("plotly")
 
 
-def get_index_panel(dr: DriftReport, project_info_file: str, config_report: dict | None) -> pn.Column:
+def get_index_panel(
+    dr: DriftReport, project_info_file: str | None = None, config_report: dict | None = None
+) -> pn.Column:
     parts = []
     header_logo = pn.pane.PNG(
         "https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true",
@@ -46,6 +48,8 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: dict
     content = pn.pane.Markdown("\n".join(content_parts))
     parts.append(content)
 
+    if dr.smartdrift.auc is None:
+        raise RuntimeError("AUC should have been set.")
     # AUC
     auc_block = dr.smartdrift.plot.generate_indicator(
         fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC"
@@ -54,6 +58,9 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: dict
 
     # Jensen-Shannon
     if dr.smartdrift.deployed_model is not None:
+        if dr.smartdrift.js_divergence is None:
+            raise RuntimeError("Jensen-Shannon divergence should have been set.")
+
         JS_block = dr.smartdrift.plot.generate_indicator(
             fig_value=dr.smartdrift.js_divergence,
             height=280,
@@ -204,6 +211,10 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
         pn.pane.Markdown("### Datadrift classifier model perfomances"),
         pn.pane.Markdown(report_text["Data drift"]["02"]),
     ]
+
+    if dr.smartdrift.auc is None:
+        raise RuntimeError("AUC should have been set.")
+
     auc = dr.smartdrift.plot.generate_indicator(
         fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
     )
@@ -255,6 +266,10 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
             pn.pane.Plotly(fig_01),
             pn.pane.Markdown(report_text["Data drift"]["08"]),
         ]
+
+        if dr.smartdrift.js_divergence is None:
+            raise RuntimeError("Jensen-Shannon divergence should have been set.")
+
         js_fig = dr.smartdrift.plot.generate_indicator(
             fig_value=dr.smartdrift.js_divergence,
             height=280,
@@ -336,9 +351,9 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
 def execute_report(
     smartdrift: SmartDrift,
     explainer: SmartExplainer,
-    project_info_file: str,
     output_file: str,
-    config_report: dict | None = {},
+    project_info_file: str | None = None,
+    config_report: dict | None = None,
 ) -> None:
     """Creates the report
 
@@ -356,6 +371,9 @@ def execute_report(
             Path to the HTML file to write
 
     """
+    if config_report is None:
+        config_report = {}
+
     dr = DriftReport(
         smartdrift=smartdrift,
         explainer=explainer,

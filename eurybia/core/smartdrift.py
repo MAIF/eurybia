@@ -8,6 +8,7 @@ import pickle
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import catboost
 import pandas as pd
@@ -117,8 +118,11 @@ class SmartDrift:
 
         """
         dict_to_load = load_pickle(path)
-        sd = cls()
         if isinstance(dict_to_load, dict):
+            df_current = dict_to_load["df_current"]
+            df_baseline = dict_to_load["df_baseline"]
+            sd = cls(df_current, df_baseline)
+
             for attr, val in dict_to_load.items():
                 if isinstance(val, io.BytesIO):
                     setattr(sd, attr, pickle.load(val.seek(0)))
@@ -132,15 +136,16 @@ class SmartDrift:
             raise ValueError("pickle file must contain dictionary")
         return sd
 
+    # FIXME: we should explicitly declare the type of supported deployed_model and encoding
     def __init__(
         self,
-        df_current=None,
-        df_baseline=None,
-        dataset_names={"df_current": "Current dataset", "df_baseline": "Baseline dataset"},
-        deployed_model=None,
-        encoding=None,
-        palette_name="eurybia",
-        colors_dict=None,
+        df_current: pd.DataFrame,
+        df_baseline: pd.DataFrame,
+        dataset_names: dict[str, str] | None = None,
+        deployed_model: Any | None = None,
+        encoding: Any = None,
+        palette_name: str = "eurybia",
+        colors_dict: dict | None = None,
     ):
         """Parameters
         ----------
@@ -168,20 +173,23 @@ class SmartDrift:
         """
         self.df_current = df_current
         self.df_baseline = df_baseline
-        self.xpl = None
-        self.df_predict = None
-        self.feature_importance = None
-        self.pb_cols, self.err_mods = None, None
-        self.auc = None
-        self.js_divergence = None
-        self.historical_auc = None
-        self.data_modeldrift = None
-        self.ignore_cols = list()
-        self.datadrift_stat_test = None
-        if "df_current" not in dataset_names.keys() or "df_baseline" not in dataset_names.keys():
+        self.xpl: SmartExplainer | None = None
+        self.df_predict: pd.DataFrame | None = None
+        self.feature_importance: pd.DataFrame | None = None
+        self.pb_cols: dict[str, list[str]] = dict()
+        self.err_mods: dict[str, dict] = dict()
+        self.auc: float | None = None
+        self.js_divergence: float | None = None
+        self.historical_auc: pd.DataFrame | None = None
+        self.data_modeldrift: pd.DataFrame | None = None
+        self.ignore_cols: list[str] = list()
+        self.datadrift_stat_test: pd.DataFrame | None = None
+        if dataset_names is None:
+            dataset_names = {"df_current": "Current dataset", "df_baseline": "Baseline dataset"}
+        elif "df_current" not in dataset_names.keys() or "df_baseline" not in dataset_names.keys():
             raise ValueError("dataset_names must be a dictionnary with keys 'df_current' and 'df_baseline'")
         self.dataset_names = pd.DataFrame(dataset_names, index=[0])
-        self._df_concat = None
+        self._df_concat: pd.DataFrame | None = None
         self._datadrift_target = "target"
         self.plot = SmartPlotter(self)
         self.deployed_model = deployed_model
@@ -191,18 +199,18 @@ class SmartDrift:
         if colors_dict is not None:
             self.colors_dict.update(colors_dict)
         self.plot.define_style_attributes(colors_dict=self.colors_dict)
-        self.datadrift_file = None
+        self.datadrift_file: str | None = None
 
     def compile(
         self,
-        full_validation=False,
+        full_validation: bool = False,
         ignore_cols: list[str] | None = None,
-        sampling=True,
-        sample_size=100000,
-        datadrift_file=None,
-        date_compile_auc=None,
-        hyperparameter: dict = catboost_hyperparameter_init.copy(),
-        attr_importance="feature_importances_",
+        sampling: bool = True,
+        sample_size: int = 100000,
+        datadrift_file: str | None = None,
+        date_compile_auc: str | None = None,
+        hyperparameter: dict | None = None,
+        attr_importance: str = "feature_importances_",
     ):
         r"""The compile method is the first step to compute data drift.
         It allows to calculate data drift between 2 datasets using a data drift classification model.
@@ -319,7 +327,7 @@ class SmartDrift:
         self.feature_importance = self._feature_importance(
             deployed_model=self.deployed_model, attr_importance=attr_importance
         )
-        self.plot.feature_importance = self.feature_importance
+        # self.plot.feature_importance = self.feature_importance  # FIXME: is this necessary?
         self.pb_cols, self.err_mods = pb_cols, err_mods
         if self.deployed_model is not None:
             self.js_divergence = compute_js_divergence(
@@ -341,7 +349,12 @@ class SmartDrift:
             self.datadrift_stat_test = self._compute_datadrift_stat_test()
 
     def generate_report(
-        self, output_file, project_info_file=None, title_story="Drift Report", title_description="", working_dir=None
+        self,
+        output_file: str,
+        project_info_file: str | None = None,
+        title_story: str = "Drift Report",
+        title_description: str = "",
+        working_dir: str | None = None,
     ):
         """This method will generate an HTML report containing different information about the project.
         It allows the information compiled to be rendered.
@@ -390,7 +403,7 @@ class SmartDrift:
             if rm_working_dir:
                 shutil.rmtree(working_dir)
 
-    def _check_dataset(self, ignore_cols: list = list()):
+    def _check_dataset(self, ignore_cols: list | None = None):
         """Method to check if datasets are correct before to be analysed and if
         it's not, try to modify them and informs the user. In worse case raise
         an error.
@@ -403,6 +416,9 @@ class SmartDrift:
             list of feature to ignore in compute
 
         """
+        if ignore_cols is None:
+            ignore_cols = []
+
         if len([column for column in self.df_current.columns if is_datetime(self.df_current[column])]) > 0:
             if self.deployed_model is None:
                 for col in [column for column in self.df_current.columns if is_datetime(self.df_current[column])]:
@@ -553,7 +569,7 @@ class SmartDrift:
             ]
         ).reset_index(drop=True)
 
-    def _feature_importance(self, deployed_model=None, attr_importance="feature_importances_"):
+    def _feature_importance(self, deployed_model: Any | None = None, attr_importance: str = "feature_importances_"):
         """Create an attributes feature_importance with the computed score on both datasets
 
         Parameters
@@ -582,6 +598,10 @@ class SmartDrift:
                             """
                 + str(error)
             )
+
+        if self.xpl is None:
+            raise RuntimeError("SmartExplainer should be set at this point.")
+
         feature_importance_drift = pd.DataFrame(
             self.xpl.features_imp[0].values, index=self.xpl.features_imp[0].index, columns=["datadrift_classifier"]
         )
@@ -602,7 +622,7 @@ class SmartDrift:
         feature_importance["deployed_model"] = base_100(feature_importance["deployed_model"])
         return feature_importance
 
-    def _sampling(self, sampling, sample_size, dataset):
+    def _sampling(self, sampling: bool, sample_size: int, dataset: pd.DataFrame):
         """Return a sampling from the original dataframe
 
         Parameters
@@ -628,7 +648,8 @@ class SmartDrift:
         else:
             return dataset
 
-    def _histo_datadrift_metric(self, datadrift_file=None, date_compile_auc=None):
+    # FIXME: date_compile_auc should be of date format
+    def _histo_datadrift_metric(self, datadrift_file: str | None = None, date_compile_auc: str | None = None):
         """Method which computes datadrift metrics (AUC, and Jensen Shannon prediction divergence if the deployed_model
         is filled in) and append it into a dataframe that will be exported during the generate_report method
 
@@ -648,6 +669,7 @@ class SmartDrift:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
         )
+        # FIXME: is the use of instance attribute instead of the datadirft_file parameter an error?
         if self.datadrift_file is None and date_compile_auc is None:
             return None
         elif self.datadrift_file is None and date_compile_auc is not None:
@@ -698,7 +720,12 @@ class SmartDrift:
         return df_auc
 
     def add_data_modeldrift(
-        self, dataset, metric="performance", reference_columns=[], year_col="annee", month_col="mois"
+        self,
+        dataset: pd.DataFrame,
+        metric: str = "performance",
+        reference_columns: list[str] | None = None,
+        year_col: str = "annee",
+        month_col: str = "mois",
     ):
         """When method drift is specified, It will display in the report
         the several plots from a dataframe to analyse drift model from the deployed model.
@@ -719,6 +746,8 @@ class SmartDrift:
             The column name of the month where the metric has been computed
 
         """
+        if reference_columns is None:
+            reference_columns = []
         try:
             df_modeldrift = dataset.copy()
             df_modeldrift[month_col] = df_modeldrift[month_col].apply(lambda row: str(row).split(".")[0])
@@ -741,7 +770,7 @@ class SmartDrift:
                 + str(error)
             )
 
-    def _compute_datadrift_stat_test(self, max_size=50000, categ_max=20):
+    def _compute_datadrift_stat_test(self, max_size: int = 50000, categ_max: int = 20):
         """Calculates all statistical tests to analyze the drift of each feature
 
         Parameters
@@ -763,6 +792,9 @@ class SmartDrift:
         current = self.df_current.sample(n=max_size) if self.df_current.shape[0] > max_size else self.df_current
         test_results = {}
 
+        if self.xpl is None:
+            raise RuntimeError("SmartExplainer should be set at this point.")
+
         # compute test for each feature
         for features, count in self.xpl.features_desc.items():
             try:
@@ -782,10 +814,9 @@ class SmartDrift:
 
         return pd.DataFrame.from_dict(test_results, orient="index")
 
-    def define_style(self, palette_name=None, colors_dict=None):
+    def define_style(self, palette_name: str | None = None, colors_dict: dict | None = None):
         """The define_style function is a function that uses a palette or a dict
-        to define the different styles used in the different outputs
-        of eurybia
+        to define the different styles used in the different outputs of Eurybia
 
         Parameters
         ----------
@@ -803,9 +834,13 @@ class SmartDrift:
             new_colors_dict.update(colors_dict)
         self.colors_dict.update(new_colors_dict)
         self.plot.define_style_attributes(colors_dict=self.colors_dict)
+
+        if self.xpl is None:
+            raise RuntimeError("SmartExplainer should be set at this point.")
+
         self.xpl.define_style(colors_dict=self.colors_dict)
 
-    def save(self, path):
+    def save(self, path: str):
         """Save method allows user to save SmartDrift object on disk
         using a pickle file.
         Save method can be useful: you don't have to recompile to display
