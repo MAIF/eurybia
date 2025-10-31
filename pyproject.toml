@@ -12,14 +12,14 @@ authors = [
 ]
 description = "Eurybia monitor model drift over time and securize model deployment with data validation"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "Apache Software License 2.0"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
@@ -35,12 +35,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies] # Optional
-all = ["eurybia[dev, test, mypy, ruff]"]
+all = ["eurybia[dev, test]"]
 dev = ["pre-commit", "mypy", "ruff"]
 test = ["pytest", "pytest-cov"]
-mypy = ["mypy"]
-ruff = ["ruff"]
-
 
 [tool.setuptools]
 package-dir = {"" = "."}
