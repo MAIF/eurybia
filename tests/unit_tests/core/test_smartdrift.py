@@ -508,7 +508,7 @@ class TestSmartDrift(unittest.TestCase):
         df_baseline["col1"] = X2
 
         # Random models
-        regressor = RandomForestRegressor(n_estimators=2).fit(df_baseline[["col1"]], df_baseline["col1"].ravel())
+        regressor = RandomForestRegressor(n_estimators=2).fit(df_baseline[["col1"]], df_baseline["col1"].to_numpy())
 
         sd = SmartDrift(df_current=df_current, df_baseline=df_baseline, deployed_model=regressor)
 

@@ -1,23 +1,24 @@
-"""
-Report generation helper module.
-"""
+"""Report generation helper module."""
+
+from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import panel as pn
 from plotly.graph_objects import Violin
 from shapash.explainer.smart_explainer import SmartExplainer
 
-from eurybia import SmartDrift
+if TYPE_CHECKING:
+    from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 from eurybia.report.properties import report_css, report_jscallback, report_text, select_callback
 
 pn.extension("plotly")
 
 
-def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Optional[dict]) -> pn.Column:
+def get_index_panel(dr: DriftReport, project_info_file: str, config_report: dict | None) -> pn.Column:
     parts = []
     header_logo = pn.pane.PNG(
         "https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true",
@@ -72,19 +73,21 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Opti
 
 
 def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
-    """
-    This function recursively explores the dict and returns a Panel Column containing
+    """This function recursively explores the dict and returns a Panel Column containing
     other groups and text blocks fed with the dict
+
     Parameters
     ----------
     text_dict: dict
         This dict must contain string as keys, and dicts or strings as values
     level: int = 1
         Recursion level, starting at 1 to allow for direct string manipulation
+
     Returns
-    ----------
+    -------
     pn.Column
         Column of blocks
+
     """
     blocks = []
     text = ""
@@ -105,7 +108,7 @@ def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
     return pn.Column(*blocks)
 
 
-def get_project_information_panel(dr: DriftReport) -> Optional[pn.Column]:
+def get_project_information_panel(dr: DriftReport) -> pn.Column | None:
     if dr.metadata is None:
         return None
     blocks = dict_to_text_blocks(dr.metadata)
@@ -297,8 +300,7 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
 
 
 def get_model_drift_panel(dr: DriftReport) -> pn.Column:
-    """
-    This function generates and returns a Panel Column page containing the Eurybia model drift analysis
+    """This function generates and returns a Panel Column page containing the Eurybia model drift analysis
 
     Parameters
     ----------
@@ -306,10 +308,10 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
         DriftReport object
 
     Returns
-    ----------
+    -------
     pn.Column
-    """
 
+    """
     blocks = [
         pn.pane.Markdown("# Model drift"),
         pn.pane.Markdown(report_text["Model drift"]["01"]),
@@ -336,10 +338,9 @@ def execute_report(
     explainer: SmartExplainer,
     project_info_file: str,
     output_file: str,
-    config_report: Optional[dict] = {},
+    config_report: dict | None = {},
 ) -> None:
-    """
-    Creates the report
+    """Creates the report
 
     Parameters
     ----------
@@ -353,6 +354,7 @@ def execute_report(
         Report configuration options.
     output_file : str
             Path to the HTML file to write
+
     """
     dr = DriftReport(
         smartdrift=smartdrift,

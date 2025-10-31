@@ -1,6 +1,4 @@
-"""
-- SmartDrift module
-"""
+"""SmartDrift module"""
 
 import copy
 import datetime
@@ -19,6 +17,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
 from eurybia.core.smartplotter import SmartPlotter
+from eurybia.report.generation import execute_report
 from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
@@ -30,11 +29,10 @@ logging.getLogger("blib2to3").setLevel(logging.WARNING)
 
 
 class SmartDrift:
-    """
-    The SmartDrift class is the main object to compute drift in the Eurybia library
+    """The SmartDrift class is the main object to compute drift in the Eurybia library
     It allows to calculate data drift between 2 datasets using a data drift classification model
 
-    Attributes
+    Attributes:
     ----------
     df_current: pandas.DataFrame
         current (or production) dataset which is compared to df_baseline
@@ -93,29 +91,30 @@ class SmartDrift:
 
     How to declare a new SmartDrift object?
 
-    Example
-    --------
+    Example:
+    -------
     >>> SD = Smartdrift(df_current=df_production, df_baseline=df_learning)
 
     """
 
     @classmethod
     def load(cls, path):
-        """
-        The load() class method allows Eurybia users to use a pickled SmartDrift.
+        """The load() class method allows Eurybia users to use a pickled SmartDrift.
 
         Parameters
         ----------
         path : str
             File path of the pickle file.
+
         Returns
-        ----------
+        -------
         SmartDrift
             SmartDrift instance loaded with the pickle given as "path"
         Example
         --------
         >>> from eurybia import SmartDrift
         >>> SmartDrift.load('path_to_pkl/smardrift.pkl')
+
         """
         dict_to_load = load_pickle(path)
         sd = cls()
@@ -143,8 +142,7 @@ class SmartDrift:
         palette_name="eurybia",
         colors_dict=None,
     ):
-        """
-        Parameters
+        """Parameters
         ----------
         df_current: pandas.DataFrame
             current (or production) dataset which is compared to df_baseline
@@ -163,10 +161,10 @@ class SmartDrift:
 
         How to declare a new SmartDrift object ?
 
-        Example
-        --------
-
+        Example:
+        -------
         >>> SD = Smartdrift(df_current=df_production, df_baseline=df_learning)
+
         """
         self.df_current = df_current
         self.df_baseline = df_baseline
@@ -198,7 +196,7 @@ class SmartDrift:
     def compile(
         self,
         full_validation=False,
-        ignore_cols: list = None,
+        ignore_cols: list[str] | None = None,
         sampling=True,
         sample_size=100000,
         datadrift_file=None,
@@ -206,8 +204,7 @@ class SmartDrift:
         hyperparameter: dict = catboost_hyperparameter_init.copy(),
         attr_importance="feature_importances_",
     ):
-        r"""
-        The compile method is the first step to compute data drift.
+        r"""The compile method is the first step to compute data drift.
         It allows to calculate data drift between 2 datasets using a data drift classification model.
         Most of the parameters are optional but helps to adapt the data drift calculation if necessary.
         This step can last a few moments with large datasets.
@@ -223,13 +220,15 @@ class SmartDrift:
         sample_size: int, optional
             the size of the sample to build
         date_compile_auc: str (optional)
-            format dd/mm/yyyy use for specify date of compute drift, useful when compute few time drift for different time at the same moment
+            format dd/mm/yyyy use for specify date of compute drift, useful when compute few time drift
+            for different time at the same moment
         hyperparameter: dict, optional
             if user want to modify catboost hyperparameter
         attr_importance: string, optional (default: "feature_importances\_")
             Attribute "feature_importance" of the deployed_model
         datadrift_file : str, optional
-            Name of the csv file that contains the performance history of data drift. If no datadrift file is given, the drift will not be logged
+            Name of the csv file that contains the performance history of data drift. If no datadrift file is given,
+            the drift will not be logged
 
         Examples
         --------
@@ -255,7 +254,7 @@ class SmartDrift:
         # Checking datasets
         self._check_dataset(ignore_cols)
         # Consistency analysis
-        pb_cols, err_mods = self._analyze_consistency(full_validation, ignore_cols)
+        pb_cols, err_mods = self._analyze_consistency(full_validation=full_validation, ignore_cols=ignore_cols)
 
         # Adding results to ignored columns
         ignore_cols = list(set(ignore_cols + [item for sublist in [pb_cols[sl] for sl in pb_cols] for item in sublist]))
@@ -344,8 +343,7 @@ class SmartDrift:
     def generate_report(
         self, output_file, project_info_file=None, title_story="Drift Report", title_description="", working_dir=None
     ):
-        """
-        This method will generate an HTML report containing different information about the project.
+        """This method will generate an HTML report containing different information about the project.
         It allows the information compiled to be rendered.
         It can be associated with a project info yml file on which can figure different information about the project.
 
@@ -360,9 +358,10 @@ class SmartDrift:
         title_description : str, optional
             Report title description (as written just below the title)
         working_dir : str, optional
-            Working directory in which will be generated the notebook used to create the report and where the objects used to execute it will
-            be saved. This parameter can be usefull if one wants to create its own custom report and debug the notebook used to generate
-            the html report. If None, a temporary directory will be used
+            Working directory in which will be generated the notebook used to create the report and
+            where the objects used to execute it will
+            be saved. This parameter can be usefull if one wants to create its own custom report and
+            debug the notebook used to generate the html report. If None, a temporary directory will be used
 
         Examples
         --------
@@ -372,9 +371,8 @@ class SmartDrift:
                 title_story="Drift project report",
                 title_description="This document is a drift report of the score in production"
             )
-        """
-        from eurybia.report.generation import execute_report
 
+        """
         rm_working_dir = False
         if not working_dir:
             working_dir = tempfile.mkdtemp()
@@ -393,8 +391,7 @@ class SmartDrift:
                 shutil.rmtree(working_dir)
 
     def _check_dataset(self, ignore_cols: list = list()):
-        """
-        Method to check if datasets are correct before to be analysed and if
+        """Method to check if datasets are correct before to be analysed and if
         it's not, try to modify them and informs the user. In worse case raise
         an error.
 
@@ -404,13 +401,14 @@ class SmartDrift:
             If True, analyze consistency on modalities between columns
         ignore_cols: list, optional
             list of feature to ignore in compute
-        """
 
+        """
         if len([column for column in self.df_current.columns if is_datetime(self.df_current[column])]) > 0:
             if self.deployed_model is None:
                 for col in [column for column in self.df_current.columns if is_datetime(self.df_current[column])]:
                     print(
-                        f"""Column {col} will be dropped and transformed in df_current by : {col}_year, {col}_month, {col}_day"""
+                        f"""Column {col} will be dropped and transformed in df_current by : """
+                        f"""{col}_year, {col}_month, {col}_day"""
                     )
                 self.df_current = convert_date_col_into_multiple_col(self.df_current)
             else:
@@ -420,15 +418,15 @@ class SmartDrift:
             if self.deployed_model is None:
                 for col in [column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]:
                     print(
-                        f"""Column {col} will be dropped and transformed in df_baseline by : {col}_year, {col}_month, {col}_day"""
+                        f"""Column {col} will be dropped and transformed in df_baseline by : """
+                        f"""{col}_year, {col}_month, {col}_day"""
                     )
                 self.df_baseline = convert_date_col_into_multiple_col(self.df_baseline)
             else:
                 raise TypeError("df_baseline have datetime column. You should drop it")
 
-    def _analyze_consistency(self, full_validation=False, ignore_cols: list = list()):
-        """
-        method to analyse consistency between the 2 datasets, in terms of columns and modalities
+    def _analyze_consistency(self, ignore_cols: list, full_validation: bool = False):
+        """Method to analyse consistency between the 2 datasets, in terms of columns and modalities
 
         Parameters
         ----------
@@ -436,6 +434,7 @@ class SmartDrift:
             If True, analyze consistency on modalities between columns
         ignore_cols: list, optional
             list of feature to ignore in compute
+
         """
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
@@ -490,8 +489,7 @@ class SmartDrift:
         return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
     def _predict(self, deployed_model=None, encoding=None):
-        """
-        Create an attributes df_predict with the computed score on both datasets
+        """Create an attributes df_predict with the computed score on both datasets
 
         Parameters
         ----------
@@ -499,10 +497,12 @@ class SmartDrift:
             model in production used to put in perspective drift and to predict
         encoding : preprocessing object, optional (default: None)
             Preprocessing used before the training step
+
         Returns
         -------
         pandas.DataFrame, None
             DataFrame with predicted score for both datasets
+
         """
         if deployed_model is None:
             return None
@@ -554,8 +554,7 @@ class SmartDrift:
         ).reset_index(drop=True)
 
     def _feature_importance(self, deployed_model=None, attr_importance="feature_importances_"):
-        """
-        Create an attributes feature_importance with the computed score on both datasets
+        """Create an attributes feature_importance with the computed score on both datasets
 
         Parameters
         ----------
@@ -563,11 +562,13 @@ class SmartDrift:
             model in production used to put in perspective drift and to predict
         attr_importance : string, optional (default: "feature_importances_")
             Attribute "feature_importance" of the deployed_model
+
         Returns
         -------
         pandas.DataFrame, None
             DataFrame with feature importance from production model
             and drift model.
+
         """
         if deployed_model is None:
             return None
@@ -602,8 +603,7 @@ class SmartDrift:
         return feature_importance
 
     def _sampling(self, sampling, sample_size, dataset):
-        """
-        Return a sampling from the original dataframe
+        """Return a sampling from the original dataframe
 
         Parameters
         ----------
@@ -613,10 +613,12 @@ class SmartDrift:
             the size of the sample to build
         df : pd.DataFrame
             The Dataframe to apply sampling
+
         Returns
         -------
         pandas.DataFrame
             a sample of the original DataFrame or the original DataFrame
+
         """
         if sampling:
             if dataset.shape[0] > sample_size:
@@ -627,19 +629,21 @@ class SmartDrift:
             return dataset
 
     def _histo_datadrift_metric(self, datadrift_file=None, date_compile_auc=None):
-        """
-        Method which computes datadrift metrics (AUC, and Jensen Shannon prediction divergence if the deployed_model is filled in)
-        and append it into a dataframe that will be exported during the generate_report method
+        """Method which computes datadrift metrics (AUC, and Jensen Shannon prediction divergence if the deployed_model
+        is filled in) and append it into a dataframe that will be exported during the generate_report method
 
         Parameters
         ----------
         datadrift_file : str, (optional)
         date_compile_auc: str (optional)
-            format dd/mm/yyyy use for specify date of compute drift, useful when compute few time drift for different time at the same moment
+            format dd/mm/yyyy use for specify date of compute drift, useful when compute few time drift
+            for different time at the same moment
+
         Returns
         -------
         pandas.DataFrame or None
         Dataframe with dates, AUC and Jensen Shannon prediction divergence computed at this date
+
         """
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
@@ -696,8 +700,7 @@ class SmartDrift:
     def add_data_modeldrift(
         self, dataset, metric="performance", reference_columns=[], year_col="annee", month_col="mois"
     ):
-        """
-        When method drift is specified, It will display in the report
+        """When method drift is specified, It will display in the report
         the several plots from a dataframe to analyse drift model from the deployed model.
         Each plot will represent one possible computed metric according
         to its groups. (grouped by date(year-month), reference_columns).
@@ -714,6 +717,7 @@ class SmartDrift:
             The column name of the year where the metric has been computed
         month_col: str, (default: 'mois')
             The column name of the month where the metric has been computed
+
         """
         try:
             df_modeldrift = dataset.copy()
@@ -738,8 +742,7 @@ class SmartDrift:
             )
 
     def _compute_datadrift_stat_test(self, max_size=50000, categ_max=20):
-        """
-        calculates all statistical tests to analyze the drift of each feature
+        """Calculates all statistical tests to analyze the drift of each feature
 
         Parameters
         ----------
@@ -753,6 +756,7 @@ class SmartDrift:
         dict :
             keys - features
             values - dict containing testname, statistic, pvalue
+
         """
         # sampling
         baseline = self.df_baseline.sample(n=max_size) if self.df_baseline.shape[0] > max_size else self.df_baseline
@@ -779,8 +783,7 @@ class SmartDrift:
         return pd.DataFrame.from_dict(test_results, orient="index")
 
     def define_style(self, palette_name=None, colors_dict=None):
-        """
-        the define_style function is a function that uses a palette or a dict
+        """The define_style function is a function that uses a palette or a dict
         to define the different styles used in the different outputs
         of eurybia
 
@@ -790,6 +793,7 @@ class SmartDrift:
             Name of the palette used for the colors of the report (refer to style folder).
         colors_dict: dict
             Dict of the colors used in the different plots
+
         """
         if palette_name is None and colors_dict is None:
             raise ValueError("At least one of palette_name or colors_dict parameters must be defined")
@@ -802,8 +806,7 @@ class SmartDrift:
         self.xpl.define_style(colors_dict=self.colors_dict)
 
     def save(self, path):
-        """
-        Save method allows user to save SmartDrift object on disk
+        """Save method allows user to save SmartDrift object on disk
         using a pickle file.
         Save method can be useful: you don't have to recompile to display
         results later
@@ -816,6 +819,7 @@ class SmartDrift:
         Example
         --------
         >>> smartdrift.save('path_to_pkl/smartdrift.pkl')
+
         """
         dict_to_save = {}
         for att in self.__dict__.keys():

@@ -1,8 +1,4 @@
-"""
-data analysis module used to compute added analysis on report
-"""
-
-from typing import Optional
+"""data analysis module used to compute added analysis on report"""
 
 import pandas as pd
 
@@ -10,18 +6,20 @@ from eurybia.report.common import VarType, display_value, replace_dict_values
 from eurybia.utils.utils import round_to_k
 
 
-def perform_global_dataframe_analysis(df: Optional[pd.DataFrame]) -> dict:
-    """
-    Returns a python dict containing global information about a pandas DataFrame :
+def perform_global_dataframe_analysis(df: pd.DataFrame | None) -> dict:
+    """Returns a python dict containing global information about a pandas DataFrame :
     Number of features, Number of observations, missing values...
+
     Parameters
     ----------
     df : pd.DataFrame
         The dataframe that will be used to compute global information.
+
     Returns
     -------
     global_d : dict
         dictionary that contains an ensemble of global information about the input dataframe.
+
     """
     if df is None:
         return dict()
@@ -33,32 +31,34 @@ def perform_global_dataframe_analysis(df: Optional[pd.DataFrame]) -> dict:
         "% missing values": missing_values / (df.shape[0] * df.shape[1]),
     }
 
-    for stat in global_d.keys():
+    for stat, val in global_d.items():
         if stat == "number of observations":
-            global_d[stat] = int(global_d[stat])  # Keeping the exact number
-        elif isinstance(global_d[stat], float):
-            global_d[stat] = round_to_k(global_d[stat], 3)
+            global_d[stat] = int(val)  # Keeping the exact number
+        elif isinstance(val, float):
+            global_d[stat] = round_to_k(val, 3)
 
     replace_dict_values(global_d, display_value, ",", ".")
 
     return global_d
 
 
-def perform_univariate_dataframe_analysis(df: Optional[pd.DataFrame], col_types: dict) -> dict:
-    """
-    Returns a python dict containing information about each column of a pandas DataFrame.
+def perform_univariate_dataframe_analysis(df: pd.DataFrame | None, col_types: dict) -> dict:
+    """Returns a python dict containing information about each column of a pandas DataFrame.
     The computed information depends on the type of the column.
+
     Parameters
     ----------
     df : pd.DataFrame
         The dataframe on which the analysis will be performed
     col_types : dict
         Dict of types for each column
+
     Returns
     -------
     d : dict
         A dict containing each column as keys and the corresponding
         dict of information for each column as values.
+
     """
     if df is None:
         return dict()

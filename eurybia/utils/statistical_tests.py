@@ -1,6 +1,4 @@
-"""
-Statistical test functions
-"""
+"""Statistical test functions"""
 
 import numpy as np
 import pandas as pd
@@ -9,8 +7,7 @@ from scipy import stats
 
 
 def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
-    """
-    Returns a dict containing testname, statistic, pvalue of the ks test
+    """Returns a dict containing testname, statistic, pvalue of the ks test
 
     Parameters
     ----------
@@ -23,6 +20,7 @@ def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
     -------
     dict :
         3 keys : testname, statistic, pvalue
+
     """
     test_result = stats.ks_2samp(obs_a, obs_b)
     output = {"testname": "K-Smirnov", "statistic": test_result.statistic, "pvalue": test_result.pvalue}
@@ -30,8 +28,7 @@ def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
 
 
 def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
-    """
-    Returns a dict containing testname, statistic, pvalue of the chisquare test
+    """Returns a dict containing testname, statistic, pvalue of the chisquare test
 
     Parameters
     ----------
@@ -44,6 +41,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     -------
     dict :
         3 keys : testname, statistic, pvalue
+
     """
     uniq_a, freq_a = np.unique(obs_a, return_counts=True)
     freq_a_df = pd.DataFrame(freq_a, index=uniq_a, columns=["a"])
@@ -60,8 +58,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
 
 
 def prob_mass_fun(data, n, range):
-    """
-    Computing the probability mass function using NumPy’s histogram.
+    """Computing the probability mass function using NumPy’s histogram.
 
     Parameters
     ----------
@@ -71,6 +68,7 @@ def prob_mass_fun(data, n, range):
         The number of equal-width bins in the given range.
     range: tuple
         The lower and upper range of the bins.
+
     Returns
     -------
     e, Return the bin edges (length= n+1).
@@ -83,8 +81,7 @@ def prob_mass_fun(data, n, range):
 
 
 def compute_js_divergence(df_1, df_2, n_bins=30):
-    """
-    Computing the Jensen-Shannon divergence between 2 dataframe
+    """Computing the Jensen-Shannon divergence between 2 dataframe
 
     Parameters
     ----------
@@ -94,10 +91,12 @@ def compute_js_divergence(df_1, df_2, n_bins=30):
         Series to compare
     n_bins: int
         The number of equal-width bins in the given range
+
     Returns
     -------
     jensenshannon(p, q) : score between 0 (The two score distributions are identical)
     and 1 (The two score distributions maximally different).
+
     """
     a = np.concatenate((df_1, df_2), axis=0)
     e, p = prob_mass_fun(df_1, n=n_bins, range=(a.min(), a.max()))

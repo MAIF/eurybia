@@ -1,3 +1,5 @@
+"""Module used to group static assets needed for the report generation"""
+
 from typing import Any
 
 report_text: dict[str, Any] = {

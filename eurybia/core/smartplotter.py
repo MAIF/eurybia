@@ -1,11 +1,6 @@
-"""
-Smart plotter module
-"""
+"""Smart plotter module"""
 
 import copy
-
-# ----- Eurybia packages
-from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,13 +17,12 @@ from eurybia.style.style_utils import colors_loading, define_style, select_palet
 
 
 class SmartPlotter:
-    """
-    The smartplotter class includes all the methods used to display graphics
+    """The smartplotter class includes all the methods used to display graphics
 
     Each SmartPlotter method is easy to use from a Smart Drift object,
     just use the following syntax
 
-    Attributes
+    Attributes:
     ----------
     smartdrift: object
         SmartDrift object
@@ -36,8 +30,9 @@ class SmartPlotter:
         Name of the palette used for the colors of the report (refer to style folder).
     _style_dict: dict
             Dict contains dicts of the colors used in the different plots
-    Example
-    --------
+
+    Example:
+    -------
     >>> SD = Smartdrift()
     >>> SD.compile()
     >>> SD.plot.my_plot_method(param=value)
@@ -52,12 +47,11 @@ class SmartPlotter:
     def generate_fig_univariate(
         self,
         col: str,
-        hue: Optional[str] = None,
-        df_all: Optional[pd.DataFrame] = None,
-        dict_color_palette: Optional[dict] = None,
+        hue: str | None = None,
+        df_all: pd.DataFrame | None = None,
+        dict_color_palette: dict | None = None,
     ) -> plt.Figure:
-        """
-        Returns a plotly figure containing the distribution of any kind of feature
+        """Returns a plotly figure containing the distribution of any kind of feature
         (continuous, categorical).
 
         If the feature is categorical and contains too many categories, the smallest
@@ -81,6 +75,7 @@ class SmartPlotter:
         Returns
         -------
         plotly.graph_objs._figure.Figure
+
         """
         if hue is None:
             hue = self.smartdrift._datadrift_target
@@ -105,17 +100,16 @@ class SmartPlotter:
         col: str,
         hue: str,
         dict_color_palette: dict,
-        template: Optional[str] = None,
-        title: Optional[str] = None,
-        xaxis_title: Optional[dict] = None,
-        yaxis_title: Optional[dict] = None,
-        xaxis: Optional[str] = None,
-        height: Optional[str] = None,
-        width: Optional[str] = None,
-        hovermode: Optional[str] = None,
+        template: str | None = None,
+        title: str | None = None,
+        xaxis_title: dict | None = None,
+        yaxis_title: dict | None = None,
+        xaxis: str | None = None,
+        height: str | None = None,
+        width: str | None = None,
+        hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Returns a plotly figure containing the distribution of a continuous feature.
+        """Returns a plotly figure containing the distribution of a continuous feature.
 
         Parameters
         ----------
@@ -141,9 +135,11 @@ class SmartPlotter:
             Width of the plot
         hovermode: str,n , optional
             Type of labels displaying on mouse hovering
+
         Returns
         -------
         plotly.graph_objs._figure.Figure
+
         """
         df_all[col] = df_all[col].fillna(0)
         datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
@@ -201,18 +197,17 @@ class SmartPlotter:
         hue: str,
         dict_color_palette: dict,
         nb_cat_max: int = 15,
-        template: Optional[str] = None,
-        title: Optional[str] = None,
-        xaxis_title: Optional[dict] = None,
-        yaxis_title: Optional[dict] = None,
-        xaxis: Optional[str] = None,
-        height: Optional[str] = None,
-        width: Optional[str] = None,
-        hovermode: Optional[str] = None,
-        legend: Optional[str] = None,
+        template: str | None = None,
+        title: str | None = None,
+        xaxis_title: dict | None = None,
+        yaxis_title: dict | None = None,
+        xaxis: str | None = None,
+        height: str | None = None,
+        width: str | None = None,
+        hovermode: str | None = None,
+        legend: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Returns a plotly figure containing the distribution of a categorical feature.
+        """Returns a plotly figure containing the distribution of a categorical feature.
 
         If the feature is categorical and contains too many categories, the smallest
         categories are grouped into a new 'Other' category so that the graph remains
@@ -248,9 +243,11 @@ class SmartPlotter:
             Type of labels displaying on mouse hovering
         legend: str, optional
             Axis legends
+
         Returns
         -------
         plotly.graph_objs._figure.Figure
+
         """
         df_cat = df_all.groupby([col, hue]).agg({col: "count"}).rename(columns={col: "count"}).reset_index()
         df_cat["Percent"] = df_cat["count"] * 100 / df_cat.groupby(hue)["count"].transform("sum")
@@ -340,8 +337,7 @@ class SmartPlotter:
         return fig
 
     def _merge_small_categories(self, df_cat: pd.DataFrame, col: str, hue: str, nb_cat_max: int) -> pd.DataFrame:
-        """
-        Merges categories of column 'col' of df_cat into 'Other' category so that
+        """Merges categories of column 'col' of df_cat into 'Other' category so that
         the number of categories is less than nb_cat_max.
         """
         df_cat_sum_hue = df_cat.groupby([col]).agg({"count": "sum"}).reset_index()
@@ -355,8 +351,7 @@ class SmartPlotter:
     def scatter_feature_importance(
         self, feature_importance: pd.DataFrame = None, datadrift_stat_test: pd.DataFrame = None
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Displays scatter of feature importance between drift
+        """Displays scatter of feature importance between drift
         model and production one extracted from a datasets created
         during the compile step.
 
@@ -366,9 +361,11 @@ class SmartPlotter:
             DataFrame containing feature importance for each features from production and drift model.
         datadrift_stat_test: pd.DataFrame, optional
             DataFrame containing the result of datadrift univariate tests
+
         Returns
         -------
         plotly.express.scatter
+
         """
         dict_t = copy.deepcopy(self._style_dict["dict_title"])
         dict_xaxis = copy.deepcopy(self._style_dict["dict_xaxis_title"])
@@ -388,14 +385,15 @@ class SmartPlotter:
         # symbols
         stat_test_list = list(data["testname"].unique())
         symbol_list = [0, 13]
-        symbol_dict = dict(zip(stat_test_list, symbol_list))
+        symbol_dict = dict(zip(stat_test_list, symbol_list, strict=True))
 
         hv_text = [
-            f"<b>Feature: {feat}</b><br />Deployed Model Importance: {depimp*100:.1f}%<br />"
+            f"<b>Feature: {feat}</b><br />Deployed Model Importance: {depimp * 100:.1f}%<br />"
             + f"Datadrift test: {t} - pvalue: {pv:.5f}<br />"
-            + f"Datadrift model Importance: {ddrimp*100:.1f}"
+            + f"Datadrift model Importance: {ddrimp * 100:.1f}"
             for feat, depimp, t, pv, ddrimp in zip(
-                *map(data.get, ["features", "deployed_model", "testname", "pvalue", "datadrift_classifier"])
+                *map(data.get, ["features", "deployed_model", "testname", "pvalue", "datadrift_classifier"]),
+                strict=True,
             )
         ]
 
@@ -439,18 +437,18 @@ class SmartPlotter:
     def generate_historical_datadrift_metric(
         self,
         datadrift_historical: pd.DataFrame = None,
-        template: Optional[str] = None,
-        title: Optional[str] = None,
-        xaxis_title: Optional[str] = None,
-        yaxis_title: Optional[str] = None,
-        xaxis: Optional[str] = None,
-        height: Optional[str] = None,
-        width: Optional[str] = None,
-        hovermode: Optional[str] = None,
+        template: str | None = None,
+        title: str | None = None,
+        xaxis_title: str | None = None,
+        yaxis_title: str | None = None,
+        xaxis: str | None = None,
+        height: str | None = None,
+        width: str | None = None,
+        hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Displays line plot of the evolution of the datadrift metrics :
+        """Displays line plot of the evolution of the datadrift metrics :
         AUC of Datadrift classifier and if deployed_model fill, Jensen Shannon divergence of distribution of prediction
+
         Parameters
         ----------
         datadrift_historical : pd.DataFrame
@@ -471,9 +469,11 @@ class SmartPlotter:
             Width of the plot
         hovermode: str, optional
             Type of labels displaying on mouse hovering
+
         Returns
         -------
         plotly.express.line
+
         """
         if datadrift_historical is None:
             datadrift_historical = self.smartdrift.historical_auc
@@ -556,17 +556,16 @@ class SmartPlotter:
         data_modeldrift: pd.DataFrame = None,
         metric: str = "performance",
         reference_columns: list = list(),
-        template: Optional[str] = None,
-        title: Optional[str] = None,
-        xaxis_title: Optional[str] = None,
-        yaxis_title: Optional[dict] = None,
-        xaxis: Optional[str] = None,
-        height: Optional[str] = None,
-        width: Optional[str] = None,
-        hovermode: Optional[str] = None,
+        template: str | None = None,
+        title: str | None = None,
+        xaxis_title: str | None = None,
+        yaxis_title: dict | None = None,
+        xaxis: str | None = None,
+        height: str | None = None,
+        width: str | None = None,
+        hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Displays line plot of the evolution of the Lift computed for deployed model with several criterias.
+        """Displays line plot of the evolution of the Lift computed for deployed model with several criterias.
 
         Parameters
         ----------
@@ -590,9 +589,11 @@ class SmartPlotter:
             Width of the plot
         hovermode: str, optional
             Type of labels displaying on mouse hovering
+
         Returns
         -------
         plotly.express.line
+
         """
         if data_modeldrift is None:
             data_modeldrift = self.smartdrift.data_modeldrift
@@ -649,12 +650,13 @@ class SmartPlotter:
         return fig
 
     def define_style_attributes(self, colors_dict):
-        """
-        define_style_attributes allows Eurybia user to change the color of plot
+        """define_style_attributes allows Eurybia user to change the color of plot
+
         Parameters
         ----------
         colors_dict: dict
             Dict of the colors used in the different plots
+
         """
         self._style_dict = define_style(colors_dict)
 
@@ -666,12 +668,12 @@ class SmartPlotter:
         fig_value: float,
         min_gauge: float = 0.5,
         max_gauge: float = 1,
-        height: Optional[float] = 300,
-        width: Optional[float] = 500,
-        title: Optional[str] = "Metric",
+        height: float | None = 300,
+        width: float | None = 500,
+        title: str | None = "Metric",
     ) -> plotly.graph_objs._figure.Figure:
-        """
-        Displays an indicator in a colorbar
+        """Displays an indicator in a colorbar
+
         Parameters
         ----------
         fig_value: float
@@ -686,6 +688,7 @@ class SmartPlotter:
             Width of the plot
         title: str, optional
             Plot title
+
         """
         color = sns.blend_palette(["green", "yellow", "orange", "red"], 100)
         color = color.as_hex()

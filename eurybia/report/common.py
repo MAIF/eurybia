@@ -1,11 +1,11 @@
-"""
-Common functions used in report
-"""
+"""Common functions used in report"""
 
+import builtins
 import os
+from collections.abc import Callable
 from enum import Enum
+from importlib import import_module
 from numbers import Number
-from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
 
@@ -14,9 +14,7 @@ from pandas.api.types import infer_dtype, is_numeric_dtype
 
 
 class VarType(Enum):
-    """
-    Helper class to indicate the type of a variable.
-    """
+    """Helper class to indicate the type of a variable."""
 
     TYPE_CAT = "Categorical"
     TYPE_NUM = "Numeric"
@@ -27,8 +25,8 @@ class VarType(Enum):
 
 
 def display_value(value: float, thousands_separator: str = ",", decimal_separator: str = ".") -> str:
-    """
-    Display a value as a string with specific format.
+    """Display a value as a string with specific format.
+
     Parameters
     ----------
     value : float
@@ -37,28 +35,33 @@ def display_value(value: float, thousands_separator: str = ",", decimal_separato
         The separator used to separate thousands.
     decimal_separator : str
         The separator used to separate decimal values.
+
     Returns
     -------
     str
+
     Examples
     --------
     >>> display_value(1255000, thousands_separator=',')
     '1,255,000'
+
     """
     value_str = f"{value:,}".replace(",", "/thousands/").replace(".", "/decimal/")
     return value_str.replace("/thousands/", thousands_separator).replace("/decimal/", decimal_separator)
 
 
-def replace_dict_values(obj: Dict, replace_fn: Callable, *args) -> dict:
-    """
-    Recursively iterates over all values of obj and changes its values using the replace_fn
+def replace_dict_values(obj: dict, replace_fn: Callable, *args) -> dict:
+    """Recursively iterates over all values of obj and changes its values using the replace_fn
+
     Parameters
     ----------
     obj : dict
     replace_fn : callable
+
     Returns
     -------
     dict
+
     """
     for k, value in obj.items():
         if isinstance(value, dict):
@@ -69,15 +72,17 @@ def replace_dict_values(obj: Dict, replace_fn: Callable, *args) -> dict:
 
 
 def series_dtype(s: pd.Series) -> VarType:
-    """
-    Computes the type of a pandas series.
+    """Computes the type of a pandas series.
+
     Parameters
     ----------
     s : pd.Series
         The series for which we wish to determine the type.
+
     Returns
     -------
     VarType
+
     """
     if infer_dtype(s) == "boolean":
         return VarType.TYPE_CAT
@@ -95,15 +100,17 @@ def series_dtype(s: pd.Series) -> VarType:
 
 
 def numeric_is_continuous(s: pd.Series):
-    """
-    Function that returns True if a
+    """Function that returns True if a
     numeric pandas series is continuous and False if it is categorical.
+
     Parameters
     ----------
     s : pd.Series
+
     Returns
     -------
     bool
+
     """
     # This test could probably be improved
     n_unique = s.nunique()
@@ -111,14 +118,11 @@ def numeric_is_continuous(s: pd.Series):
 
 
 def get_callable(path: str):
-    """
-    This function is similar to the _locate function in Hydra library
+    """This function is similar to the _locate function in Hydra library
     Locate an object by name or dotted path, importing as necessary.
     """
     if path == "":
         raise ImportError("Empty path")
-    import builtins
-    from importlib import import_module
 
     parts = [part for part in path.split(".") if part]
     module = None
@@ -155,32 +159,36 @@ def get_callable(path: str):
         raise ValueError(f"Invalid type ({type(obj)}) found for {path}")
 
 
-def compute_col_types(df_all: Optional[pd.DataFrame]) -> Dict:
-    """
-    Computes the type of each column and stores the result in a dict.
+def compute_col_types(df_all: pd.DataFrame | None) -> dict:
+    """Computes the type of each column and stores the result in a dict.
+
     Parameters
     ----------
     df_all : pd.DataFrame, optional
+
     Returns
     -------
     col_types : dict
         The types of each column
+
     """
     if df_all is None:
         return {}
     return {col: series_dtype(df_all[col]) for col in df_all.columns}
 
 
-def load_saved_df(path: str) -> Union[pd.DataFrame, None]:
-    """
-    Loads a pandas DataFrame that was saved using pd.to_csv method.
+def load_saved_df(path: str) -> pd.DataFrame | None:
+    """Loads a pandas DataFrame that was saved using pd.to_csv method.
+
     Parameters
     ----------
     path : str
         Path to the dataframe object
+
     Returns
     -------
     pd.DataFrame or None
+
     """
     if os.path.exists(path):
         return pd.read_pickle(path)

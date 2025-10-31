@@ -1,21 +1,21 @@
-"""
-IO module
-"""
+"""IO module"""
 
 import pickle
 
 
 def load_yml(path):
-    """
-    Loads a yml file
+    """Loads a yml file
+
     Parameters
     ----------
     path : str
         File path where the yml file is stored.
+
     Returns
     -------
     dict_yaml : dict
         Python dict containing the parsed yml file.
+
     """
     if not isinstance(path, str):
         raise ValueError(
@@ -39,8 +39,8 @@ except (ImportError, ModuleNotFoundError):
 
 
 def save_pickle(obj, path, protocol=pickle.HIGHEST_PROTOCOL):
-    """
-    Save any python Object in pickle file
+    """Save any python Object in pickle file
+
     Parameters
     ----------
     obj : any Python Object
@@ -49,8 +49,8 @@ def save_pickle(obj, path, protocol=pickle.HIGHEST_PROTOCOL):
     protocol : int
         Int which indicates which protocol should be used by the pickler,
         default HIGHEST_PROTOCOL
-    """
 
+    """
     if not isinstance(path, str):
         raise ValueError(
             """
@@ -69,17 +69,18 @@ def save_pickle(obj, path, protocol=pickle.HIGHEST_PROTOCOL):
 
 
 def load_pickle(path):
-    """
-    load any pickle file
+    """Load any pickle file
+
     Parameters
     ----------
     path : str
         File path where the pickled object is stored.
+
     Returns
     -------
     object that pickle file contains
-    """
 
+    """
     if not isinstance(path, str):
         raise ValueError(
             """

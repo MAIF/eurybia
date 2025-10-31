@@ -1,6 +1,4 @@
-"""
-Detection Drift Model Module
-"""
+"""Detection Drift Model Module"""
 
 catboost_hyperparameter_type = {
     "max_depth": ["<class 'int'>"],
