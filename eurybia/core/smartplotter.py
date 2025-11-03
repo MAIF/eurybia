@@ -1,5 +1,12 @@
 """Smart plotter module"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from eurybia import SmartDrift
+
 import copy
 
 import matplotlib.pyplot as plt
@@ -39,7 +46,7 @@ class SmartPlotter:
 
     """
 
-    def __init__(self, smartdrift):
+    def __init__(self, smartdrift: SmartDrift):
         self._palette_name = list(colors_loading().keys())[0]
         self._style_dict = define_style(select_palette(colors_loading(), self._palette_name))
         self.smartdrift = smartdrift
@@ -81,6 +88,8 @@ class SmartPlotter:
             hue = self.smartdrift._datadrift_target
         if df_all is None:
             df_all = self.smartdrift._df_concat
+            if df_all is None:
+                raise RuntimeError("SmartDrift()._df_concat should not be None at this point.")
             df_all.loc[df_all[hue] == 0, hue] = list(self.smartdrift.dataset_names.keys())[1]
             df_all.loc[df_all[hue] == 1, hue] = list(self.smartdrift.dataset_names.keys())[0]
         if dict_color_palette is None:
@@ -99,7 +108,7 @@ class SmartPlotter:
         df_all: pd.DataFrame,
         col: str,
         hue: str,
-        dict_color_palette: dict,
+        dict_color_palette: dict,  # FIXME: unused
         template: str | None = None,
         title: str | None = None,
         xaxis_title: dict | None = None,
@@ -195,13 +204,13 @@ class SmartPlotter:
         df_all: pd.DataFrame,
         col: str,
         hue: str,
-        dict_color_palette: dict,
+        dict_color_palette: dict,  # FIXME: unused
         nb_cat_max: int = 15,
         template: str | None = None,
         title: str | None = None,
         xaxis_title: dict | None = None,
         yaxis_title: dict | None = None,
-        xaxis: str | None = None,
+        xaxis: str | None = None,  # FIXME: unused
         height: str | None = None,
         width: str | None = None,
         hovermode: str | None = None,
@@ -349,7 +358,7 @@ class SmartPlotter:
         return pd.concat([df_cat.loc[~df_cat[col].isin(list_cat_to_merge)], df_cat_other])
 
     def scatter_feature_importance(
-        self, feature_importance: pd.DataFrame = None, datadrift_stat_test: pd.DataFrame = None
+        self, feature_importance: pd.DataFrame | None = None, datadrift_stat_test: pd.DataFrame | None = None
     ) -> plotly.graph_objs._figure.Figure:
         """Displays scatter of feature importance between drift
         model and production one extracted from a datasets created
@@ -376,8 +385,12 @@ class SmartPlotter:
         dict_yaxis["text"] = "Feature Importance - Deployed Model"
 
         if feature_importance is None:
+            if self.smartdrift.feature_importance is None:
+                raise RuntimeError("SmartDrift().feature_importance should not be None at this point.")
             feature_importance = self.smartdrift.feature_importance.set_index("feature")
         if datadrift_stat_test is None:
+            if self.smartdrift.datadrift_stat_test is None:
+                raise RuntimeError("SmartDrift().datadrift_stat_test should not be None at this point.")
             datadrift_stat_test = self.smartdrift.datadrift_stat_test
 
         data = datadrift_stat_test.join(feature_importance)
@@ -440,8 +453,8 @@ class SmartPlotter:
         template: str | None = None,
         title: str | None = None,
         xaxis_title: str | None = None,
-        yaxis_title: str | None = None,
-        xaxis: str | None = None,
+        yaxis_title: str | None = None,  # FIXME: unused
+        xaxis: str | None = None,  # FIXME: unused
         height: str | None = None,
         width: str | None = None,
         hovermode: str | None = None,
@@ -560,7 +573,7 @@ class SmartPlotter:
         title: str | None = None,
         xaxis_title: str | None = None,
         yaxis_title: dict | None = None,
-        xaxis: str | None = None,
+        xaxis: str | None = None,  # FIXME: unused
         height: str | None = None,
         width: str | None = None,
         hovermode: str | None = None,
