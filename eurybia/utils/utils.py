@@ -39,13 +39,13 @@ def base_100(series: pd.Series) -> pd.Series:
     return series / tot
 
 
-def get_project_root():
+def get_project_root() -> Path:
     """Returns project root absolute path."""
     current_path = Path(__file__)
     return current_path.parent.parent.resolve()
 
 
-def truncate_str(text, maxlen=40):
+def truncate_str(text: str, maxlen: int = 40) -> str:
     """Truncate a string
 
     Parameters
@@ -76,7 +76,7 @@ def truncate_str(text, maxlen=40):
     return text
 
 
-def round_to_k(x, k):
+def round_to_k(x: float, k: int) -> float | int:
     """Round float to k significant figure
 
     Parameters

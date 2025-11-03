@@ -57,7 +57,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     return output
 
 
-def prob_mass_fun(data, n, range):
+def prob_mass_fun(data: pd.Series, n: int, range: tuple[float, float]) -> tuple[np.ndarray, np.ndarray]:
     """Computing the probability mass function using NumPy’s histogram.
 
     Parameters
@@ -80,7 +80,7 @@ def prob_mass_fun(data, n, range):
     return e, p
 
 
-def compute_js_divergence(df_1, df_2, n_bins=30):
+def compute_js_divergence(df_1: pd.DataFrame, df_2: pd.DataFrame, n_bins: int = 30) -> float:
     """Computing the Jensen-Shannon divergence between 2 dataframe
 
     Parameters

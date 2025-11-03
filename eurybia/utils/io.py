@@ -1,9 +1,10 @@
 """IO module"""
 
 import pickle
+from typing import Any
 
 
-def load_yml(path):
+def load_yml(path: str) -> dict:
     """Loads a yml file
 
     Parameters
@@ -33,12 +34,12 @@ def load_yml(path):
 try:
     import yaml
 
-    _is_yaml_available = True
+    _is_yaml_available = True  # FIXME: never used
 except (ImportError, ModuleNotFoundError):
     _is_yaml_available = False
 
 
-def save_pickle(obj, path, protocol=pickle.HIGHEST_PROTOCOL):
+def save_pickle(obj, path: str, protocol: int = pickle.HIGHEST_PROTOCOL) -> None:
     """Save any python Object in pickle file
 
     Parameters
@@ -68,7 +69,7 @@ def save_pickle(obj, path, protocol=pickle.HIGHEST_PROTOCOL):
         pickle.dump(obj, file, protocol=protocol)
 
 
-def load_pickle(path):
+def load_pickle(path: str) -> Any:
     """Load any pickle file
 
     Parameters
