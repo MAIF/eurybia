@@ -99,7 +99,7 @@ def series_dtype(s: pd.Series) -> VarType:
         return VarType.TYPE_UNSUPPORTED
 
 
-def numeric_is_continuous(s: pd.Series):
+def numeric_is_continuous(s: pd.Series) -> bool:
     """Function that returns True if a
     numeric pandas series is continuous and False if it is categorical.
 
@@ -117,7 +117,7 @@ def numeric_is_continuous(s: pd.Series):
     return True if n_unique > 15 else False
 
 
-def get_callable(path: str):
+def get_callable(path: str):  # FIXME: never used
     """This function is similar to the _locate function in Hydra library
     Locate an object by name or dotted path, importing as necessary.
     """
@@ -177,7 +177,7 @@ def compute_col_types(df_all: pd.DataFrame | None) -> dict:
     return {col: series_dtype(df_all[col]) for col in df_all.columns}
 
 
-def load_saved_df(path: str) -> pd.DataFrame | None:
+def load_saved_df(path: str) -> pd.DataFrame | None:  # FIXME: never used
     """Loads a pandas DataFrame that was saved using pd.to_csv method.
 
     Parameters

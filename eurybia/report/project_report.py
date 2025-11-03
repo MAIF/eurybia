@@ -199,8 +199,8 @@ class DriftReport:
         col_splitter: str,
         split_values: list,
         names: list,
-        group_id: str,
-    ):
+        group_id: str,  # FIXME: not used
+    ) -> tuple[list, list, list]:
         col_types = compute_col_types(df)
         n_splits = df[col_splitter].nunique()
         test_stats_univariate = perform_univariate_dataframe_analysis(
@@ -247,7 +247,7 @@ class DriftReport:
         else:
             return pd.DataFrame({names[0]: pd.Series(test_stats)})
 
-    def display_model_contribution(self):
+    def display_model_contribution(self) -> tuple[list, list]:
         """Displays explainability of the model as computed in SmartPlotter object"""
         multiclass = True if (self.explainer._classes and len(self.explainer._classes) > 2) else False
         c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
@@ -260,11 +260,11 @@ class DriftReport:
                 labels.append(feature)
         return plot_list, labels
 
-    def display_data_modeldrift(self):
+    def display_data_modeldrift(self) -> tuple[list, list]:
         """Display modeldrift computed metrics when method 'drift' is used"""
+        plot_list = []
+        labels = []
         if self.smartdrift.data_modeldrift is not None:
-            plot_list = []
-            labels = []
             # If you don't have reference_columns
             if self.smartdrift.data_modeldrift.iloc[:, 1:-1].shape[1] == 0:
                 reference_columns = list(self.smartdrift.data_modeldrift.iloc[:, 1:-1].columns)
