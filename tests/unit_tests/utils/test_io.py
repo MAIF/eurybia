@@ -1,6 +1,7 @@
 """
 Unit test io.py
 """
+
 import unittest
 from os import path
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 from eurybia.utils.io import load_yml, load_pickle, save_pickle
 import pytest
 import tempfile
+
 
 class Testio(unittest.TestCase):
     """
@@ -25,7 +27,6 @@ class Testio(unittest.TestCase):
             load_yml(path=0)
 
         load_yml(project_info_path)
-
 
     def test_save_pickle(self):
         with pytest.raises(ValueError):

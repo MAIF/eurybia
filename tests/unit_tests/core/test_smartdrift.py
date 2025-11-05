@@ -1,6 +1,7 @@
 """
 Unit tests for SmartDrift
 """
+
 import os
 import unittest
 from os import path

@@ -58,7 +58,6 @@ ignore_missing_imports = true
 [tool.ruff]
 line-length = 120
 exclude = [
-    "tests",
     "docs",
     "tutorial",
 ]

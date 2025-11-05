@@ -1,6 +1,7 @@
 """
 Unit tests for project_report.py
 """
+
 import os
 import unittest
 from os import path
