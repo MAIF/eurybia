@@ -1,12 +1,12 @@
 """SmartDrift module"""
 
 import copy
-import datetime
 import io
 import logging
 import pickle
 import shutil
 import tempfile
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +25,6 @@ from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyp
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
 from eurybia.utils.utils import base_100, convert_date_col_into_multiple_col
 
-logging.getLogger("papermill").setLevel(logging.WARNING)
 logging.getLogger("blib2to3").setLevel(logging.WARNING)
 
 
@@ -83,9 +82,6 @@ class SmartDrift:
         Name of the palette used for the colors of the report (refer to style folder).
     colors_dict: dict
             Dict of the colors used in the different plots
-    datadrift_file : str, optional
-            Name of the csv file that contains the performance history of data drift
-            If no datadrift file is given, the drift will not be logged
     js_divergence : float
         Jensen-Shannon divergence of probability distributions - ref:
         (https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence)
@@ -119,8 +115,8 @@ class SmartDrift:
         """
         dict_to_load = load_pickle(path)
         if isinstance(dict_to_load, dict):
-            df_current = dict_to_load["df_current"]
-            df_baseline = dict_to_load["df_baseline"]
+            df_current = dict_to_load["_df_current"]
+            df_baseline = dict_to_load["_df_baseline"]
             sd = cls(df_current, df_baseline)
 
             for attr, val in dict_to_load.items():
@@ -141,7 +137,7 @@ class SmartDrift:
         self,
         df_current: pd.DataFrame,
         df_baseline: pd.DataFrame,
-        dataset_names: dict[str, str] | None = None,
+        dataset_names: tuple[str, str] = ("Current", "Baseline"),
         deployed_model: Any | None = None,
         encoding: Any = None,
         palette_name: str = "eurybia",
@@ -153,8 +149,8 @@ class SmartDrift:
             current (or production) dataset which is compared to df_baseline
         df_baseline: pandas.DataFrame
             baseline (or learning) dataset which is compared to df_current
-        dataset_names : dict, (Optional)
-            Dictionnary used to specify dataset names to display in report.
+        dataset_names : tuple, (Optional)
+            Tuple used to specify dataset names to display in report (df_current_name, df_baseline_name).
         deployed_model: model object, optional
                 model in production used to put in perspective drift and to predict
         encoding: preprocessing object, optional (default: None)
@@ -171,35 +167,268 @@ class SmartDrift:
         >>> SD = Smartdrift(df_current=df_production, df_baseline=df_learning)
 
         """
-        self.df_current = df_current
-        self.df_baseline = df_baseline
-        self.xpl: SmartExplainer | None = None
-        self.df_predict: pd.DataFrame | None = None
-        self.feature_importance: pd.DataFrame | None = None
-        self.pb_cols: dict[str, list[str]] = dict()
-        self.err_mods: dict[str, dict] = dict()
-        self.auc: float | None = None
-        self.js_divergence: float | None = None
-        self.historical_auc: pd.DataFrame | None = None
-        self.data_modeldrift: pd.DataFrame | None = None
-        self.ignore_cols: list[str] = list()
-        self.datadrift_stat_test: pd.DataFrame | None = None
-        if dataset_names is None:
-            dataset_names = {"df_current": "Current dataset", "df_baseline": "Baseline dataset"}
-        elif "df_current" not in dataset_names.keys() or "df_baseline" not in dataset_names.keys():
-            raise ValueError("dataset_names must be a dictionnary with keys 'df_current' and 'df_baseline'")
-        self.dataset_names = pd.DataFrame(dataset_names, index=[0])
-        self._df_concat: pd.DataFrame | None = None
-        self._datadrift_target = "target"
-        self.plot = SmartPlotter(self)
-        self.deployed_model = deployed_model
-        self.encoding = encoding
+        self._df_current = df_current
+        self._df_baseline = df_baseline
+        self._dataset_names = dataset_names
+
+        # model drift
+        self._deployed_model = deployed_model
+        self._encoding = encoding
+
+        # report
         self.palette_name = palette_name
         self.colors_dict = copy.deepcopy(select_palette(colors_loading(), self.palette_name))
         if colors_dict is not None:
             self.colors_dict.update(colors_dict)
-        self.plot.define_style_attributes(colors_dict=self.colors_dict)
-        self.datadrift_file: str | None = None
+
+        # data drift
+        self._xpl: SmartExplainer
+        self._df_predict: pd.DataFrame
+        self._feature_importance: pd.DataFrame
+
+        self._pb_cols: dict[str, list[str]] = dict()
+        self._err_mods: dict[str, dict] = dict()
+
+        self._auc: float
+        self._js_divergence: float
+        self._historical_auc: pd.DataFrame
+        self._data_modeldrift: pd.DataFrame
+
+        self._ignore_cols: list[str] = list()  # generation
+        self._datadrift_stat_test: pd.DataFrame  # smartplotter
+        self._df_concat: pd.DataFrame  # smartplotter
+        self._datadrift_target: str = "target"  # constante
+
+        self._plot = SmartPlotter(self)
+        self._plot.define_style_attributes(colors_dict=self.colors_dict)
+
+    @property
+    def df_current(self) -> pd.DataFrame:
+        """getter"""
+        return self._df_current
+
+    @df_current.setter
+    def df_current(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_current must be a pandas DataFrame")
+        self._df_current = val
+
+    @property
+    def df_baseline(self) -> pd.DataFrame:
+        """getter"""
+        return self._df_baseline
+
+    @df_baseline.setter
+    def df_baseline(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_baseline must be a pandas DataFrame")
+        self._df_baseline = val
+
+    @property
+    def xpl(self) -> SmartExplainer:
+        """getter"""
+        if not hasattr(self, "_xpl"):
+            raise RuntimeError("SmartExplainer has not been initialized yet.")
+        return self._xpl
+
+    @xpl.setter
+    def xpl(self, val: SmartExplainer) -> None:
+        """setter"""
+        if not isinstance(val, SmartExplainer):
+            raise ValueError("xpl must be a SmartExplainer instance.")
+        self._xpl = val
+
+    @property
+    def df_predict(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_df_predict"):
+            raise RuntimeError("df_predict has not been initialized yet.")
+        return self._df_predict
+
+    @df_predict.setter
+    def df_predict(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_predict must be a pandas DataFrame.")
+        self._df_predict = val
+
+    @property
+    def feature_importance(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_feature_importance"):
+            raise RuntimeError("feature_importance has not been initialized yet.")
+        return self._feature_importance
+
+    @feature_importance.setter
+    def feature_importance(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("feature_importance must be a pandas DataFrame.")
+        self._feature_importance = val
+
+    @property
+    def pb_cols(self) -> dict[str, list[str]]:
+        """getter"""
+        return self._pb_cols
+
+    @pb_cols.setter
+    def pb_cols(self, val: dict[str, list[str]]) -> None:
+        """setter"""
+        if not isinstance(val, dict):
+            raise ValueError("pb_cols must be a dictionary.")
+        self._pb_cols = val
+
+    @property
+    def err_mods(self) -> dict[str, dict]:
+        """getter"""
+        return self._err_mods
+
+    @err_mods.setter
+    def err_mods(self, val: dict[str, dict]) -> None:
+        """setter"""
+        if not isinstance(val, dict):
+            raise ValueError("err_mods must be a dictionary.")
+        self._err_mods = val
+
+    @property
+    def auc(self) -> float:
+        """getter"""
+        if not hasattr(self, "_auc"):
+            raise RuntimeError("auc has not been initialized yet.")
+        return self._auc
+
+    @auc.setter
+    def auc(self, val: float) -> None:
+        """setter"""
+        if not isinstance(val, (float, int)):
+            raise ValueError("auc must be of type float or int.")
+        self._auc = float(val)
+
+    @property
+    def js_divergence(self) -> float:
+        """getter"""
+        if not hasattr(self, "_js_divergence"):
+            raise RuntimeError("js_divergence has not been initialized yet.")
+        return self._js_divergence
+
+    @js_divergence.setter
+    def js_divergence(self, val: float) -> None:
+        """setter"""
+        if not isinstance(val, (float, int)):
+            raise ValueError("js_divergence must be of type float or int.")
+        self._js_divergence = float(val)
+
+    @property
+    def historical_auc(self) -> pd.DataFrame | None:
+        """getter"""
+        if not hasattr(self, "_historical_auc"):
+            # raise RuntimeError("historical_auc has not been initialized yet.")
+            return None
+        return self._historical_auc
+
+    @historical_auc.setter
+    def historical_auc(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("historical_auc must be a pandas DataFrame.")
+        self._historical_auc = val
+
+    @property
+    def data_modeldrift(self) -> pd.DataFrame | None:
+        """getter"""
+        if not hasattr(self, "_data_modeldrift"):
+            # raise RuntimeError("data_modeldrift has not been initialized yet.")
+            return None
+        return self._data_modeldrift
+
+    @data_modeldrift.setter
+    def data_modeldrift(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("data_modeldrift must be a pandas DataFrame.")
+        self._data_modeldrift = val
+
+    @property
+    def current_dataset_name(self) -> str:
+        """Returns the display name of df_current"""
+        return self._dataset_names[0]
+
+    @property
+    def baseline_dataset_name(self) -> str:
+        """Returns the display name of df_baseline"""
+        return self._dataset_names[1]
+
+    @property
+    def encoding(self) -> Any:
+        """getter"""
+        return self._encoding
+
+    @encoding.setter
+    def encoding(self, val: Any) -> None:
+        """setter"""
+        self._encoding = val
+
+    @property
+    def deployed_model(self) -> Any:
+        """getter"""
+        return self._deployed_model
+
+    @deployed_model.setter
+    def deployed_model(self, val: Any) -> None:
+        """setter"""
+        self._deployed_model = val
+
+    @property
+    def ignore_cols(self) -> list[str]:
+        """getter"""
+        return self._ignore_cols
+
+    @ignore_cols.setter
+    def ignore_cols(self, val: list[str]) -> None:
+        """setter"""
+        if not isinstance(val, list):
+            raise ValueError("ignore_cols must be a list.")
+        self._ignore_cols = val
+
+    @property
+    def datadrift_stat_test(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_datadrift_stat_test"):
+            raise RuntimeError("datadrift_stat_test has not been initialized yet.")
+        return self._datadrift_stat_test
+
+    @datadrift_stat_test.setter
+    def datadrift_stat_test(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("datadrift_stat_test must be a pandas DataFrame.")
+        self._datadrift_stat_test = val
+
+    @property
+    def df_concat(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_df_concat"):
+            raise RuntimeError("df_concat has not been initialized yet.")
+        return self._df_concat
+
+    @df_concat.setter
+    def df_concat(self, val: pd.DataFrame | None) -> None:
+        """setter"""
+        if val is not None and not isinstance(val, pd.DataFrame):
+            raise ValueError("df_concat must be a pandas DataFrame or None.")
+        self._df_concat = val
+
+    @property
+    def datadrift_target(self) -> str:
+        """getter"""
+        return self._datadrift_target
+
+    @property
+    def plot(self) -> SmartPlotter:
+        """getter"""
+        return self._plot
 
     def compile(
         self,
@@ -208,7 +437,7 @@ class SmartDrift:
         sampling: bool = True,
         sample_size: int = 100000,
         datadrift_file: str | None = None,
-        date_compile_auc: str | None = None,
+        date_compile_auc: date | None = None,
         hyperparameter: dict | None = None,
         attr_importance: str = "feature_importances_",
     ):
@@ -227,8 +456,8 @@ class SmartDrift:
             If True, applies the sampling
         sample_size: int, optional
             the size of the sample to build
-        date_compile_auc: str (optional)
-            format dd/mm/yyyy use for specify date of compute drift, useful when compute few time drift
+        date_compile_auc: date (optional)
+            used to specify date of compute drift, useful when compute few time drift
             for different time at the same moment
         hyperparameter: dict, optional
             if user want to modify catboost hyperparameter
@@ -245,8 +474,8 @@ class SmartDrift:
         """
         if ignore_cols is None:
             ignore_cols = []
-        if datadrift_file is not None:
-            self.datadrift_file = datadrift_file
+        # if datadrift_file is not None:
+        #     self.datadrift_file = datadrift_file
         if hyperparameter is not None:
             for key, value in catboost_hyperparameter_init.items():
                 catboost_hyperparameter_init[key] = (
@@ -261,11 +490,14 @@ class SmartDrift:
 
         # Checking datasets
         self._check_dataset(ignore_cols)
+
         # Consistency analysis
-        pb_cols, err_mods = self._analyze_consistency(full_validation=full_validation, ignore_cols=ignore_cols)
+        self._analyze_consistency(full_validation=full_validation, ignore_cols=ignore_cols)
 
         # Adding results to ignored columns
-        ignore_cols = list(set(ignore_cols + [item for sublist in [pb_cols[sl] for sl in pb_cols] for item in sublist]))
+        ignore_cols = list(
+            set(ignore_cols + [item for sublist in [self.pb_cols[sl] for sl in self.pb_cols] for item in sublist])
+        )
         if len(ignore_cols) != 0:
             self.df_baseline = self.df_baseline[[c for c in self.df_baseline.columns if c not in ignore_cols]]
             self.df_current = self.df_current[[c for c in self.df_current.columns if c not in ignore_cols]]
@@ -273,17 +505,17 @@ class SmartDrift:
         df_concat = (
             pd.concat([self.df_current, self.df_baseline], keys=[1, 0])
             .reset_index()
-            .rename(columns={"level_0": self._datadrift_target})
+            .rename(columns={"level_0": self.datadrift_target})
         )
         df_concat.drop(df_concat.columns[1], axis=1, inplace=True)
-        varz = [c for c in df_concat.columns if c not in [self._datadrift_target] and c not in ignore_cols]
+        varz = [c for c in df_concat.columns if c not in [self.datadrift_target] and c not in ignore_cols]
         dtypes = df_concat[varz].dtypes.map(str)
         cat_features = list(dtypes[dtypes.isin(["object"])].index)
         df_concat[cat_features] = df_concat[cat_features].fillna("NA")
         df_concat = df_concat.fillna(0)
-        self._df_concat = df_concat
+        self.df_concat = df_concat
 
-        train, test = train_test_split(df_concat[varz + [self._datadrift_target]], test_size=0.25, random_state=42)
+        train, test = train_test_split(df_concat[varz + [self.datadrift_target]], test_size=0.25, random_state=42)
 
         i = 0
         indice_cat = []
@@ -308,42 +540,41 @@ class SmartDrift:
 
         datadrift_classifier = datadrift_classifier.fit(train_pool_cat, eval_set=test_pool_cat, silent=True)
 
-        xpl = SmartExplainer(
-            label_dict={0: self.dataset_names["df_baseline"].values[0], 1: self.dataset_names["df_current"].values[0]},
-            model=datadrift_classifier,
+        self.xpl = SmartExplainer(
+            label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
         )
 
         x_test = test[varz]
-        y_test = test[self._datadrift_target]
+        y_test = test[self.datadrift_target]
 
-        xpl.compile(x=x_test)
-        xpl.compute_features_import(force=True)
+        self.xpl.compile(x=x_test)
+        self.xpl.compute_features_import(force=True)
 
-        self.xpl = xpl
+        # self.xpl = xpl
         self.xpl.define_style(colors_dict=self.colors_dict)
         self.datadrift_classifier = datadrift_classifier
-        self.df_predict = self._predict(deployed_model=self.deployed_model, encoding=self.encoding)
+        if self.deployed_model:
+            self.df_predict = self._predict(deployed_model=self.deployed_model, encoding=self.encoding)
         self.auc = roc_auc_score(y_test, datadrift_classifier.predict(x_test))
-        self.feature_importance = self._feature_importance(
-            deployed_model=self.deployed_model, attr_importance=attr_importance
-        )
+        if self.deployed_model:
+            self.feature_importance = self._compute_feature_importance(
+                deployed_model=self.deployed_model, attr_importance=attr_importance
+            )
         # self.plot.feature_importance = self.feature_importance  # FIXME: is this necessary?
-        self.pb_cols, self.err_mods = pb_cols, err_mods
+
         if self.deployed_model is not None:
             self.js_divergence = compute_js_divergence(
-                self.df_predict.loc[lambda df: df["dataset"] == self.dataset_names["df_baseline"].values[0], :][
-                    "Score"
-                ].values,
-                self.df_predict.loc[lambda df: df["dataset"] == self.dataset_names["df_current"].values[0], :][
-                    "Score"
-                ].values,
+                self.df_predict.loc[lambda df: df["dataset"] == self.baseline_dataset_name, :]["Score"].values,
+                self.df_predict.loc[lambda df: df["dataset"] == self.current_dataset_name, :]["Score"].values,
                 n_bins=20,
             )
+        if datadrift_file is not None:
+            self.historical_auc = self._histo_datadrift_metric(
+                datadrift_file=datadrift_file,
+                date_compile_auc=date_compile_auc,
+            )
 
-        self.historical_auc = self._histo_datadrift_metric(
-            datadrift_file=self.datadrift_file, date_compile_auc=date_compile_auc
-        )
-        self.data_modeldrift = None
+        # self.data_modeldrift = None
         self.ignore_cols = ignore_cols
         if self.deployed_model is not None:
             self.datadrift_stat_test = self._compute_datadrift_stat_test()
@@ -441,7 +672,7 @@ class SmartDrift:
             else:
                 raise TypeError("df_baseline have datetime column. You should drop it")
 
-    def _analyze_consistency(self, ignore_cols: list, full_validation: bool = False):
+    def _analyze_consistency(self, ignore_cols: list, full_validation: bool = False) -> None:
         """Method to analyse consistency between the 2 datasets, in terms of columns and modalities
 
         Parameters
@@ -456,8 +687,6 @@ class SmartDrift:
             level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
         )
 
-        if not isinstance(self.df_current, pd.DataFrame) or not isinstance(self.df_baseline, pd.DataFrame):
-            raise TypeError("df_current and df_baseline should be Pandas dataframes.")
         if len(ignore_cols) > 0:
             print(f"""The following variables are manually set to be ignored in the analysis: \n {ignore_cols}""")
         # Features
@@ -502,9 +731,11 @@ class SmartDrift:
                             f"""The variable {column} has mismatching unique values:
 {new_mods} | {removed_mods}\n"""
                         )
-        return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
+        self.pb_cols = {"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}
+        self.err_mods = err_mods
+        # return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
-    def _predict(self, deployed_model=None, encoding=None):
+    def _predict(self, deployed_model: Any, encoding: Any = None) -> pd.DataFrame:
         """Create an attributes df_predict with the computed score on both datasets
 
         Parameters
@@ -520,8 +751,6 @@ class SmartDrift:
             DataFrame with predicted score for both datasets
 
         """
-        if deployed_model is None:
-            return None
         if not hasattr(deployed_model, "predict_proba") and not hasattr(deployed_model, "predict"):
             raise Exception("deployed_model need to have predict or predict_proba method")
         df_baseline = self.df_baseline
@@ -564,12 +793,14 @@ class SmartDrift:
                 )
         return pd.concat(
             [
-                df_baseline_pred.assign(dataset=self.dataset_names["df_baseline"].values[0]),
-                df_current_pred.assign(dataset=self.dataset_names["df_current"].values[0]),
+                df_baseline_pred.assign(dataset=self.baseline_dataset_name),
+                df_current_pred.assign(dataset=self.current_dataset_name),
             ]
         ).reset_index(drop=True)
 
-    def _feature_importance(self, deployed_model: Any | None = None, attr_importance: str = "feature_importances_"):
+    def _compute_feature_importance(
+        self, deployed_model: Any, attr_importance: str = "feature_importances_"
+    ) -> pd.DataFrame:
         """Create an attributes feature_importance with the computed score on both datasets
 
         Parameters
@@ -586,8 +817,6 @@ class SmartDrift:
             and drift model.
 
         """
-        if deployed_model is None:
-            return None
         try:
             array_importance = getattr(deployed_model, attr_importance)
         except BaseException as error:
@@ -598,9 +827,6 @@ class SmartDrift:
                             """
                 + str(error)
             )
-
-        if self.xpl is None:
-            raise RuntimeError("SmartExplainer should be set at this point.")
 
         feature_importance_drift = pd.DataFrame(
             self.xpl.features_imp[0].values, index=self.xpl.features_imp[0].index, columns=["datadrift_classifier"]
@@ -648,8 +874,7 @@ class SmartDrift:
         else:
             return dataset
 
-    # FIXME: date_compile_auc should be of date format
-    def _histo_datadrift_metric(self, datadrift_file: str | None = None, date_compile_auc: str | None = None):
+    def _histo_datadrift_metric(self, datadrift_file: str, date_compile_auc: date | None = None):
         """Method which computes datadrift metrics (AUC, and Jensen Shannon prediction divergence if the deployed_model
         is filled in) and append it into a dataframe that will be exported during the generate_report method
 
@@ -666,57 +891,42 @@ class SmartDrift:
         Dataframe with dates, AUC and Jensen Shannon prediction divergence computed at this date
 
         """
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
+
+        if date_compile_auc is None:
+            date_compile_auc = date.today()
+        s_date_compile_auc = date_compile_auc.strftime("%Y-%m-%d")
+        print(f"The computed AUC on the X_test used to build datadrift_classifier is equal to: {self.auc}")
+
+        df_auc = (
+            pd.DataFrame({"date": [s_date_compile_auc], "auc": [self.auc], "JS_predict": [self.js_divergence]})
+            if self.deployed_model is not None
+            else pd.DataFrame({"date": [s_date_compile_auc], "auc": [self.auc]})
         )
-        # FIXME: is the use of instance attribute instead of the datadirft_file parameter an error?
-        if self.datadrift_file is None and date_compile_auc is None:
-            return None
-        elif self.datadrift_file is None and date_compile_auc is not None:
-            self.datadrift_file = "historical_AUC.csv"
-            return None
-        else:
-            if date_compile_auc:
-                try:
-                    datetime.datetime.strptime(date_compile_auc, "%d/%m/%Y")
-                    # FIXME find exact exception type and use it instead of "Exception"
-                except Exception:
-                    raise Exception("The argument date must have the format '%d/%m/%Y'")
-            else:
-                date_compile_auc = (datetime.datetime.today().date()).strftime("%d/%m/%Y")
-            print(f"The computed AUC on the X_test used to build datadrift_classifier is equal to: {self.auc}")
 
-            if self.deployed_model is not None:
-                df_auc = pd.DataFrame(
-                    {"date": [date_compile_auc], "auc": [self.auc], "JS_predict": [self.js_divergence]}
-                )
-            else:
-                df_auc = pd.DataFrame({"date": [date_compile_auc], "auc": [self.auc]})
-
-            if self.datadrift_file is not None:
-                if Path(self.datadrift_file).is_file() and self.datadrift_file.endswith(".csv"):
-                    histo_auc = pd.read_csv(self.datadrift_file).reset_index(drop=True)
-                    if self.deployed_model is not None:
-                        if not (
-                            any(histo_auc.columns.isin(["date"]))
-                            and any(histo_auc.columns.isin(["auc"]))
-                            and any(histo_auc.columns.isin(["JS_predict"]))
-                        ):
-                            raise Exception("The csv data must have columns 'date', 'auc' and 'JS_predict'")
-                        df_auc = pd.concat([histo_auc[["date", "auc", "JS_predict"]], df_auc]).reset_index(drop=True)
-
-                    else:
-                        if not (any(histo_auc.columns.isin(["date"])) and any(histo_auc.columns.isin(["auc"]))):
-                            raise Exception("The csv data must have columns 'date' and 'auc'")
-                        df_auc = pd.concat([histo_auc[["date", "auc"]], df_auc]).reset_index(drop=True)
+        if datadrift_file is not None:
+            if Path(datadrift_file).is_file() and datadrift_file.endswith(".csv"):
+                histo_auc = pd.read_csv(datadrift_file).reset_index(drop=True)
+                if self.deployed_model is not None:
+                    if not (
+                        any(histo_auc.columns.isin(["date"]))
+                        and any(histo_auc.columns.isin(["auc"]))
+                        and any(histo_auc.columns.isin(["JS_predict"]))
+                    ):
+                        raise Exception("The csv data must have columns 'date', 'auc' and 'JS_predict'")
+                    df_auc = pd.concat([histo_auc[["date", "auc", "JS_predict"]], df_auc]).reset_index(drop=True)
 
                 else:
-                    print(f"{self.datadrift_file} did not exist and was created. ")
+                    if not (any(histo_auc.columns.isin(["date"])) and any(histo_auc.columns.isin(["auc"]))):
+                        raise Exception("The csv data must have columns 'date' and 'auc'")
+                    df_auc = pd.concat([histo_auc[["date", "auc"]], df_auc]).reset_index(drop=True)
 
-                try:
-                    df_auc.to_csv(self.datadrift_file)
-                except OSError as error:
-                    raise OSError("Can't save to csv the AUC metrics, error : " + str(error))
+            else:
+                print(f"{datadrift_file} did not exist and was created. ")
+
+            try:
+                df_auc.to_csv(datadrift_file)
+            except OSError as error:
+                raise OSError("Can't save to csv the AUC metrics, error : " + str(error))
         return df_auc
 
     def add_data_modeldrift(
@@ -778,7 +988,7 @@ class SmartDrift:
         max_size : int
             Sets the maximum number of rows. If the datasets are larger there is sampling
         categ_max: int
-            Maximum number of values \u200b\u200bper feature to apply the chi square test
+            Maximum number of values per feature to apply the chi square test
 
         Returns :
         -------
@@ -791,9 +1001,6 @@ class SmartDrift:
         baseline = self.df_baseline.sample(n=max_size) if self.df_baseline.shape[0] > max_size else self.df_baseline
         current = self.df_current.sample(n=max_size) if self.df_current.shape[0] > max_size else self.df_current
         test_results = {}
-
-        if self.xpl is None:
-            raise RuntimeError("SmartExplainer should be set at this point.")
 
         # compute test for each feature
         for features, count in self.xpl.features_desc.items():
@@ -834,9 +1041,6 @@ class SmartDrift:
             new_colors_dict.update(colors_dict)
         self.colors_dict.update(new_colors_dict)
         self.plot.define_style_attributes(colors_dict=self.colors_dict)
-
-        if self.xpl is None:
-            raise RuntimeError("SmartExplainer should be set at this point.")
 
         self.xpl.define_style(colors_dict=self.colors_dict)
 

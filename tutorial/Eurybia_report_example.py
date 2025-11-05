@@ -3,6 +3,7 @@ This script can be used to generate the report example.
 For more information, please refer to the tutorial 'tutorial01-modeldrift.ipynb' in tutorial/model_drift
 that generates the same report.
 """
+from datetime import date
 import os
 import sys
 from pathlib import Path
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2017, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2017",
+        date_compile_auc=date(2017, 1, 1),
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2018, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2018",  # optionnal, by default date of compile
+        date_compile_auc=date(2018, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2019, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2019",  # optionnal, by default date of compile
+        date_compile_auc=date(2019, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2020, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2020",  # optionnal, by default date of compile
+        date_compile_auc=date(2020, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2021, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2021",  # optionnal, by default date of compile
+        date_compile_auc=date(2021, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 

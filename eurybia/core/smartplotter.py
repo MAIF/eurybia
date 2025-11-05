@@ -85,13 +85,15 @@ class SmartPlotter:
 
         """
         if hue is None:
-            hue = self.smartdrift._datadrift_target
+            hue = self.smartdrift.datadrift_target
         if df_all is None:
-            df_all = self.smartdrift._df_concat
-            if df_all is None:
-                raise RuntimeError("SmartDrift()._df_concat should not be None at this point.")
-            df_all.loc[df_all[hue] == 0, hue] = list(self.smartdrift.dataset_names.keys())[1]
-            df_all.loc[df_all[hue] == 1, hue] = list(self.smartdrift.dataset_names.keys())[0]
+            df_all = self.smartdrift.df_concat
+            df_all.loc[df_all[hue] == 0, hue] = (
+                self.smartdrift.current_dataset_name
+            )  # list(self.smartdrift.dataset_names.keys())[1]
+            df_all.loc[df_all[hue] == 1, hue] = (
+                self.smartdrift.baseline_dataset_name
+            )  # list(self.smartdrift.dataset_names.keys())[0]
         if dict_color_palette is None:
             dict_color_palette = self._style_dict
         col_types = compute_col_types(df_all=df_all)

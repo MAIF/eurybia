@@ -84,7 +84,6 @@ class DriftReport:
         self.data_concat = self._create_data_drift(
             df_current=self.smartdrift.df_current,
             df_baseline=self.smartdrift.df_baseline,
-            dataset_names=self.smartdrift.dataset_names,
         )
 
         if project_info_file is None:
@@ -97,9 +96,9 @@ class DriftReport:
         else:
             self.title_story = "Eurybia report"
 
-    @staticmethod
+    # FIXME: df_current and df_baseline should be used through self
     def _create_data_drift(
-        df_current: pd.DataFrame | None, df_baseline: pd.DataFrame | None, dataset_names: pd.DataFrame
+        self, df_current: pd.DataFrame | None, df_baseline: pd.DataFrame | None
     ) -> pd.DataFrame | None:
         """Creates a DataFrame that contains dataset used for
         training part and dataset used for production with the column 'data_drift_split'
@@ -111,8 +110,6 @@ class DriftReport:
             dataset used for production, dataframe
         df_baseline : pd.DataFrame, optional
             dataset used for traning part, dataframe
-        dataset_names : pd.DataFrame
-            DataFrame used to specify names to display in report
 
         Returns
         -------
@@ -130,12 +127,12 @@ class DriftReport:
         return pd.concat(
             [
                 (
-                    df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
+                    df_current.assign(data_drift_split=self.smartdrift.current_dataset_name)
                     if df_current is not None
                     else None
                 ),
                 (
-                    df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
+                    df_baseline.assign(data_drift_split=self.smartdrift.baseline_dataset_name)
                     if df_baseline is not None
                     else None
                 ),
@@ -169,12 +166,12 @@ class DriftReport:
                 df=self.data_concat,
                 col_splitter="data_drift_split",
                 split_values=[
-                    self.smartdrift.dataset_names["df_current"].values[0],
-                    self.smartdrift.dataset_names["df_baseline"].values[0],
+                    self.smartdrift.current_dataset_name,
+                    self.smartdrift.baseline_dataset_name,
                 ],
                 names=[
-                    self.smartdrift.dataset_names["df_current"].values[0],
-                    self.smartdrift.dataset_names["df_baseline"].values[0],
+                    self.smartdrift.current_dataset_name,
+                    self.smartdrift.baseline_dataset_name,
                 ],
                 group_id="univariate",
             )
@@ -187,8 +184,8 @@ class DriftReport:
             test_stats=perform_global_dataframe_analysis(self.smartdrift.df_current),
             train_stats=perform_global_dataframe_analysis(self.smartdrift.df_baseline),
             names=[
-                self.smartdrift.dataset_names["df_current"].values[0],
-                self.smartdrift.dataset_names["df_baseline"].values[0],
+                self.smartdrift.current_dataset_name,
+                self.smartdrift.baseline_dataset_name,
             ],
         )
         return df_stats_global
