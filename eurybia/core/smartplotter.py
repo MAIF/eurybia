@@ -33,9 +33,7 @@ class SmartPlotter:
     ----------
     smartdrift: object
         SmartDrift object
-    _palette_name : str (default: 'eurybia')
-        Name of the palette used for the colors of the report (refer to style folder).
-    _style_dict: dict
+    style_dict: dict
             Dict contains dicts of the colors used in the different plots
 
     Example:
@@ -47,9 +45,33 @@ class SmartPlotter:
     """
 
     def __init__(self, smartdrift: SmartDrift):
-        self._palette_name = list(colors_loading().keys())[0]
-        self._style_dict = define_style(select_palette(colors_loading(), self._palette_name))
-        self.smartdrift = smartdrift
+        palette_name = list(colors_loading().keys())[0]
+        self._style_dict = define_style(select_palette(colors_loading(), palette_name))
+        self._smartdrift = smartdrift
+
+    @property
+    def style_dict(self) -> dict:
+        """getter"""
+        return self._style_dict
+
+    @style_dict.setter
+    def style_dict(self, val: dict) -> None:
+        """setter"""
+        if not isinstance(val, dict):
+            raise ValueError("style_dict must be a dictionary.")
+        self._style_dict = val
+
+    @property
+    def smartdrift(self) -> SmartDrift:
+        """getter"""
+        return self._smartdrift
+
+    @smartdrift.setter
+    def smartdrift(self, val: SmartDrift) -> None:
+        """setter"""
+        if not isinstance(val, SmartDrift):
+            raise ValueError("style_dict must be of type SmartDrift.")
+        self._smartdrift = val
 
     def generate_fig_univariate(
         self,
@@ -95,7 +117,7 @@ class SmartPlotter:
                 self.smartdrift.baseline_dataset_name
             )  # list(self.smartdrift.dataset_names.keys())[0]
         if dict_color_palette is None:
-            dict_color_palette = self._style_dict
+            dict_color_palette = self.style_dict
         col_types = compute_col_types(df_all=df_all)
         if col_types[col] == VarType.TYPE_NUM:
             fig = self.generate_fig_univariate_continuous(df_all, col, hue=hue, dict_color_palette=dict_color_palette)
@@ -155,7 +177,7 @@ class SmartPlotter:
         df_all[col] = df_all[col].fillna(0)
         datasets = [df_all[df_all[hue] == val][col].values.tolist() for val in df_all[hue].unique()]
         group_labels = [str(val) for val in df_all[hue].unique()]
-        colors = list(self._style_dict["univariate_cont_bar"].values())
+        colors = list(self.style_dict["univariate_cont_bar"].values())
         if group_labels[0] == "Current dataset":
             group_labels = ["Baseline dataset", "Current dataset"]
 
@@ -168,22 +190,22 @@ class SmartPlotter:
             show_rug=False,
         )
         if template is None:
-            template = self._style_dict["template"]
+            template = self.style_dict["template"]
         if title is None:
-            title = self._style_dict["dict_title"]
+            title = self.style_dict["dict_title"]
         if xaxis_title is None:
-            xaxis_title = self._style_dict["dict_xaxis_continuous"]
+            xaxis_title = self.style_dict["dict_xaxis_continuous"]
             xaxis_title["text"] = col
         if yaxis_title is None:
-            yaxis_title = self._style_dict["dict_yaxis_continuous"]
+            yaxis_title = self.style_dict["dict_yaxis_continuous"]
         if xaxis is None:
-            xaxis = self._style_dict["dict_xaxis"]
+            xaxis = self.style_dict["dict_xaxis"]
         if height is None:
-            height = self._style_dict["height"]
+            height = self.style_dict["height"]
         if width is None:
-            width = self._style_dict["width"]
+            width = self.style_dict["width"]
         if hovermode is None:
-            hovermode = self._style_dict["hovermode"]
+            hovermode = self.style_dict["hovermode"]
 
         fig.update_layout(
             template=template,
@@ -296,7 +318,7 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig1.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[1], showlegend=True)
+        fig1.update_traces(marker_color=list(self.style_dict["univariate_cat_bar"].values())[1], showlegend=True)
 
         fig2 = px.bar(
             df_cat[df_cat[hue] == modalities[1]],
@@ -307,7 +329,7 @@ class SmartPlotter:
             color=hue,
             text="Percent_displayed",
         )
-        fig2.update_traces(marker_color=list(self._style_dict["univariate_cat_bar"].values())[0], showlegend=True)
+        fig2.update_traces(marker_color=list(self.style_dict["univariate_cat_bar"].values())[0], showlegend=True)
 
         fig = fig1.add_trace(fig2.data[0])
 
@@ -316,22 +338,22 @@ class SmartPlotter:
         fig.update_traces(showlegend=True, textposition="outside", cliponaxis=False)
 
         if template is None:
-            template = self._style_dict["template"]
+            template = self.style_dict["template"]
         if title is None:
-            title = self._style_dict["dict_title"]
+            title = self.style_dict["dict_title"]
         if xaxis_title is None:
-            xaxis_title = self._style_dict["dict_xaxis_title"]
+            xaxis_title = self.style_dict["dict_xaxis_title"]
         if yaxis_title is None:
-            yaxis_title = self._style_dict["dict_yaxis_title"]
+            yaxis_title = self.style_dict["dict_yaxis_title"]
             yaxis_title["text"] = col
         if height is None:
-            height = self._style_dict["height"]
+            height = self.style_dict["height"]
         if width is None:
-            width = self._style_dict["width"]
+            width = self.style_dict["width"]
         if hovermode is None:
-            hovermode = self._style_dict["hovermode"]
+            hovermode = self.style_dict["hovermode"]
         if legend is None:
-            legend = self._style_dict["dict_legend"]
+            legend = self.style_dict["dict_legend"]
 
         fig.update_layout(
             template=template,
@@ -378,9 +400,9 @@ class SmartPlotter:
         plotly.express.scatter
 
         """
-        dict_t = copy.deepcopy(self._style_dict["dict_title"])
-        dict_xaxis = copy.deepcopy(self._style_dict["dict_xaxis_title"])
-        dict_yaxis = copy.deepcopy(self._style_dict["dict_yaxis_title"])
+        dict_t = copy.deepcopy(self.style_dict["dict_title"])
+        dict_xaxis = copy.deepcopy(self.style_dict["dict_xaxis_title"])
+        dict_yaxis = copy.deepcopy(self.style_dict["dict_yaxis_title"])
         title = "<b>Datadrift Vs Feature Importance</b>"
         dict_t["text"] = title
         dict_xaxis["text"] = "Datadrift Importance"
@@ -429,13 +451,13 @@ class SmartPlotter:
 
         fig.data[0].marker.color = data["pvalue"]
         fig.data[0].marker.coloraxis = "coloraxis"
-        fig.layout.coloraxis.colorscale = self._style_dict["featimportance_colorscale"]
+        fig.layout.coloraxis.colorscale = self.style_dict["featimportance_colorscale"]
         fig.layout.coloraxis.colorbar = {"title": {"text": "Univariate<br />DataDrift Test<br />Pvalue"}}
 
-        height = self._style_dict["height"]
-        width = self._style_dict["width"]
-        hovermode = self._style_dict["hovermode"]
-        template = self._style_dict["template"]
+        height = self.style_dict["height"]
+        width = self.style_dict["width"]
+        hovermode = self.style_dict["hovermode"]
+        template = self.style_dict["template"]
 
         fig.update_layout(
             template=template,
@@ -543,17 +565,17 @@ class SmartPlotter:
             fig.update_traces(textposition="bottom right")
 
             if template is None:
-                template = self._style_dict["template"]
+                template = self.style_dict["template"]
             if title is None:
-                title = self._style_dict["dict_title"]
+                title = self.style_dict["dict_title"]
             if xaxis_title is None:
-                xaxis_title = self._style_dict["dict_xaxis_title"]
+                xaxis_title = self.style_dict["dict_xaxis_title"]
             if height is None:
-                height = self._style_dict["height"]
+                height = self.style_dict["height"]
             if width is None:
-                width = self._style_dict["width"]
+                width = self.style_dict["width"]
             if hovermode is None:
-                hovermode = self._style_dict["hovermode"]
+                hovermode = self.style_dict["hovermode"]
 
             fig.update_xaxes(showgrid=False)
             fig.update_layout(
@@ -633,20 +655,20 @@ class SmartPlotter:
         fig.update_traces(textposition="top right")
 
         if template is None:
-            template = self._style_dict["template"]
+            template = self.style_dict["template"]
         if title is None:
-            title = self._style_dict["dict_title"]
+            title = self.style_dict["dict_title"]
         if xaxis_title is None:
-            xaxis_title = self._style_dict["dict_xaxis_title"]
+            xaxis_title = self.style_dict["dict_xaxis_title"]
         if yaxis_title is None:
-            yaxis_title = self._style_dict["dict_yaxis_title"]
+            yaxis_title = self.style_dict["dict_yaxis_title"]
             yaxis_title["text"] = metric
         if height is None:
-            height = self._style_dict["height"]
+            height = self.style_dict["height"]
         if width is None:
-            width = self._style_dict["width"]
+            width = self.style_dict["width"]
         if hovermode is None:
-            hovermode = self._style_dict["hovermode"]
+            hovermode = self.style_dict["hovermode"]
 
         fig.update_xaxes(showgrid=False)
         fig.update_layout(
@@ -659,8 +681,8 @@ class SmartPlotter:
             hovermode=hovermode,
         )
 
-        fig.data[0].line.color = self._style_dict["datadrift_historical"]
-        fig.data[-1].marker.color = self._style_dict["datadrift_historical"]
+        fig.data[0].line.color = self.style_dict["datadrift_historical"]
+        fig.data[-1].marker.color = self.style_dict["datadrift_historical"]
 
         return fig
 
@@ -673,7 +695,7 @@ class SmartPlotter:
             Dict of the colors used in the different plots
 
         """
-        self._style_dict = define_style(colors_dict)
+        self.style_dict = define_style(colors_dict)
 
         if hasattr(self, "pred_colorscale"):
             delattr(self, "pred_colorscale")

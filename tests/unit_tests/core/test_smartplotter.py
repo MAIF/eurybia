@@ -279,13 +279,13 @@ class TestSmartPlotter(unittest.TestCase):
 
     def test_define_style_attributes(self):
         # clear style attributes
-        del self.smartdrift.plot._style_dict
+        self.smartdrift.plot.style_dict = dict()
 
         colors_dict = copy.deepcopy(select_palette(colors_loading(), "eurybia"))
         self.smartdrift.plot.define_style_attributes(colors_dict=colors_dict)
 
         assert hasattr(self.smartdrift.plot, "_style_dict")
-        assert len(list(self.smartdrift.plot._style_dict.keys())) > 0
+        assert len(list(self.smartdrift.plot.style_dict.keys())) > 0
 
     def test_generate_indicator(self):
         """

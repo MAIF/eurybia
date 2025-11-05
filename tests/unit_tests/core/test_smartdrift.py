@@ -437,13 +437,13 @@ class TestSmartDrift(unittest.TestCase):
             sd.define_style()
         sd.define_style(palette_name="eurybia", colors_dict=colors_dict)
         assert sd.colors_dict == colors_dict
-        assert sd.plot._style_dict["univariate_cat_bar"] == colors_dict["univariate_cat_bar"]
-        assert sd.plot._style_dict["univariate_cont_bar"] == colors_dict["univariate_cont_bar"]
-        assert sd.plot._style_dict["datadrift_historical"] == colors_dict["datadrift_historical"]
-        assert sd.plot._style_dict["scatter_plot"] == colors_dict["scatter_plot"]
-        assert sd.plot._style_dict["scatter_line"] == colors_dict["scatter_line"]
-        assert sd.plot._style_dict["featimportance_colorscale"] == colors_dict["featimportance_colorscale"]
-        assert sd.plot._style_dict["contrib_colorscale"] == colors_dict["contrib_colorscale"]
+        assert sd.plot.style_dict["univariate_cat_bar"] == colors_dict["univariate_cat_bar"]
+        assert sd.plot.style_dict["univariate_cont_bar"] == colors_dict["univariate_cont_bar"]
+        assert sd.plot.style_dict["datadrift_historical"] == colors_dict["datadrift_historical"]
+        assert sd.plot.style_dict["scatter_plot"] == colors_dict["scatter_plot"]
+        assert sd.plot.style_dict["scatter_line"] == colors_dict["scatter_line"]
+        assert sd.plot.style_dict["featimportance_colorscale"] == colors_dict["featimportance_colorscale"]
+        assert sd.plot.style_dict["contrib_colorscale"] == colors_dict["contrib_colorscale"]
         # not testing the shapash.explainer.smart_explainer
 
     def test_datetime_column_transformation(self):
