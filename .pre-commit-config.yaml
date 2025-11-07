@@ -6,47 +6,61 @@ repos:
     rev: v6.0.0
     hooks:
       - id: check-ast
+        exclude: \.ipynb$
       - id: check-case-conflict
+        exclude: \.ipynb$
       - id: check-docstring-first
+        exclude: \.ipynb$
       - id: check-json
+        exclude: \.ipynb$
       - id: check-yaml
-        exclude: ^(chart/|docs/)
+        exclude: ^(chart/|docs/|.*\.ipynb$)
       - id: debug-statements
+        exclude: \.ipynb$
       - id: end-of-file-fixer
-        exclude: ^(docs/|gdocs/)
+        exclude: ^(docs/|gdocs/|.*\.ipynb$)
       - id: fix-byte-order-marker
+        exclude: \.ipynb$
       - id: pretty-format-json
         args: ['--autofix']
+        exclude: \.ipynb$
       - id: trailing-whitespace
         args: ['--markdown-linebreak-ext=md']
-        exclude: ^(docs/|gdocs/)
+        exclude: ^(docs/|gdocs/|.*\.ipynb$)
       - id: mixed-line-ending
         args: ['--fix=lf']
-        exclude: ^(docs/|gdocs/)
+        exclude: ^(docs/|gdocs/|.*\.ipynb$)
       - id: check-added-large-files
         args: ['--maxkb=500']
+        exclude: \.ipynb$
       - id: no-commit-to-branch
         args: ['--branch', 'master', '--branch', 'develop']
+        exclude: \.ipynb$
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.3
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: \.ipynb$
       - id: ruff-format
+        exclude: \.ipynb$
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.18.2'
     hooks:
       - id: mypy
         args: [--config-file=pyproject.toml]
         additional_dependencies: [types-PyYAML]
+        exclude: \.ipynb$
   - repo: https://github.com/pypa/pip-audit
     rev: v2.9.0
     hooks:
       - id: pip-audit
         args: [--skip-editable, --fix]
+        exclude: \.ipynb$
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.3.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [] # optional: list of Conventional Commits types to allow e.g. [feat, fix, ci, chore, test]
+        exclude: \.ipynb$
