@@ -25,8 +25,6 @@ from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyp
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
 from eurybia.utils.utils import base_100, convert_date_col_into_multiple_col
 
-logging.getLogger("blib2to3").setLevel(logging.WARNING)
-
 
 class SmartDrift:
     """The SmartDrift class is the main object to compute drift in the Eurybia library
@@ -60,7 +58,7 @@ class SmartDrift:
         list of feature to ignore in compute
     dataset_names : dict, (Optional)
         Dictionnary used to specify dataset names to display in report.
-    _df_concat : pandas.DataFrame
+    df_concat : pandas.DataFrame
         Dataframe that's composed of both df_baseline and df_current concatenated
     plot : eurybia.core.smartplotter.SmartPlotter
         Instance of an Eurybia SmartPlotter class. It's used for graph displaying purpose.
@@ -197,238 +195,10 @@ class SmartDrift:
         self._ignore_cols: list[str] = list()  # generation
         self._datadrift_stat_test: pd.DataFrame  # smartplotter
         self._df_concat: pd.DataFrame  # smartplotter
-        self._datadrift_target: str = "target"  # constante
+        self._datadrift_target: str = "target"  # constant
 
         self._plot = SmartPlotter(self)
         self._plot.define_style_attributes(colors_dict=self.colors_dict)
-
-    @property
-    def df_current(self) -> pd.DataFrame:
-        """getter"""
-        return self._df_current
-
-    @df_current.setter
-    def df_current(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("df_current must be a pandas DataFrame")
-        self._df_current = val
-
-    @property
-    def df_baseline(self) -> pd.DataFrame:
-        """getter"""
-        return self._df_baseline
-
-    @df_baseline.setter
-    def df_baseline(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("df_baseline must be a pandas DataFrame")
-        self._df_baseline = val
-
-    @property
-    def xpl(self) -> SmartExplainer:
-        """getter"""
-        if not hasattr(self, "_xpl"):
-            raise RuntimeError("SmartExplainer has not been initialized yet.")
-        return self._xpl
-
-    @xpl.setter
-    def xpl(self, val: SmartExplainer) -> None:
-        """setter"""
-        if not isinstance(val, SmartExplainer):
-            raise ValueError("xpl must be a SmartExplainer instance.")
-        self._xpl = val
-
-    @property
-    def df_predict(self) -> pd.DataFrame:
-        """getter"""
-        if not hasattr(self, "_df_predict"):
-            raise RuntimeError("df_predict has not been initialized yet.")
-        return self._df_predict
-
-    @df_predict.setter
-    def df_predict(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("df_predict must be a pandas DataFrame.")
-        self._df_predict = val
-
-    @property
-    def feature_importance(self) -> pd.DataFrame:
-        """getter"""
-        if not hasattr(self, "_feature_importance"):
-            raise RuntimeError("feature_importance has not been initialized yet.")
-        return self._feature_importance
-
-    @feature_importance.setter
-    def feature_importance(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("feature_importance must be a pandas DataFrame.")
-        self._feature_importance = val
-
-    @property
-    def pb_cols(self) -> dict[str, list[str]]:
-        """getter"""
-        return self._pb_cols
-
-    @pb_cols.setter
-    def pb_cols(self, val: dict[str, list[str]]) -> None:
-        """setter"""
-        if not isinstance(val, dict):
-            raise ValueError("pb_cols must be a dictionary.")
-        self._pb_cols = val
-
-    @property
-    def err_mods(self) -> dict[str, dict]:
-        """getter"""
-        return self._err_mods
-
-    @err_mods.setter
-    def err_mods(self, val: dict[str, dict]) -> None:
-        """setter"""
-        if not isinstance(val, dict):
-            raise ValueError("err_mods must be a dictionary.")
-        self._err_mods = val
-
-    @property
-    def auc(self) -> float:
-        """getter"""
-        if not hasattr(self, "_auc"):
-            raise RuntimeError("auc has not been initialized yet.")
-        return self._auc
-
-    @auc.setter
-    def auc(self, val: float) -> None:
-        """setter"""
-        if not isinstance(val, (float, int)):
-            raise ValueError("auc must be of type float or int.")
-        self._auc = float(val)
-
-    @property
-    def js_divergence(self) -> float:
-        """getter"""
-        if not hasattr(self, "_js_divergence"):
-            raise RuntimeError("js_divergence has not been initialized yet.")
-        return self._js_divergence
-
-    @js_divergence.setter
-    def js_divergence(self, val: float) -> None:
-        """setter"""
-        if not isinstance(val, (float, int)):
-            raise ValueError("js_divergence must be of type float or int.")
-        self._js_divergence = float(val)
-
-    @property
-    def historical_auc(self) -> pd.DataFrame | None:
-        """getter"""
-        if not hasattr(self, "_historical_auc"):
-            # raise RuntimeError("historical_auc has not been initialized yet.")
-            return None
-        return self._historical_auc
-
-    @historical_auc.setter
-    def historical_auc(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("historical_auc must be a pandas DataFrame.")
-        self._historical_auc = val
-
-    @property
-    def data_modeldrift(self) -> pd.DataFrame | None:
-        """getter"""
-        if not hasattr(self, "_data_modeldrift"):
-            # raise RuntimeError("data_modeldrift has not been initialized yet.")
-            return None
-        return self._data_modeldrift
-
-    @data_modeldrift.setter
-    def data_modeldrift(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("data_modeldrift must be a pandas DataFrame.")
-        self._data_modeldrift = val
-
-    @property
-    def current_dataset_name(self) -> str:
-        """Returns the display name of df_current"""
-        return self._dataset_names[0]
-
-    @property
-    def baseline_dataset_name(self) -> str:
-        """Returns the display name of df_baseline"""
-        return self._dataset_names[1]
-
-    @property
-    def encoding(self) -> Any:
-        """getter"""
-        return self._encoding
-
-    @encoding.setter
-    def encoding(self, val: Any) -> None:
-        """setter"""
-        self._encoding = val
-
-    @property
-    def deployed_model(self) -> Any:
-        """getter"""
-        return self._deployed_model
-
-    @deployed_model.setter
-    def deployed_model(self, val: Any) -> None:
-        """setter"""
-        self._deployed_model = val
-
-    @property
-    def ignore_cols(self) -> list[str]:
-        """getter"""
-        return self._ignore_cols
-
-    @ignore_cols.setter
-    def ignore_cols(self, val: list[str]) -> None:
-        """setter"""
-        if not isinstance(val, list):
-            raise ValueError("ignore_cols must be a list.")
-        self._ignore_cols = val
-
-    @property
-    def datadrift_stat_test(self) -> pd.DataFrame:
-        """getter"""
-        if not hasattr(self, "_datadrift_stat_test"):
-            raise RuntimeError("datadrift_stat_test has not been initialized yet.")
-        return self._datadrift_stat_test
-
-    @datadrift_stat_test.setter
-    def datadrift_stat_test(self, val: pd.DataFrame) -> None:
-        """setter"""
-        if not isinstance(val, pd.DataFrame):
-            raise ValueError("datadrift_stat_test must be a pandas DataFrame.")
-        self._datadrift_stat_test = val
-
-    @property
-    def df_concat(self) -> pd.DataFrame:
-        """getter"""
-        if not hasattr(self, "_df_concat"):
-            raise RuntimeError("df_concat has not been initialized yet.")
-        return self._df_concat
-
-    @df_concat.setter
-    def df_concat(self, val: pd.DataFrame | None) -> None:
-        """setter"""
-        if val is not None and not isinstance(val, pd.DataFrame):
-            raise ValueError("df_concat must be a pandas DataFrame or None.")
-        self._df_concat = val
-
-    @property
-    def datadrift_target(self) -> str:
-        """getter"""
-        return self._datadrift_target
-
-    @property
-    def plot(self) -> SmartPlotter:
-        """getter"""
-        return self._plot
 
     def compile(
         self,
@@ -474,8 +244,7 @@ class SmartDrift:
         """
         if ignore_cols is None:
             ignore_cols = []
-        # if datadrift_file is not None:
-        #     self.datadrift_file = datadrift_file
+
         if hyperparameter is not None:
             for key, value in catboost_hyperparameter_init.items():
                 catboost_hyperparameter_init[key] = (
@@ -550,7 +319,6 @@ class SmartDrift:
         self.xpl.compile(x=x_test)
         self.xpl.compute_features_import(force=True)
 
-        # self.xpl = xpl
         self.xpl.define_style(colors_dict=self.colors_dict)
         self.datadrift_classifier = datadrift_classifier
         if self.deployed_model:
@@ -560,7 +328,6 @@ class SmartDrift:
             self.feature_importance = self._compute_feature_importance(
                 deployed_model=self.deployed_model, attr_importance=attr_importance
             )
-        # self.plot.feature_importance = self.feature_importance  # FIXME: is this necessary?
 
         if self.deployed_model is not None:
             self.js_divergence = compute_js_divergence(
@@ -574,7 +341,6 @@ class SmartDrift:
                 date_compile_auc=date_compile_auc,
             )
 
-        # self.data_modeldrift = None
         self.ignore_cols = ignore_cols
         if self.deployed_model is not None:
             self.datadrift_stat_test = self._compute_datadrift_stat_test()
@@ -1073,3 +839,231 @@ class SmartDrift:
                         smartexplainer_dict.update({att_xpl: getattr(self.xpl, att_xpl)})
                 dict_to_save.update({att: smartexplainer_dict})
         save_pickle(dict_to_save, path)
+
+    @property
+    def df_current(self) -> pd.DataFrame:
+        """getter"""
+        return self._df_current
+
+    @df_current.setter
+    def df_current(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_current must be a pandas DataFrame")
+        self._df_current = val
+
+    @property
+    def df_baseline(self) -> pd.DataFrame:
+        """getter"""
+        return self._df_baseline
+
+    @df_baseline.setter
+    def df_baseline(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_baseline must be a pandas DataFrame")
+        self._df_baseline = val
+
+    @property
+    def xpl(self) -> SmartExplainer:
+        """getter"""
+        if not hasattr(self, "_xpl"):
+            raise RuntimeError("SmartExplainer has not been initialized yet.")
+        return self._xpl
+
+    @xpl.setter
+    def xpl(self, val: SmartExplainer) -> None:
+        """setter"""
+        if not isinstance(val, SmartExplainer):
+            raise ValueError("xpl must be a SmartExplainer instance.")
+        self._xpl = val
+
+    @property
+    def df_predict(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_df_predict"):
+            raise RuntimeError("df_predict has not been initialized yet.")
+        return self._df_predict
+
+    @df_predict.setter
+    def df_predict(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("df_predict must be a pandas DataFrame.")
+        self._df_predict = val
+
+    @property
+    def feature_importance(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_feature_importance"):
+            raise RuntimeError("feature_importance has not been initialized yet.")
+        return self._feature_importance
+
+    @feature_importance.setter
+    def feature_importance(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("feature_importance must be a pandas DataFrame.")
+        self._feature_importance = val
+
+    @property
+    def pb_cols(self) -> dict[str, list[str]]:
+        """getter"""
+        return self._pb_cols
+
+    @pb_cols.setter
+    def pb_cols(self, val: dict[str, list[str]]) -> None:
+        """setter"""
+        if not isinstance(val, dict):
+            raise ValueError("pb_cols must be a dictionary.")
+        self._pb_cols = val
+
+    @property
+    def err_mods(self) -> dict[str, dict]:
+        """getter"""
+        return self._err_mods
+
+    @err_mods.setter
+    def err_mods(self, val: dict[str, dict]) -> None:
+        """setter"""
+        if not isinstance(val, dict):
+            raise ValueError("err_mods must be a dictionary.")
+        self._err_mods = val
+
+    @property
+    def auc(self) -> float:
+        """getter"""
+        if not hasattr(self, "_auc"):
+            raise RuntimeError("auc has not been initialized yet.")
+        return self._auc
+
+    @auc.setter
+    def auc(self, val: float) -> None:
+        """setter"""
+        if not isinstance(val, (float, int)):
+            raise ValueError("auc must be of type float or int.")
+        self._auc = float(val)
+
+    @property
+    def js_divergence(self) -> float:
+        """getter"""
+        if not hasattr(self, "_js_divergence"):
+            raise RuntimeError("js_divergence has not been initialized yet.")
+        return self._js_divergence
+
+    @js_divergence.setter
+    def js_divergence(self, val: float) -> None:
+        """setter"""
+        if not isinstance(val, (float, int)):
+            raise ValueError("js_divergence must be of type float or int.")
+        self._js_divergence = float(val)
+
+    @property
+    def historical_auc(self) -> pd.DataFrame | None:
+        """getter"""
+        if not hasattr(self, "_historical_auc"):
+            # raise RuntimeError("historical_auc has not been initialized yet.")
+            return None
+        return self._historical_auc
+
+    @historical_auc.setter
+    def historical_auc(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("historical_auc must be a pandas DataFrame.")
+        self._historical_auc = val
+
+    @property
+    def data_modeldrift(self) -> pd.DataFrame | None:
+        """getter"""
+        if not hasattr(self, "_data_modeldrift"):
+            # raise RuntimeError("data_modeldrift has not been initialized yet.")
+            return None
+        return self._data_modeldrift
+
+    @data_modeldrift.setter
+    def data_modeldrift(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("data_modeldrift must be a pandas DataFrame.")
+        self._data_modeldrift = val
+
+    @property
+    def current_dataset_name(self) -> str:
+        """Returns the display name of df_current"""
+        return self._dataset_names[0]
+
+    @property
+    def baseline_dataset_name(self) -> str:
+        """Returns the display name of df_baseline"""
+        return self._dataset_names[1]
+
+    @property
+    def encoding(self) -> Any:
+        """getter"""
+        return self._encoding
+
+    @encoding.setter
+    def encoding(self, val: Any) -> None:
+        """setter"""
+        self._encoding = val
+
+    @property
+    def deployed_model(self) -> Any:
+        """getter"""
+        return self._deployed_model
+
+    @deployed_model.setter
+    def deployed_model(self, val: Any) -> None:
+        """setter"""
+        self._deployed_model = val
+
+    @property
+    def ignore_cols(self) -> list[str]:
+        """getter"""
+        return self._ignore_cols
+
+    @ignore_cols.setter
+    def ignore_cols(self, val: list[str]) -> None:
+        """setter"""
+        if not isinstance(val, list):
+            raise ValueError("ignore_cols must be a list.")
+        self._ignore_cols = val
+
+    @property
+    def datadrift_stat_test(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_datadrift_stat_test"):
+            raise RuntimeError("datadrift_stat_test has not been initialized yet.")
+        return self._datadrift_stat_test
+
+    @datadrift_stat_test.setter
+    def datadrift_stat_test(self, val: pd.DataFrame) -> None:
+        """setter"""
+        if not isinstance(val, pd.DataFrame):
+            raise ValueError("datadrift_stat_test must be a pandas DataFrame.")
+        self._datadrift_stat_test = val
+
+    @property
+    def df_concat(self) -> pd.DataFrame:
+        """getter"""
+        if not hasattr(self, "_df_concat"):
+            raise RuntimeError("df_concat has not been initialized yet.")
+        return self._df_concat
+
+    @df_concat.setter
+    def df_concat(self, val: pd.DataFrame | None) -> None:
+        """setter"""
+        if val is not None and not isinstance(val, pd.DataFrame):
+            raise ValueError("df_concat must be a pandas DataFrame or None.")
+        self._df_concat = val
+
+    @property
+    def datadrift_target(self) -> str:
+        """getter"""
+        return self._datadrift_target
+
+    @property
+    def plot(self) -> SmartPlotter:
+        """getter"""
+        return self._plot

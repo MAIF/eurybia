@@ -110,12 +110,9 @@ class SmartPlotter:
             hue = self.smartdrift.datadrift_target
         if df_all is None:
             df_all = self.smartdrift.df_concat
-            df_all.loc[df_all[hue] == 0, hue] = (
-                self.smartdrift.current_dataset_name
-            )  # list(self.smartdrift.dataset_names.keys())[1]
-            df_all.loc[df_all[hue] == 1, hue] = (
-                self.smartdrift.baseline_dataset_name
-            )  # list(self.smartdrift.dataset_names.keys())[0]
+            df_all[hue] = df_all[hue].astype("object")
+            df_all.loc[df_all[hue] == 0, hue] = self.smartdrift.current_dataset_name
+            df_all.loc[df_all[hue] == 1, hue] = self.smartdrift.baseline_dataset_name
         if dict_color_palette is None:
             dict_color_palette = self.style_dict
         col_types = compute_col_types(df_all=df_all)
