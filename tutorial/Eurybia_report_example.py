@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     proba = model.predict_proba(X_df_2018)
     performance = metrics.roc_auc_score(y_df_2018, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2018, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2018, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2019, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     proba = model.predict_proba(X_df_2019)
     performance = metrics.roc_auc_score(y_df_2019, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2019, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2019, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2020, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     proba = model.predict_proba(X_df_2020)
     performance = metrics.roc_auc_score(y_df_2020, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2020, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2020, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2021, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
     proba = model.predict_proba(X_df_2021)
     performance = metrics.roc_auc_score(y_df_2021, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2021, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2021, 'mois': 1, 'performance': performance}])], ignore_index=True)
     SD.add_data_modeldrift(dataset=df_performance, metric="performance")
 
     SD.generate_report(
