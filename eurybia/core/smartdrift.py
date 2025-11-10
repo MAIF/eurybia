@@ -499,7 +499,6 @@ class SmartDrift:
                         )
         self.pb_cols = {"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}
         self.err_mods = err_mods
-        # return ({"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}, err_mods)
 
     def _predict(self, deployed_model: Any, encoding: Any = None) -> pd.DataFrame:
         """Create an attributes df_predict with the computed score on both datasets
