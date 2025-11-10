@@ -1,34 +1,25 @@
-"""
-Module used in the base_report notebook to generate report
-"""
+"""Module used in the base_report notebook to generate report"""
+
+from __future__ import annotations
 
 import copy
 import logging
-import os
-from typing import Optional, Union
+from typing import TYPE_CHECKING
 
-import jinja2
 import pandas as pd
 from shapash.explainer.smart_explainer import SmartExplainer
 
-from eurybia.core.smartdrift import SmartDrift
+if TYPE_CHECKING:
+    from eurybia.core.smartdrift import SmartDrift
 from eurybia.report.common import compute_col_types
 from eurybia.report.data_analysis import perform_global_dataframe_analysis, perform_univariate_dataframe_analysis
 from eurybia.utils.io import load_yml
-from eurybia.utils.utils import get_project_root
 
 logging.basicConfig(level=logging.INFO)
 
-template_loader = jinja2.FileSystemLoader(searchpath=os.path.join(get_project_root(), "report", "html"))
-template_env = jinja2.Environment(loader=template_loader)
-
-
-dict_font = dict(family="Arial Black", size=18)
-
 
 class DriftReport:
-    """
-    The DriftReport class allows to generate compare two datasets.
+    """The DriftReport class allows to generate compare two datasets.
     One used to train the model the other build for production purposes.
     It analyzes the data and the model used in order to provide interesting
     insights that can be shared with non technical person.
@@ -49,17 +40,17 @@ class DriftReport:
         Dataframe of feature importance from production model and drift model
     config_report : dict, optional
         Configuration options for the report
+
     """
 
     def __init__(
         self,
         smartdrift: SmartDrift,
         explainer: SmartExplainer,
-        project_info_file: Optional[str] = None,
-        config_report: Optional[dict] = None,
+        project_info_file: str | None = None,
+        config_report: dict | None = None,
     ):
-        """
-        Parameters
+        """Parameters
         ----------
         smartdrift: object
             SmartDrift object
@@ -74,7 +65,6 @@ class DriftReport:
         data_concat : pandas.DataFrame
             Concatanate dataframe of baseline and current datasets
         """
-
         self.smartdrift = smartdrift
         self.explainer = explainer
         if self.explainer.features_imp is None:
@@ -85,7 +75,6 @@ class DriftReport:
         self.data_concat = self._create_data_drift(
             df_current=self.smartdrift.df_current,
             df_baseline=self.smartdrift.df_baseline,
-            dataset_names=self.smartdrift.dataset_names,
         )
 
         if project_info_file is None:
@@ -98,27 +87,27 @@ class DriftReport:
         else:
             self.title_story = "Eurybia report"
 
-    @staticmethod
+    # FIXME: df_current and df_baseline should be used through self
     def _create_data_drift(
-        df_current: Optional[pd.DataFrame], df_baseline: Optional[pd.DataFrame], dataset_names: pd.DataFrame
-    ) -> Union[pd.DataFrame, None]:
-        """
-        Creates a DataFrame that contains dataset used for
+        self, df_current: pd.DataFrame | None, df_baseline: pd.DataFrame | None
+    ) -> pd.DataFrame | None:
+        """Creates a DataFrame that contains dataset used for
         training part and dataset used for production with the column 'data_drift_split'
         allowing to distinguish the values.
+
         Parameters
         ----------
         df_current : pd.DataFrame, optional
             dataset used for production, dataframe
         df_baseline : pd.DataFrame, optional
             dataset used for traning part, dataframe
-        dataset_names : pd.DataFrame
-            DataFrame used to specify names to display in report
+
         Returns
         -------
         pd.DataFrame
-            The concatenation of df_baseline and df_current as a dataframe containing df_baseline and df_current values with
-            a new 'data_train_test' column allowing to distinguish the values.
+            The concatenation of df_baseline and df_current as a dataframe containing df_baseline and df_current values
+            with a new 'data_train_test' column allowing to distinguish the values.
+
         """
         if (df_current is not None and "data_drift_split" in df_current.columns) or (
             df_baseline is not None and "data_drift_split" in df_baseline.columns
@@ -129,12 +118,12 @@ class DriftReport:
         return pd.concat(
             [
                 (
-                    df_current.assign(data_drift_split=dataset_names["df_current"].values[0])
+                    df_current.assign(data_drift_split=self.smartdrift.current_dataset_name)
                     if df_current is not None
                     else None
                 ),
                 (
-                    df_baseline.assign(data_drift_split=dataset_names["df_baseline"].values[0])
+                    df_baseline.assign(data_drift_split=self.smartdrift.baseline_dataset_name)
                     if df_baseline is not None
                     else None
                 ),
@@ -142,10 +131,10 @@ class DriftReport:
         ).reset_index(drop=True)
 
     def display_dataset_analysis(self, global_analysis: bool = True, univariate_analysis: bool = True):
-        """
-        This method performs and displays an exploration of the data given.
+        """This method performs and displays an exploration of the data given.
         It allows to compare train and test values for each part of the analysis.
         The parameters of the method allow to filter which part to display or not.
+
         Parameters
         ----------
         global_analysis : bool
@@ -157,6 +146,7 @@ class DriftReport:
             the distribution of the target variable
         multivariate_analysis : bool
             Whether or not to display the multivariate analysis part
+
         """
         res = {}
         if global_analysis:
@@ -167,12 +157,12 @@ class DriftReport:
                 df=self.data_concat,
                 col_splitter="data_drift_split",
                 split_values=[
-                    self.smartdrift.dataset_names["df_current"].values[0],
-                    self.smartdrift.dataset_names["df_baseline"].values[0],
+                    self.smartdrift.current_dataset_name,
+                    self.smartdrift.baseline_dataset_name,
                 ],
                 names=[
-                    self.smartdrift.dataset_names["df_current"].values[0],
-                    self.smartdrift.dataset_names["df_baseline"].values[0],
+                    self.smartdrift.current_dataset_name,
+                    self.smartdrift.baseline_dataset_name,
                 ],
                 group_id="univariate",
             )
@@ -185,8 +175,8 @@ class DriftReport:
             test_stats=perform_global_dataframe_analysis(self.smartdrift.df_current),
             train_stats=perform_global_dataframe_analysis(self.smartdrift.df_baseline),
             names=[
-                self.smartdrift.dataset_names["df_current"].values[0],
-                self.smartdrift.dataset_names["df_baseline"].values[0],
+                self.smartdrift.current_dataset_name,
+                self.smartdrift.baseline_dataset_name,
             ],
         )
         return df_stats_global
@@ -197,8 +187,8 @@ class DriftReport:
         col_splitter: str,
         split_values: list,
         names: list,
-        group_id: str,
-    ):
+        group_id: str,  # FIXME: not used
+    ) -> tuple[list, list, list]:
         col_types = compute_col_types(df)
         n_splits = df[col_splitter].nunique()
         test_stats_univariate = perform_univariate_dataframe_analysis(
@@ -231,24 +221,22 @@ class DriftReport:
                 Error:
                 """
                     + str(e)
-                )
+                ) from e
         return plot_list, labels, table_list
 
     @staticmethod
     def _stats_to_table(
         test_stats: dict,
         names: list,
-        train_stats: Optional[dict] = None,
+        train_stats: dict | None = None,
     ) -> pd.DataFrame:
         if train_stats is not None:
             return pd.DataFrame({names[1]: pd.Series(train_stats), names[0]: pd.Series(test_stats)})
         else:
             return pd.DataFrame({names[0]: pd.Series(test_stats)})
 
-    def display_model_contribution(self):
-        """
-        Displays explainability of the model as computed in SmartPlotter object
-        """
+    def display_model_contribution(self) -> tuple[list, list]:
+        """Displays explainability of the model as computed in SmartPlotter object"""
         multiclass = True if (self.explainer._classes and len(self.explainer._classes) > 2) else False
         c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
         plot_list = []
@@ -260,13 +248,11 @@ class DriftReport:
                 labels.append(feature)
         return plot_list, labels
 
-    def display_data_modeldrift(self):
-        """
-        Display modeldrift computed metrics when method 'drift' is used
-        """
+    def display_data_modeldrift(self) -> tuple[list, list]:
+        """Display modeldrift computed metrics when method 'drift' is used"""
+        plot_list = []
+        labels = []
         if self.smartdrift.data_modeldrift is not None:
-            plot_list = []
-            labels = []
             # If you don't have reference_columns
             if self.smartdrift.data_modeldrift.iloc[:, 1:-1].shape[1] == 0:
                 reference_columns = list(self.smartdrift.data_modeldrift.iloc[:, 1:-1].columns)
@@ -278,7 +264,7 @@ class DriftReport:
             # If you have reference_columns
             else:
                 agg_columns = list(self.smartdrift.data_modeldrift.iloc[:, 1:-1].columns)
-                for indice, row in self.smartdrift.data_modeldrift[agg_columns].drop_duplicates().iterrows():
+                for _, row in self.smartdrift.data_modeldrift[agg_columns].drop_duplicates().iterrows():
                     df = copy.deepcopy(self.smartdrift.data_modeldrift)
                     description = ""
                     for column in agg_columns:

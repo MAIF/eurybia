@@ -1,6 +1,7 @@
 """
 Module Unit test of common.py
 """
+
 import os
 import unittest
 from os import path

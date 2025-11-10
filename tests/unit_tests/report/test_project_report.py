@@ -1,6 +1,7 @@
 """
 Unit tests for project_report.py
 """
+
 import os
 import unittest
 from os import path
@@ -100,7 +101,7 @@ class TestDriftReport(unittest.TestCase):
         dataset_names = pd.DataFrame({"df_current": "Current dataset", "df_baseline": "Historical dataset"}, index=[0])
 
         with self.assertRaises(ValueError):
-            report._create_data_drift(df_current, df_baseline, dataset_names)
+            report._create_data_drift(df_current, df_baseline)
 
     def test_create_data_drift_2(self):
         """
@@ -110,7 +111,7 @@ class TestDriftReport(unittest.TestCase):
         df_baseline = None
         df_current = None
         dataset_names = None
-        assert report._create_data_drift(df_current, df_baseline, dataset_names) is None
+        assert report._create_data_drift(df_current, df_baseline) is None
 
     def test_display_model_contribution(self):
         """

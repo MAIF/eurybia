@@ -1,19 +1,19 @@
-"""
-functions for loading and manipulating colors
-"""
+"""functions for loading and manipulating colors"""
 
 import json
 import os
+from typing import Any
 
 
-def colors_loading():
-    """
-    colors_loading allows Eurybia to load a json file which contains different
+def colors_loading() -> dict:
+    """colors_loading allows Eurybia to load a json file which contains different
     palettes of colors that can be used in the plot
+
     Returns
     -------
     dict:
         contains all available pallets
+
     """
     current_path = os.path.dirname(os.path.abspath(__file__))
     jsonfile = os.path.join(current_path, "colors.json")
@@ -22,41 +22,45 @@ def colors_loading():
     return colors_dic
 
 
-def select_palette(colors_dic, palette_name):
-    """
-    colors_loading allows Eurybia to load a json file which contains different
+def select_palette(colors_dic: dict[str, dict], palette_name: str) -> dict:
+    """colors_loading allows Eurybia to load a json file which contains different
     palettes of colors that can be used in the plot
+
     Parameters
     ----------
     colors_dic : dict
         dictionnary with every palettes
     palette_name : String
         name of the palette
+
     Returns
     -------
     dict:
         contains colors of one palette
+
     """
     if palette_name not in colors_dic.keys():
         raise ValueError(f"Palette {palette_name} not found.")
     return colors_dic[palette_name]
 
 
-def define_style(palette):
-    """
-    the define_style function is a function that uses a palette
+def define_style(palette: dict[str, Any]) -> dict[str, Any]:
+    """The define_style function is a function that uses a palette
     to define the different styles used in the different outputs
     of Eurybia
+
     Parameters
     ----------
     palette : dict
         contains colors of one palette
+
     Returns
     -------
     dict :
         contains different style elements
+
     """
-    style_dict = dict()
+    style_dict: dict[str, Any] = dict()
     style_dict["dict_title"] = {
         "xanchor": "center",
         "yanchor": "middle",

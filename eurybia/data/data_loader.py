@@ -1,6 +1,4 @@
-"""
-Data loader module
-"""
+"""Data loader module"""
 
 import json
 import os
@@ -10,8 +8,7 @@ import pandas as pd
 
 
 def data_loading(dataset):
-    """
-    data_loading allows Eurybia user to try the library with small but clear datasets.
+    """data_loading allows Eurybia user to try the library with small but clear datasets.
     Titanic, house_prices or us_car_accident data.
 
     Example
@@ -33,10 +30,11 @@ def data_loading(dataset):
         Dataset required
     dict : (Dictionnary, Optional)
         If exist, columns labels dictionnary associated to the dataset.
+
     """
     current_path = os.path.dirname(os.path.abspath(__file__))
     if dataset == "house_prices":
-        if os.path.isfile(current_path + "/house_prices_dataset.csv") is False:
+        if not os.path.isfile(current_path + "/house_prices_dataset.csv"):
             github_data_url = "https://github.com/MAIF/eurybia/raw/master/eurybia/data/"
             urlretrieve(
                 github_data_url + "house_prices_dataset.csv", filename=current_path + "/house_prices_dataset.csv"

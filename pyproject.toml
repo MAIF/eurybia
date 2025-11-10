@@ -58,7 +58,6 @@ ignore_missing_imports = true
 [tool.ruff]
 line-length = 120
 exclude = [
-    "tests",
     "docs",
     "tutorial",
 ]
@@ -79,16 +78,11 @@ select = [
     "D",    # pydocstyle
     "NPY",  # NumPy-specific rules
 ]
-ignore = ["E501", "D2", "D3", "D4", "D104", "D100", "D106", "S311"]
+ignore = ["D2", "D4"]
 exclude = ["tests/*"]
 
 [tool.ruff.lint.per-file-ignores]
-"eurybia/core/smartdrift.py" = ["S301", "B006", "B008", "B904"]
-"eurybia/core/smartplotter.py" = ["D107", "B006"]
+"eurybia/core/smartdrift.py" = ["S301"]
 "eurybia/data/data_loader.py" = ["S310"]
-"eurybia/report/common.py" = ["D105", "S301"]
-"eurybia/report/generation.py" = ["D103", "PLW2901", "B006"]
-"eurybia/report/project_report.py" = ["S701", "B904", "B007"]
+"eurybia/report/common.py" = ["S301"]
 "eurybia/utils/io.py" = ["S301"]
-"eurybia/utils/statistical_tests.py" = ["A002"]
-"eurybia/utils/utils.py" = ["UP031"]

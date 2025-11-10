@@ -1,23 +1,26 @@
-"""
-Report generation helper module.
-"""
+"""Report generation helper module."""
+
+from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import panel as pn
 from plotly.graph_objects import Violin
 from shapash.explainer.smart_explainer import SmartExplainer
 
-from eurybia import SmartDrift
+if TYPE_CHECKING:
+    from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
 from eurybia.report.properties import report_css, report_jscallback, report_text, select_callback
 
 pn.extension("plotly")
 
 
-def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Optional[dict]) -> pn.Column:
+def _get_index_panel(
+    dr: DriftReport, project_info_file: str | None = None, config_report: dict | None = None
+) -> pn.Column:
     parts = []
     header_logo = pn.pane.PNG(
         "https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true",
@@ -45,6 +48,8 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Opti
     content = pn.pane.Markdown("\n".join(content_parts))
     parts.append(content)
 
+    if dr.smartdrift.auc is None:
+        raise RuntimeError("AUC should have been set.")
     # AUC
     auc_block = dr.smartdrift.plot.generate_indicator(
         fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC"
@@ -53,6 +58,9 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Opti
 
     # Jensen-Shannon
     if dr.smartdrift.deployed_model is not None:
+        if dr.smartdrift.js_divergence is None:
+            raise RuntimeError("Jensen-Shannon divergence should have been set.")
+
         JS_block = dr.smartdrift.plot.generate_indicator(
             fig_value=dr.smartdrift.js_divergence,
             height=280,
@@ -72,27 +80,31 @@ def get_index_panel(dr: DriftReport, project_info_file: str, config_report: Opti
 
 
 def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
-    """
-    This function recursively explores the dict and returns a Panel Column containing
+    """This function recursively explores the dict and returns a Panel Column containing
     other groups and text blocks fed with the dict
+
     Parameters
     ----------
     text_dict: dict
         This dict must contain string as keys, and dicts or strings as values
     level: int = 1
         Recursion level, starting at 1 to allow for direct string manipulation
+
     Returns
-    ----------
+    -------
     pn.Column
         Column of blocks
+
     """
     blocks = []
     text = ""
     for k, v in text_dict.items():
         if isinstance(v, (str, int, float)) or v is None:
             if k.lower() == "date" and isinstance(v, str) and v.lower() == "auto":
-                v = str(datetime.now())[:-7]
-            text += f"**{k}** : {v}  \n"
+                val = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                val = str(v)
+            text += f"**{k}** : {val}  \n"
         elif isinstance(v, dict):
             if text != "":
                 blocks.append(pn.pane.Markdown(text))
@@ -105,14 +117,14 @@ def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
     return pn.Column(*blocks)
 
 
-def get_project_information_panel(dr: DriftReport) -> Optional[pn.Column]:
+def _get_project_information_panel(dr: DriftReport) -> pn.Column | None:
     if dr.metadata is None:
         return None
     blocks = dict_to_text_blocks(dr.metadata)
     return pn.Column(*blocks, name="Project information", styles=dict(display="none"))
 
 
-def get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
+def _get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
     # Title
     blocks = [pn.pane.Markdown("# Consistency Analysis")]
 
@@ -159,7 +171,7 @@ def get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
     return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"), css_classes=["information"])
 
 
-def get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
+def _get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
     blocks = []
     select = pn.widgets.Select(value=labels[0], options=labels)
     select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
@@ -178,7 +190,7 @@ def get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
     return blocks
 
 
-def get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
+def _get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
     blocks = []
     select = pn.widgets.Select(value=labels[0], options=labels)
     select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
@@ -193,7 +205,7 @@ def get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
     return blocks
 
 
-def get_data_drift_panel(dr: DriftReport) -> pn.Column:
+def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
     blocks = [
         pn.pane.Markdown("# Data drift"),
         pn.pane.Markdown(report_text["Data drift"]["01"]),
@@ -201,6 +213,10 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
         pn.pane.Markdown("### Datadrift classifier model perfomances"),
         pn.pane.Markdown(report_text["Data drift"]["02"]),
     ]
+
+    if dr.smartdrift.auc is None:
+        raise RuntimeError("AUC should have been set.")
+
     auc = dr.smartdrift.plot.generate_indicator(
         fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
     )
@@ -234,11 +250,11 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
     ]
 
     distribution_figures, labels, distribution_tables = dr.display_dataset_analysis(global_analysis=False)["univariate"]
-    distribution_plots_blocks = get_select_plots(
+    distribution_plots_blocks = _get_select_plots(
         labels=labels, key="distribution-plot", tab=".data-drift", figures=distribution_figures
     )
     blocks += distribution_plots_blocks
-    distribute_tables_blocks = get_select_tables(
+    distribute_tables_blocks = _get_select_tables(
         labels=labels, key="distribution-table", tab=".data-drift", tables=distribution_tables
     )
     blocks += distribute_tables_blocks
@@ -252,6 +268,10 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
             pn.pane.Plotly(fig_01),
             pn.pane.Markdown(report_text["Data drift"]["08"]),
         ]
+
+        if dr.smartdrift.js_divergence is None:
+            raise RuntimeError("Jensen-Shannon divergence should have been set.")
+
         js_fig = dr.smartdrift.plot.generate_indicator(
             fig_value=dr.smartdrift.js_divergence,
             height=280,
@@ -268,7 +288,7 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
         pn.pane.Markdown("## Feature contribution on data drift's detection"),
         pn.pane.Markdown(report_text["Data drift"]["09"]),
     ]
-    contribution_plots_blocks = get_select_plots(
+    contribution_plots_blocks = _get_select_plots(
         labels=contribution_labels,
         key="contribution-plot",
         tab=".data-drift",
@@ -296,9 +316,8 @@ def get_data_drift_panel(dr: DriftReport) -> pn.Column:
     return pn.Column(*blocks, name="Data drift", styles=dict(display="none"), css_classes=["data-drift"])
 
 
-def get_model_drift_panel(dr: DriftReport) -> pn.Column:
-    """
-    This function generates and returns a Panel Column page containing the Eurybia model drift analysis
+def _get_model_drift_panel(dr: DriftReport) -> pn.Column:
+    """This function generates and returns a Panel Column page containing the Eurybia model drift analysis
 
     Parameters
     ----------
@@ -306,10 +325,10 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
         DriftReport object
 
     Returns
-    ----------
+    -------
     pn.Column
-    """
 
+    """
     blocks = [
         pn.pane.Markdown("# Model drift"),
         pn.pane.Markdown(report_text["Model drift"]["01"]),
@@ -325,7 +344,7 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
             figures[0].update_layout(width=1240)
             blocks += [pn.pane.Plotly(figures[0])]
         else:
-            list_blocks = get_select_plots(labels=labels, key="modeldrift-plot", tab=".model-drift", figures=figures)
+            list_blocks = _get_select_plots(labels=labels, key="modeldrift-plot", tab=".model-drift", figures=figures)
             blocks += list_blocks
 
     return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=["model-drift"])
@@ -334,12 +353,11 @@ def get_model_drift_panel(dr: DriftReport) -> pn.Column:
 def execute_report(
     smartdrift: SmartDrift,
     explainer: SmartExplainer,
-    project_info_file: str,
     output_file: str,
-    config_report: Optional[dict] = {},
+    project_info_file: str | None = None,
+    config_report: dict | None = None,
 ) -> None:
-    """
-    Creates the report
+    """Creates the report
 
     Parameters
     ----------
@@ -353,7 +371,11 @@ def execute_report(
         Report configuration options.
     output_file : str
             Path to the HTML file to write
+
     """
+    if config_report is None:
+        config_report = {}
+
     dr = DriftReport(
         smartdrift=smartdrift,
         explainer=explainer,
@@ -362,13 +384,13 @@ def execute_report(
     )
 
     tab_list = []
-    tab_list.append(get_index_panel(dr, project_info_file, config_report))
+    tab_list.append(_get_index_panel(dr, project_info_file, config_report))
     if project_info_file is not None:
-        tab_list.append(get_project_information_panel(dr))
-    tab_list.append(get_consistency_analysis_panel(dr))
-    tab_list.append(get_data_drift_panel(dr))
+        tab_list.append(_get_project_information_panel(dr))
+    tab_list.append(_get_consistency_analysis_panel(dr))
+    tab_list.append(_get_data_drift_panel(dr))
     if dr.smartdrift.data_modeldrift is not None:
-        tab_list.append(get_model_drift_panel(dr))
+        tab_list.append(_get_model_drift_panel(dr))
 
     pn.config.raw_css.append(report_css)
     report = pn.Tabs(*tab_list, css_classes=["main-report"])

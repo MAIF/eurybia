@@ -1,6 +1,7 @@
 """
 Unit test of style_utils
 """
+
 import re
 import unittest
 

@@ -1,3 +1,5 @@
+"""Module used to group static assets needed for the report generation"""
+
 from typing import Any
 
 report_text: dict[str, Any] = {
@@ -65,7 +67,7 @@ report_text: dict[str, Any] = {
             "A value close to 0 indicates similar data distributions, while a value close to 1 "
             "tend to indicate distinct data distributions with a negative effect on the deployed model performance."
         ),
-        "07": (
+        "07": (  # FIXME: wrong message, continuous var are not rendered as a bar chart
             "Bar chart showing the unique values distribution of a feature. "
             "Using the drop-down menu, it is possible to select the feature of interest. "
             "Features are sorted according to their respective importance in the datadrift classifier. "

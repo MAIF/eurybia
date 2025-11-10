@@ -3,6 +3,7 @@ This script can be used to generate the report example.
 For more information, please refer to the tutorial 'tutorial01-modeldrift.ipynb' in tutorial/model_drift
 that generates the same report.
 """
+from datetime import date
 import os
 import sys
 from pathlib import Path
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2017, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2017",
+        date_compile_auc=date(2017, 1, 1),
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
@@ -110,46 +111,46 @@ if __name__ == "__main__":
     SD = SmartDrift(df_current=X_df_2018, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2018",  # optionnal, by default date of compile
+        date_compile_auc=date(2018, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
     proba = model.predict_proba(X_df_2018)
     performance = metrics.roc_auc_score(y_df_2018, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2018, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2018, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2019, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2019",  # optionnal, by default date of compile
+        date_compile_auc=date(2019, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
     proba = model.predict_proba(X_df_2019)
     performance = metrics.roc_auc_score(y_df_2019, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2019, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2019, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2020, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2020",  # optionnal, by default date of compile
+        date_compile_auc=date(2020, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
     proba = model.predict_proba(X_df_2020)
     performance = metrics.roc_auc_score(y_df_2020, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2020, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2020, 'mois': 1, 'performance': performance}])], ignore_index=True)
 
     SD = SmartDrift(df_current=X_df_2021, df_baseline=X_df_learning, deployed_model=model, encoding=encoder)
     SD.compile(
         full_validation=True,
-        date_compile_auc="01/01/2021",  # optionnal, by default date of compile
+        date_compile_auc=date(2021, 1, 1),  # optionnal, by default date of compile
         datadrift_file=os.path.join(cur_dir, "car_accident_auc.csv"),
     )
 
     proba = model.predict_proba(X_df_2021)
     performance = metrics.roc_auc_score(y_df_2021, proba[:, 1]).round(5)
-    df_performance = df_performance.append({"annee": 2021, "mois": 1, "performance": performance}, ignore_index=True)
+    df_performance = pd.concat([df_performance, pd.DataFrame([{'annee': 2021, 'mois': 1, 'performance': performance}])], ignore_index=True)
     SD.add_data_modeldrift(dataset=df_performance, metric="performance")
 
     SD.generate_report(

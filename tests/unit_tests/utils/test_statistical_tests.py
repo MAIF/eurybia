@@ -1,6 +1,7 @@
 """
 Unit test statistical_tests.py
 """
+
 import unittest
 
 import numpy as np
@@ -49,10 +50,10 @@ class TestStatistical_tests(unittest.TestCase):
         a = np.concatenate((X1, X2), axis=0)
         range = (a.min(), a.max())
 
-        res1, res2 = prob_mass_fun(X1,3,range)
+        res1, res2 = prob_mass_fun(X1, 3, range)
 
-        assert res1.all() == np.array([0., 1., 2., 3.]).all()
-        assert res2.all() == np.array([0.3, 0.2 , 0.5]).all()
+        assert res1.all() == np.array([0.0, 1.0, 2.0, 3.0]).all()
+        assert res2.all() == np.array([0.3, 0.2, 0.5]).all()
 
     def test_compute_js_divergence(self):
         """
