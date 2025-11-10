@@ -52,9 +52,9 @@ def _get_index_panel(
         raise RuntimeError("AUC should have been set.")
     # AUC
     auc_block = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC"
+        fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC", image=True
     )
-    auc_indicator = pn.pane.Plotly(auc_block)
+    auc_indicator = pn.pane.PNG(auc_block)
 
     # Jensen-Shannon
     if dr.smartdrift.deployed_model is not None:
@@ -68,8 +68,9 @@ def _get_index_panel(
             title="Jensen Shannon Datadrift",
             min_gauge=0,
             max_gauge=0.2,
+            image=True,
         )
-        js_indicator = pn.pane.Plotly(JS_block)
+        js_indicator = pn.pane.PNG(JS_block)
         indicators = pn.Row(auc_indicator, js_indicator)
 
     else:
@@ -218,9 +219,9 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
         raise RuntimeError("AUC should have been set.")
 
     auc = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC"
+        fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC", image=True
     )
-    blocks += [pn.pane.Plotly(auc)]
+    blocks += [pn.pane.PNG(auc)]
 
     blocks += [
         pn.pane.Markdown("## Importance of features in data drift"),
@@ -279,8 +280,9 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
             title="Jensen Shannon Datadrift",
             min_gauge=0,
             max_gauge=0.2,
+            image=True,
         )
-        blocks += [pn.pane.Plotly(js_fig)]
+        blocks += [pn.pane.PNG(js_fig)]
 
     contribution_figures, contribution_labels = dr.display_model_contribution()
 
