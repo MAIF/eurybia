@@ -43,6 +43,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
         3 keys : testname, statistic, pvalue
 
     """
+    # FIXME: fails if obs_a has NaN values (ex: ["A", "B", NaN])
     uniq_a, freq_a = np.unique(obs_a, return_counts=True)
     freq_a_df = pd.DataFrame(freq_a, index=uniq_a, columns=["a"])
 
@@ -57,7 +58,7 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     return output
 
 
-def prob_mass_fun(data: pd.Series, n: int, range: tuple[float, float]) -> tuple[np.ndarray, np.ndarray]:
+def prob_mass_fun(data: pd.Series, n: int, bins_range: tuple[float, float]) -> tuple[np.ndarray, np.ndarray]:
     """Computing the probability mass function using NumPy’s histogram.
 
     Parameters
@@ -75,7 +76,7 @@ def prob_mass_fun(data: pd.Series, n: int, range: tuple[float, float]) -> tuple[
     p, Return the frequencies of each interval (length= n).
 
     """
-    h, e = np.histogram(data, n, range)
+    h, e = np.histogram(data, n, bins_range)
     p = h / data.shape[0]
     return e, p
 
@@ -99,7 +100,7 @@ def compute_js_divergence(df_1: pd.DataFrame, df_2: pd.DataFrame, n_bins: int = 
 
     """
     a = np.concatenate((df_1, df_2), axis=0)
-    e, p = prob_mass_fun(df_1, n=n_bins, range=(a.min(), a.max()))
-    _, q = prob_mass_fun(df_2, n=e, range=(a.min(), a.max()))
+    e, p = prob_mass_fun(df_1, n=n_bins, bins_range=(a.min(), a.max()))
+    _, q = prob_mass_fun(df_2, n=e, bins_range=(a.min(), a.max()))
 
     return scipy.spatial.distance.jensenshannon(p, q)

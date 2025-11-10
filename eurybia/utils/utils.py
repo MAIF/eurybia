@@ -1,5 +1,6 @@
 """Utils is a group of function for the library"""
 
+from math import floor, log10
 from pathlib import Path
 
 import pandas as pd
@@ -91,8 +92,10 @@ def round_to_k(x: float, k: int) -> float | int:
     float or int
 
     """
-    x = float(x)
-    new_x = float("%s" % float(f"%.{k}g" % x))  # Rounding to k important figures
+    if x == 0:
+        return 0
+    new_x = round(x, k - int(floor(log10(abs(x)))) - 1)
+
     if new_x % 1 == 0:
         return int(new_x)  # Avoid the '.0' that can mislead the user that it may be a round number
     else:

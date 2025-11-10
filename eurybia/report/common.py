@@ -21,6 +21,7 @@ class VarType(Enum):
     TYPE_UNSUPPORTED = "Unsupported"
 
     def __str__(self) -> str:
+        """Str"""
         return str(self.value)
 
 

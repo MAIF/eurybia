@@ -45,30 +45,36 @@ class SmartPlotter:
     """
 
     def __init__(self, smartdrift: SmartDrift):
+        """Initialize a SmartPlotter.
+
+        Args:
+            smartdrift (SmartDrift): a SmartDrift instance
+
+        """
         palette_name = list(colors_loading().keys())[0]
         self._style_dict = define_style(select_palette(colors_loading(), palette_name))
         self._smartdrift = smartdrift
 
     @property
     def style_dict(self) -> dict:
-        """getter"""
+        """Getter"""
         return self._style_dict
 
     @style_dict.setter
     def style_dict(self, val: dict) -> None:
-        """setter"""
+        """Setter"""
         if not isinstance(val, dict):
             raise ValueError("style_dict must be a dictionary.")
         self._style_dict = val
 
     @property
     def smartdrift(self) -> SmartDrift:
-        """getter"""
+        """Getter"""
         return self._smartdrift
 
     @smartdrift.setter
     def smartdrift(self, val: SmartDrift) -> None:
-        """setter"""
+        """Setter"""
         if not isinstance(val, SmartDrift):
             raise ValueError("style_dict must be of type SmartDrift.")
         self._smartdrift = val
@@ -589,7 +595,7 @@ class SmartPlotter:
         self,
         data_modeldrift: pd.DataFrame = None,
         metric: str = "performance",
-        reference_columns: list = list(),
+        reference_columns: list | None = None,
         template: str | None = None,
         title: str | None = None,
         xaxis_title: str | None = None,
@@ -639,6 +645,8 @@ class SmartPlotter:
         data_modeldrift[metric] = data_modeldrift[metric].apply(
             lambda row: round(row, len([char for char in str(row).split(".")[1] if char == "0"]) + 3)
         )
+        if reference_columns is None:
+            reference_columns = list()
 
         fig = px.line(
             data_modeldrift,

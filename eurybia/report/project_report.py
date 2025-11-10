@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import copy
 import logging
-import os
 from typing import TYPE_CHECKING
 
-import jinja2
 import pandas as pd
 from shapash.explainer.smart_explainer import SmartExplainer
 
@@ -16,15 +14,8 @@ if TYPE_CHECKING:
 from eurybia.report.common import compute_col_types
 from eurybia.report.data_analysis import perform_global_dataframe_analysis, perform_univariate_dataframe_analysis
 from eurybia.utils.io import load_yml
-from eurybia.utils.utils import get_project_root
 
 logging.basicConfig(level=logging.INFO)
-
-template_loader = jinja2.FileSystemLoader(searchpath=os.path.join(get_project_root(), "report", "html"))
-template_env = jinja2.Environment(loader=template_loader)
-
-
-dict_font = dict(family="Arial Black", size=18)
 
 
 class DriftReport:
@@ -230,7 +221,7 @@ class DriftReport:
                 Error:
                 """
                     + str(e)
-                )
+                ) from e
         return plot_list, labels, table_list
 
     @staticmethod
@@ -273,7 +264,7 @@ class DriftReport:
             # If you have reference_columns
             else:
                 agg_columns = list(self.smartdrift.data_modeldrift.iloc[:, 1:-1].columns)
-                for indice, row in self.smartdrift.data_modeldrift[agg_columns].drop_duplicates().iterrows():
+                for _, row in self.smartdrift.data_modeldrift[agg_columns].drop_duplicates().iterrows():
                     df = copy.deepcopy(self.smartdrift.data_modeldrift)
                     description = ""
                     for column in agg_columns:

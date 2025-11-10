@@ -34,7 +34,7 @@ def data_loading(dataset):
     """
     current_path = os.path.dirname(os.path.abspath(__file__))
     if dataset == "house_prices":
-        if os.path.isfile(current_path + "/house_prices_dataset.csv") is False:
+        if not os.path.isfile(current_path + "/house_prices_dataset.csv"):
             github_data_url = "https://github.com/MAIF/eurybia/raw/master/eurybia/data/"
             urlretrieve(
                 github_data_url + "house_prices_dataset.csv", filename=current_path + "/house_prices_dataset.csv"
