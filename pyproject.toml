@@ -32,6 +32,7 @@ dependencies = [
     "seaborn>=0.10.1",
     "shapash>=2.0.0",
     "plotly",
+    "kaleido>=0.2.1,<1.0.0",
 ]
 
 [project.optional-dependencies] # Optional

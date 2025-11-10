@@ -710,27 +710,24 @@ class SmartPlotter:
         fig_value: float,
         min_gauge: float = 0.5,
         max_gauge: float = 1,
-        height: float | None = 300,
-        width: float | None = 500,
-        title: str | None = "Metric",
-    ) -> plotly.graph_objs._figure.Figure:
-        """Displays an indicator in a colorbar
+        height: float = 300,
+        width: float = 500,
+        title: str = "Metric",
+        image: bool = False,
+    ) -> plotly.graph_objs._figure.Figure | bytes:
+        """Generate an indicator gauge with a colorbar.
 
-        Parameters
-        ----------
-        fig_value: float
-            Value to display on figure
-        min_gauge: float, (default: 0.5)
-            range min in gauge display
-        max_gauge: float, (default: 1)
-            range max in gauge display
-        height: str, optional
-            Height of the plot
-        width: str, optional
-            Width of the plot
-        title: str, optional
-            Plot title
+        Args:
+            fig_value (float): Value to display on the gauge.
+            min_gauge (float, optional): Minimum value of the gauge range. Defaults to 0.5.
+            max_gauge (float, optional): Maximum value of the gauge range. Defaults to 1.
+            height (float, optional): Height of the plot. Defaults to 300.
+            width (float, optional): Width of the plot. Defaults to 500.
+            title (str, optional): Title of the plot. Defaults to "Metric".
+            image (bool, optional): If True, returns an image instead of a Plotly Figure. Defaults to False.
 
+        Returns:
+            plotly.graph_objs._figure.Figure | bytes: The generated figure or image.
         """
         color = sns.blend_palette(["green", "yellow", "orange", "red"], 100)
         color = color.as_hex()
@@ -764,4 +761,4 @@ class SmartPlotter:
             width=width,
         )
 
-        return fig
+        return fig.to_image() if image else fig
