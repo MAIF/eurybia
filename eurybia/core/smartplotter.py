@@ -115,7 +115,7 @@ class SmartPlotter:
         if hue is None:
             hue = self.smartdrift.datadrift_target
         if df_all is None:
-            df_all = self.smartdrift.df_concat
+            df_all = self.smartdrift.da.df_concat
             df_all[hue] = df_all[hue].astype("object")
             df_all.loc[df_all[hue] == 0, hue] = self.smartdrift.current_dataset_name
             df_all.loc[df_all[hue] == 1, hue] = self.smartdrift.baseline_dataset_name
