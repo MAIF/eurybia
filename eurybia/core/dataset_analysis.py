@@ -10,7 +10,44 @@ DEFAULT_OPTIONAL_FIXES = ["float_precision", "float_to_int"]
 
 
 class DatasetAnalysis:
-    """_summary_"""
+    """
+    DatasetAnalysis provides tools for comparing and analyzing differences between two pandas DataFrames,
+    typically representing a baseline and a test dataset. It supports detection and fixing of schema and data
+    inconsistencies, such as column mismatches, data type differences, missing values, and float precision issues.
+
+    Key Features:
+    - Identifies intersecting, new, and removed columns between datasets.
+    - Detects data type mismatches and float precision differences.
+    - Analyzes categorical value differences between datasets.
+    - Provides utilities for filling missing values and aligning schemas.
+    - Supports splitting date columns and converting float columns to integers.
+    - Offers a train/test split method that labels data for downstream analysis.
+        sample_size (int | None, optional): If provided, samples up to this many rows from each DataFrame.
+        ignored_cols (list[str] | None, optional): List of column names to ignore during analysis.
+        optional_fixes (list[str] | None, optional): List of optional data cleaning fixes to apply.
+
+    Attributes:
+        df_baseline (pd.DataFrame): The processed baseline DataFrame.
+        df_test (pd.DataFrame): The processed test DataFrame.
+        df_concat (pd.DataFrame): Concatenated and labeled DataFrame for combined analysis.
+        ignored_cols (list[str]): List of columns ignored in analysis.
+        fixes_state (dict): Tracks which data cleaning fixes have been applied.
+        valid_columns (list[str]): Columns present in both datasets with matching data types.
+        intersecting_columns (list[str]): Columns present in both datasets.
+        new_columns (list[str]): Columns present only in the test dataset.
+        removed_columns (list[str]): Columns present only in the baseline dataset.
+        dtype_mismatches (dict): Columns with differing data types between datasets.
+        object_cols (list[str]): Categorical (object dtype) columns with matching types.
+        float_cols (list[str]): Float columns with matching types.
+        datetime_cols (list[str]): Datetime columns with matching types.
+        categorical_value_differences (dict): Differences in categorical values between datasets.
+        float_precision_differences (dict): Differences in float precision between datasets.
+        cat_features_indices (list[int]): Indices of categorical features in the concatenated DataFrame.
+
+    Methods:
+        fix_datasets(): Applies configured data cleaning and transformation fixes to the datasets.
+        train_test_split(**kwargs): Splits and labels the datasets for train/test analysis.
+    """
 
     def __init__(
         self,
