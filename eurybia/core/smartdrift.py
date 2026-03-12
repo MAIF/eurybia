@@ -316,10 +316,10 @@ class SmartDrift:
         )
 
         train_logloss = datadrift_classifier.eval_metrics(train_pool_cat, "Logloss")
-        iter_cible = np.argmin(train_logloss["Logloss"])
+        best_iter_train = np.argmin(train_logloss["Logloss"]) + 1
 
-        if iter_cible < datadrift_classifier.tree_count_:
-            datadrift_classifier.shrink(ntree_start=0, ntree_end=iter_cible + 1)
+        if best_iter_train < datadrift_classifier.tree_count_:
+            datadrift_classifier.shrink(ntree_start=0, ntree_end=best_iter_train)
 
         self.xpl = SmartExplainer(
             label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
