@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import catboost
+import numpy as np
 import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from shapash.explainer.smart_explainer import SmartExplainer
@@ -307,7 +308,18 @@ class SmartDrift:
             allow_writing_files=False,
         )
 
-        datadrift_classifier = datadrift_classifier.fit(train_pool_cat, eval_set=test_pool_cat, silent=True)
+        datadrift_classifier = datadrift_classifier.fit(
+            train_pool_cat,
+            eval_set=test_pool_cat,
+            silent=True,
+            early_stopping_rounds=hyperparameter["early_stopping_rounds"],
+        )
+
+        train_logloss = datadrift_classifier.eval_metrics(train_pool_cat, "Logloss")
+        iter_cible = np.argmin(train_logloss["Logloss"])
+
+        if iter_cible < datadrift_classifier.tree_count_:
+            datadrift_classifier.shrink(ntree_start=0, ntree_end=iter_cible + 1)
 
         self.xpl = SmartExplainer(
             label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
@@ -316,7 +328,7 @@ class SmartDrift:
         x_test = test[varz]
         y_test = test[self.datadrift_target]
 
-        self.xpl.compile(x=x_test)
+        self.xpl.compile(x=x_test, y_target=y_test)
         self.xpl.compute_features_import(force=True)
 
         self.xpl.define_style(colors_dict=self.colors_dict)
