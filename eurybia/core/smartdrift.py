@@ -335,7 +335,7 @@ class SmartDrift:
         self.datadrift_classifier = datadrift_classifier
         if self.deployed_model:
             self.df_predict = self._predict(deployed_model=self.deployed_model, encoding=self.encoding)
-        self.auc = roc_auc_score(y_test, datadrift_classifier.predict(x_test))
+        self.auc = roc_auc_score(y_test, datadrift_classifier.predict_proba(x_test)[:, 1])
         if self.deployed_model:
             self.feature_importance = self._compute_feature_importance(
                 deployed_model=self.deployed_model, attr_importance=attr_importance
