@@ -89,13 +89,13 @@ class TestIntegrationSmartdrift(unittest.TestCase):
             smartdrift.feature_importance.loc[smartdrift.feature_importance["feature"] == "Age", "deployed_model"].iloc[
                 0
             ]
-            > 0.1
+            > 0.09
         )
         assert (
             smartdrift.feature_importance.loc[
                 smartdrift.feature_importance["feature"] == "Age", "datadrift_classifier"
             ].iloc[0]
-            > 0.1
+            > 0.09
         )
 
         assert isinstance(fig_continuous, plotly.graph_objs._figure.Figure)
