@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import catboost
+import numpy as np
 import pandas as pd
 from shapash.explainer.smart_explainer import SmartExplainer
 from sklearn.metrics import roc_auc_score
@@ -294,7 +295,18 @@ class SmartDrift:
             allow_writing_files=False,
         )
 
-        datadrift_classifier = datadrift_classifier.fit(train_pool_cat, eval_set=test_pool_cat, silent=True)
+        datadrift_classifier = datadrift_classifier.fit(
+            train_pool_cat,
+            eval_set=test_pool_cat,
+            silent=True,
+            early_stopping_rounds=hyperparameter["early_stopping_rounds"],
+        )
+
+        train_logloss = datadrift_classifier.eval_metrics(train_pool_cat, "Logloss")
+        best_iter_train = np.argmin(train_logloss["Logloss"]) + 1
+
+        if best_iter_train < datadrift_classifier.tree_count_:
+            datadrift_classifier.shrink(ntree_start=0, ntree_end=best_iter_train)
 
         self.xpl = SmartExplainer(
             label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
@@ -303,14 +315,14 @@ class SmartDrift:
         x_test = test[feature_columns]
         y_test = test["target"]
 
-        self.xpl.compile(x=x_test)
+        self.xpl.compile(x=x_test, y_target=y_test)
         self.xpl.compute_features_import(force=True)
 
         self.xpl.define_style(colors_dict=self.colors_dict)
         self.datadrift_classifier = datadrift_classifier
         if self.deployed_model:
             self.df_predict = self._predict(deployed_model=self.deployed_model, encoding=self.encoding)
-        self.auc = roc_auc_score(y_test, datadrift_classifier.predict(x_test))
+        self.auc = roc_auc_score(y_test, datadrift_classifier.predict_proba(x_test)[:, 1])
         if self.deployed_model:
             self.feature_importance = self._compute_feature_importance(
                 deployed_model=self.deployed_model, attr_importance=attr_importance
