@@ -367,7 +367,7 @@ class TestSmartDrift(unittest.TestCase):
         self.assertCountEqual(sd.da.categorical_value_differences, sd2.da.categorical_value_differences)
         self.assertCountEqual(sd.da.removed_columns, sd2.da.removed_columns)
         self.assertCountEqual(sd.da.new_columns, sd2.da.new_columns)
-        self.assertCountEqual(sd.da.dtype_mismatches, sd2.da.dtype_mismatches)
+        self.assertEqual(sd.da.dtype_mismatches, sd2.da.dtype_mismatches)
         assert sd.auc == sd2.auc
         pd.testing.assert_frame_equal(sd.historical_auc, sd2.historical_auc)
         pd.testing.assert_frame_equal(sd.da._df_baseline, sd2.da._df_baseline)
