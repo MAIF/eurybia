@@ -38,8 +38,9 @@ class DatasetAnalysis:
         self,
         df_test: pd.DataFrame,
         df_baseline: pd.DataFrame,
-        sample_size: int | None = None,
         ignored_cols: list[str] | None = None,
+        sample_size: int | None = None,
+        random_state: int = 42,
     ):
         """
         Initializes the dataset analysis object with test and baseline DataFrames,
@@ -48,8 +49,9 @@ class DatasetAnalysis:
         Args:
             df_test (pd.DataFrame): The test dataset to analyze.
             df_baseline (pd.DataFrame): The baseline dataset for comparison.
-            sample_size (int | None, optional): If provided, limits both datasets to this number of samples.
             ignored_cols (list[str] | None, optional): List of column names to ignore in both datasets.
+            sample_size (int | None, optional): If provided, limits both datasets to this number of samples.
+            random_state (int, optional): Random seed used when sampling rows from the datasets.
         """
         self._ignored_cols: list[str] = ignored_cols if ignored_cols is not None else []
         self._df_test = df_test.drop(self._ignored_cols, axis=1, errors="ignore")
@@ -57,9 +59,9 @@ class DatasetAnalysis:
 
         if sample_size is not None:
             if self._df_test.shape[0] > sample_size:
-                self._df_test = self._df_test.sample(sample_size)
+                self._df_test = self._df_test.sample(sample_size, random_state=random_state)
             if self._df_baseline.shape[0] > sample_size:
-                self._df_baseline = self._df_baseline.sample(sample_size)
+                self._df_baseline = self._df_baseline.sample(sample_size, random_state=random_state)
 
     @property
     def ignored_cols(self) -> list[str]:
