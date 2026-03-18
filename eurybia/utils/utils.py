@@ -4,7 +4,7 @@ from math import floor, log10
 from pathlib import Path
 
 import pandas as pd
-from pandas.api.types import is_object_dtype
+from pandas.api.types import is_object_dtype, is_string_dtype
 from sklearn.model_selection import train_test_split
 
 
@@ -111,7 +111,7 @@ def round_to_k(x: float, k: int) -> float | int:
 def cat_features_indices(df: pd.DataFrame) -> list[int]:
     """Returns the indices of categorical features in a pandas DataFrame.
 
-    A categorical feature is identified as a column with an object dtype.
+    A categorical feature is identified as a column with an object or pandas string dtype.
 
     Args:
         df (pd.DataFrame): The input DataFrame to analyze.
@@ -120,12 +120,11 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
         list[int]: A list of indices corresponding to categorical columns in the DataFrame.
     """
 
-    i = 0
     indice_cat = []
-    for col in df.columns:
-        if col in [colname for colname in df.columns if is_object_dtype(df[colname].dtype)]:
+    for i, col in enumerate(df.columns):
+        dtype = df[col].dtype
+        if is_object_dtype(dtype) or is_string_dtype(dtype):
             indice_cat.append(i)
-        i += 1
     return indice_cat
 
 
