@@ -122,21 +122,26 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
     return indice_cat
 
 
-def train_test_split_concat(df_baseline, df_test, **kwargs) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Splits the baseline and test datasets into train and test sets, labels them,
-    and returns the concatenated train and test DataFrames.
+def train_test_split_concat(
+    df_baseline: pd.DataFrame, df_test: pd.DataFrame, **kwargs
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Splits two DataFrames (baseline and test) into train and test sets, assigns a target label to each,
+    and concatenates the corresponding splits.
 
-    Parameters:
-        **kwargs: Additional keyword arguments passed to sklearn's train_test_split (e.g., test_size, random_state).
+    The function performs a train-test split on both `df_baseline` and `df_test` using the provided
+    keyword arguments (passed to `sklearn.model_selection.train_test_split`). It then assigns a
+    target column with value 0 to the baseline data and 1 to the test data. The resulting train and
+    test sets are concatenated and returned.
+
+    Args:
+        df_baseline (pd.DataFrame): The baseline DataFrame to split and label as target 0.
+        df_test (pd.DataFrame): The test DataFrame to split and label as target 1.
+        **kwargs: Additional keyword arguments passed to `train_test_split`.
 
     Returns:
-        tuple[pd.DataFrame, pd.DataFrame]:
-        - train: Concatenated DataFrame of training samples from both baseline and test datasets,
-            with a 'target' column indicating source (0 for baseline, 1 for test).
-        - test: Concatenated DataFrame of test samples from both baseline and test datasets,
-            with a 'target' column indicating source (0 for baseline, 1 for test).
+        tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the concatenated train and test DataFrames,
+        each with a 'target' column indicating the source (0 for baseline, 1 for test).
     """
-
     baseline_train, baseline_test = train_test_split(df_baseline, **kwargs)
     baseline_train["target"] = 0
     baseline_test["target"] = 0
