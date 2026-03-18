@@ -811,30 +811,6 @@ class SmartDrift:
             raise ValueError("feature_importance must be a pandas DataFrame.")
         self._feature_importance = val
 
-    # @property
-    # def pb_cols(self) -> dict[str, list[str]]:
-    #     """Getter"""
-    #     return self._pb_cols
-
-    # @pb_cols.setter
-    # def pb_cols(self, val: dict[str, list[str]]) -> None:
-    #     """Setter"""
-    #     if not isinstance(val, dict):
-    #         raise ValueError("pb_cols must be a dictionary.")
-    #     self._pb_cols = val
-
-    # @property
-    # def err_mods(self) -> dict[str, dict]:
-    #     """Getter"""
-    #     return self._err_mods
-
-    # @err_mods.setter
-    # def err_mods(self, val: dict[str, dict]) -> None:
-    #     """Setter"""
-    #     if not isinstance(val, dict):
-    #         raise ValueError("err_mods must be a dictionary.")
-    #     self._err_mods = val
-
     @property
     def auc(self) -> float:
         """Getter"""
@@ -867,7 +843,6 @@ class SmartDrift:
     def historical_auc(self) -> pd.DataFrame | None:
         """Getter"""
         if not hasattr(self, "_historical_auc"):
-            # raise RuntimeError("historical_auc has not been initialized yet.")
             return None
         return self._historical_auc
 
@@ -882,7 +857,6 @@ class SmartDrift:
     def data_modeldrift(self) -> pd.DataFrame | None:
         """Getter"""
         if not hasattr(self, "_data_modeldrift"):
-            # raise RuntimeError("data_modeldrift has not been initialized yet.")
             return None
         return self._data_modeldrift
 

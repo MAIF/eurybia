@@ -102,36 +102,6 @@ def round_to_k(x: float, k: int) -> float | int:
     else:
         return new_x
 
-    # def convert_date_col_into_multiple_col(df: pd.DataFrame) -> pd.DataFrame:
-    #     """Transform datetime column into multiple columns
-    #         - year
-    #         - month
-    #         - day
-    #     Drop datetime column
-
-    #     Parameters
-    #     ----------
-    #     df: pd.Dataframe
-    #        input DataFrame with datetime columns
-
-    #     Returns
-    #     -------
-    #     pd.Dataframe
-    #         DataFrame without datetime columns
-
-    #     """
-    #     date_col_list = [column for column in df.columns if is_datetime(df[column])]
-
-    #     for col_date in date_col_list:
-    #         df[col_date + "_year"] = df[col_date].dt.year
-    #         df[col_date + "_month"] = df[col_date].dt.month
-    #         df[col_date + "_day"] = df[col_date].dt.day
-
-    #         # droping original date column
-    #         df = df.drop(col_date, axis=1)
-
-    #     return df
-
 
 def cat_features_indices(df: pd.DataFrame) -> list[int]:
     """Returns the indices of categorical features in a pandas DataFrame.
