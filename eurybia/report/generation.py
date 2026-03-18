@@ -165,9 +165,7 @@ def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) 
         if len(dr.smartdrift.da.categorical_value_differences) > 0:
             blocks += [
                 pn.pane.DataFrame(
-                    pd.DataFrame(dr.smartdrift.da.categorical_value_differences)
-                    .rename(columns={"err_mods": "Modalities present in one dataset and absent in the other :"})
-                    .transpose(),
+                    pd.DataFrame(dr.smartdrift.da.categorical_value_differences).transpose(),
                 )
             ]
         else:
