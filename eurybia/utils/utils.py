@@ -9,34 +9,34 @@ from sklearn.model_selection import train_test_split
 
 
 def convert_string_to_int_keys(input_dict: dict) -> dict:
-    """Returns the dict with integer keys instead of string keys
-
-    Parameters
-    ----------
-    input_dict: dict
-
-    Returns
-    -------
-    dict
-
+    """Converts the keys of a dictionary from strings to integers.
+    Args:
+        input_dict (dict): A dictionary with string keys that represent integers.
+    Returns:
+        dict: A new dictionary with integer keys and the same values as the input.
+    Raises:
+        ValueError: If any key cannot be converted to an integer.
     """
+
     return {int(k): v for k, v in input_dict.items()}
 
 
 def base_100(series: pd.Series) -> pd.Series:
-    """base_100 function put a pd.Series in base 100
-
-    Parameters
-    ----------
-    serie: pd.Series
-       input series to convert to base 100
-
-    Returns
-    -------
-    pd.Series
-        converted series
-
+    """Normalizes the values in a pandas Series so that their sum equals 1.
+    Args:
+        series (pd.Series): The input pandas Series to be normalized.
+    Returns:
+        pd.Series: A Series with values divided by the total sum, representing proportions.
+    Example:
+        >>> import pandas as pd
+        >>> s = pd.Series([10, 20, 30])
+        >>> base_100(s)
+        0    0.166667
+        1    0.333333
+        2    0.500000
+        dtype: float64
     """
+
     tot = series.sum()
     return series / tot
 
@@ -48,21 +48,20 @@ def get_project_root() -> Path:
 
 
 def truncate_str(text: str, maxlen: int = 40) -> str:
-    """Truncate a string
+    """Truncates a string to a specified maximum length, preserving whole words.
 
-    Parameters
-    ----------
-    text : string
-        string to check in order to add line break
-    maxlen : int
-        number of characters before truncation
+    If the input string exceeds the specified maximum length, it is truncated at the last whole word
+    that fits within the limit and an ellipsis ("...") is appended. If the string is shorter than or
+    equal to the maximum length, it is returned unchanged.
 
-    Returns
-    -------
-    string
-        truncated text
+    Args:
+        text (str): The input string to truncate.
+        maxlen (int, optional): The maximum allowed length of the output string. Defaults to 40.
 
+    Returns:
+        str: The truncated string, possibly with an appended ellipsis.
     """
+
     if isinstance(text, str) and len(text) > maxlen:
         tot_length = 0
         input_words = text.split()
@@ -79,20 +78,26 @@ def truncate_str(text: str, maxlen: int = 40) -> str:
 
 
 def round_to_k(x: float, k: int) -> float | int:
-    """Round float to k significant figure
+    """Rounds a number to a specified number of significant digits.
 
-    Parameters
-    ----------
-    x : float
-        number to round
-    k : int
-        the number of significant figures
+    Args:
+        x (float): The number to round.
+        k (int): The number of significant digits to round to.
 
-    Returns
-    -------
-    float or int
+    Returns:
+        float | int: The rounded number. Returns an integer if the result is a whole number, otherwise returns a float.
 
+    Examples:
+        >>> round_to_k(1234.5678, 2)
+        1200
+        >>> round_to_k(0.012345, 3)
+        0.0123
+        >>> round_to_k(0, 4)
+        0
+    Notes:
+        If the rounded value is a whole number, it is returned as an integer to avoid misleading '.0' decimal.
     """
+
     if x == 0:
         return 0
     new_x = round(x, k - int(floor(log10(abs(x)))) - 1)
@@ -107,8 +112,10 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
     """Returns the indices of categorical features in a pandas DataFrame.
 
     A categorical feature is identified as a column with an object dtype.
-    Parameters:
+
+    Args:
         df (pd.DataFrame): The input DataFrame to analyze.
+
     Returns:
         list[int]: A list of indices corresponding to categorical columns in the DataFrame.
     """
