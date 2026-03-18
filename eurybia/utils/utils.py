@@ -10,10 +10,13 @@ from sklearn.model_selection import train_test_split
 
 def convert_string_to_int_keys(input_dict: dict) -> dict:
     """Converts the keys of a dictionary from strings to integers.
+
     Args:
         input_dict (dict): A dictionary with string keys that represent integers.
+
     Returns:
         dict: A new dictionary with integer keys and the same values as the input.
+
     Raises:
         ValueError: If any key cannot be converted to an integer.
     """
@@ -23,10 +26,13 @@ def convert_string_to_int_keys(input_dict: dict) -> dict:
 
 def base_100(series: pd.Series) -> pd.Series:
     """Normalizes the values in a pandas Series so that their sum equals 1.
+
     Args:
         series (pd.Series): The input pandas Series to be normalized.
+
     Returns:
         pd.Series: A Series with values divided by the total sum, representing proportions.
+
     Example:
         >>> import pandas as pd
         >>> s = pd.Series([10, 20, 30])
@@ -94,6 +100,7 @@ def round_to_k(x: float, k: int) -> float | int:
         0.0123
         >>> round_to_k(0, 4)
         0
+
     Notes:
         If the rounded value is a whole number, it is returned as an integer to avoid misleading '.0' decimal.
     """
@@ -147,7 +154,7 @@ def train_test_split_concat(
 
     Returns:
         tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the concatenated train and test DataFrames,
-        each with a 'target' column indicating the source (0 for baseline, 1 for test).
+        each with a 'target_col' column indicating the source (0 for baseline, 1 for test).
     """
     baseline_train, baseline_test = train_test_split(df_baseline, **kwargs)
     baseline_train[target_col] = 0
