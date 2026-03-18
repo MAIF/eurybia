@@ -194,7 +194,7 @@ class SmartDrift:
         self._data_modeldrift: pd.DataFrame
 
         self._datadrift_stat_test: pd.DataFrame  # smartplotter
-        self._datadrift_target: str = "eurybia_target"  # constant
+        self._datadrift_target: str = "target"  # constant
 
         self._plot = SmartPlotter(self)
         self._plot.define_style_attributes(colors_dict=self.colors_dict)
