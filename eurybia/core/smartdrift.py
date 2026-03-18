@@ -194,7 +194,7 @@ class SmartDrift:
         self._data_modeldrift: pd.DataFrame
 
         self._datadrift_stat_test: pd.DataFrame  # smartplotter
-        self._datadrift_target: str = "target"  # constant
+        self._datadrift_target: str = "eurybia_target"  # constant
 
         self._plot = SmartPlotter(self)
         self._plot.define_style_attributes(colors_dict=self.colors_dict)
@@ -267,20 +267,27 @@ class SmartDrift:
         if (len(self.da.datetime_cols) > 0) and (self.deployed_model is not None):
             raise TypeError("Your datasets have a datetime column. You should drop it")
 
+        # Checking datasets
+        if self.datadrift_target in self.da.valid_columns:
+            raise ValueError(
+                f"Your dataframes contain a column named {self.datadrift_target}. Please consider renaming it."
+            )
+
         self.df_current, self.df_baseline = self.da.clean_datasets()
 
-        train, test = train_test_split_concat(self.df_baseline, self.df_current, test_size=0.25, random_state=42)
+        train, test = train_test_split_concat(
+            self.df_baseline, self.df_current, target_col=self.datadrift_target, test_size=0.25, random_state=42
+        )
         self._df_concat = pd.concat([train, test]).reset_index(drop=True)
 
-        indice_cat = cat_features_indices(train)
-
-        feature_columns = [col for col in train.columns if col != "target"]
+        feature_columns = [col for col in train.columns if col != self.datadrift_target]
+        indice_cat = cat_features_indices(train[feature_columns])
 
         train_pool_cat = catboost.Pool(
-            data=train[feature_columns], label=train["target"].astype(int), cat_features=indice_cat
+            data=train[feature_columns], label=train[self.datadrift_target].astype(int), cat_features=indice_cat
         )
         test_pool_cat = catboost.Pool(
-            data=test[feature_columns], label=test["target"].astype(int), cat_features=indice_cat
+            data=test[feature_columns], label=test[self.datadrift_target].astype(int), cat_features=indice_cat
         )
         datadrift_classifier = catboost.CatBoostClassifier(
             max_depth=hyperparameter["max_depth"],
@@ -313,7 +320,7 @@ class SmartDrift:
         )
 
         x_test = test[feature_columns]
-        y_test = test["target"]
+        y_test = test[self.datadrift_target]
 
         self.xpl.compile(x=x_test, y_target=y_test)
         self.xpl.compute_features_import(force=True)
@@ -896,18 +903,6 @@ class SmartDrift:
     def deployed_model(self, val: Any) -> None:
         """Setter"""
         self._deployed_model = val
-
-    @property
-    def ignore_cols(self) -> list[str]:
-        """Getter"""
-        return self._ignore_cols
-
-    @ignore_cols.setter
-    def ignore_cols(self, val: list[str]) -> None:
-        """Setter"""
-        if not isinstance(val, list):
-            raise ValueError("ignore_cols must be a list.")
-        self._ignore_cols = val
 
     @property
     def datadrift_stat_test(self) -> pd.DataFrame:

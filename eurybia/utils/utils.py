@@ -130,9 +130,9 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
 
 
 def train_test_split_concat(
-    df_baseline: pd.DataFrame, df_test: pd.DataFrame, **kwargs
+    df_baseline: pd.DataFrame, df_test: pd.DataFrame, target_col: str, **kwargs
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Splits two DataFrames (baseline and test) into train and test sets, assigns a target label to each,
+    """Splits two DataFrames (baseline and test) into train and test sets, assigns a target_col label to each,
     and concatenates the corresponding splits.
 
     The function performs a train-test split on both `df_baseline` and `df_test` using the provided
@@ -143,6 +143,7 @@ def train_test_split_concat(
     Args:
         df_baseline (pd.DataFrame): The baseline DataFrame to split and label as target 0.
         df_test (pd.DataFrame): The test DataFrame to split and label as target 1.
+        target_col (str): The name of the label column.
         **kwargs: Additional keyword arguments passed to `train_test_split`.
 
     Returns:
@@ -150,12 +151,12 @@ def train_test_split_concat(
         each with a 'target' column indicating the source (0 for baseline, 1 for test).
     """
     baseline_train, baseline_test = train_test_split(df_baseline, **kwargs)
-    baseline_train["target"] = 0
-    baseline_test["target"] = 0
+    baseline_train[target_col] = 0
+    baseline_test[target_col] = 0
 
     current_train, current_test = train_test_split(df_test, **kwargs)
-    current_train["target"] = 1
-    current_test["target"] = 1
+    current_train[target_col] = 1
+    current_test[target_col] = 1
 
     train = pd.concat([baseline_train, current_train]).reset_index(drop=True)
     test = pd.concat([baseline_test, current_test]).reset_index(drop=True)
