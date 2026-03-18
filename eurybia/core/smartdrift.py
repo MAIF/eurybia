@@ -14,14 +14,14 @@ import pandas as pd
 from shapash.explainer.smart_explainer import SmartExplainer
 from sklearn.metrics import roc_auc_score
 
-from eurybia.core.dataset_analysis import DEFAULT_OPTIONAL_FIXES, DatasetAnalysis
+from eurybia.core.dataset_analysis import DatasetAnalysis
 from eurybia.core.smartplotter import SmartPlotter
 from eurybia.report.generation import execute_report
 from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
-from eurybia.utils.utils import base_100
+from eurybia.utils.utils import base_100, cat_features_indices, train_test_split_concat
 
 
 class SmartDrift:
@@ -142,7 +142,6 @@ class SmartDrift:
         encoding: Any = None,
         palette_name: str = "eurybia",
         colors_dict: dict | None = None,
-        dataset_fixes: list[str] | None = None,
     ):
         """Parameters
         ----------
@@ -200,7 +199,6 @@ class SmartDrift:
         self._plot.define_style_attributes(colors_dict=self.colors_dict)
 
         self._modalities_analysis: bool = False
-        self._dataset_fixes = DEFAULT_OPTIONAL_FIXES if dataset_fixes is None else dataset_fixes
 
     def compile(
         self,
@@ -258,23 +256,30 @@ class SmartDrift:
         da_sample_size = sample_size if sampling else None
 
         self.da = DatasetAnalysis(
-            df_baseline=self.df_baseline,
-            df_test=self.df_current,
+            df_baseline=self._df_baseline,
+            df_test=self._df_current,
             sample_size=da_sample_size,
             ignored_cols=ignore_cols,
-            optional_fixes=self._dataset_fixes,
         )
+
         # Checking datasets
         if (len(self.da.datetime_cols) > 0) and (self.deployed_model is not None):
             raise TypeError("Your datasets have a datetime column. You should drop it")
 
-        train, test = self.da.train_test_split(test_size=0.25, random_state=42)
-        indice_cat = self.da.cat_features_indices
+        self.df_current, self.df_baseline = self.da.clean_datasets()
+
+        train, test = train_test_split_concat(self.df_baseline, self.df_current, test_size=0.25, random_state=42)
+        self._df_concat = pd.concat([train, test]).reset_index(drop=True)
+
+        indice_cat = cat_features_indices(train)
+
+        feature_columns = [col for col in train.columns if col != "target"]
+
         train_pool_cat = catboost.Pool(
-            data=train[self.da.valid_columns], label=train["target"].astype(int), cat_features=indice_cat
+            data=train[feature_columns], label=train["target"].astype(int), cat_features=indice_cat
         )
         test_pool_cat = catboost.Pool(
-            data=test[self.da.valid_columns], label=test["target"].astype(int), cat_features=indice_cat
+            data=test[feature_columns], label=test["target"].astype(int), cat_features=indice_cat
         )
         datadrift_classifier = catboost.CatBoostClassifier(
             max_depth=hyperparameter["max_depth"],
@@ -295,7 +300,7 @@ class SmartDrift:
             label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
         )
 
-        x_test = test[self.da.valid_columns]
+        x_test = test[feature_columns]
         y_test = test["target"]
 
         self.xpl.compile(x=x_test)
@@ -932,19 +937,19 @@ class SmartDrift:
             raise ValueError("datadrift_stat_test must be a pandas DataFrame.")
         self._datadrift_stat_test = val
 
-    # @property
-    # def df_concat(self) -> pd.DataFrame:
-    #     """Getter"""
-    #     if not hasattr(self, "_df_concat"):
-    #         raise RuntimeError("df_concat has not been initialized yet.")
-    #     return self._df_concat
+    @property
+    def df_concat(self) -> pd.DataFrame:
+        """Getter"""
+        if not hasattr(self, "_df_concat"):
+            raise RuntimeError("df_concat has not been initialized yet.")
+        return self._df_concat
 
-    # @df_concat.setter
-    # def df_concat(self, val: pd.DataFrame | None) -> None:
-    #     """Setter"""
-    #     if val is not None and not isinstance(val, pd.DataFrame):
-    #         raise ValueError("df_concat must be a pandas DataFrame or None.")
-    #     self._df_concat = val
+    @df_concat.setter
+    def df_concat(self, val: pd.DataFrame | None) -> None:
+        """Setter"""
+        if val is not None and not isinstance(val, pd.DataFrame):
+            raise ValueError("df_concat must be a pandas DataFrame or None.")
+        self._df_concat = val
 
     @property
     def datadrift_target(self) -> str:

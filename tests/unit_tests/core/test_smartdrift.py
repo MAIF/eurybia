@@ -420,9 +420,8 @@ class TestSmartDrift(unittest.TestCase):
         self.assertCountEqual(sd.da.dtype_mismatches, sd2.da.dtype_mismatches)
         assert sd.auc == sd2.auc
         pd.testing.assert_frame_equal(sd.historical_auc, sd2.historical_auc)
-        pd.testing.assert_frame_equal(sd.da.df_baseline, sd2.da.df_baseline)
-        pd.testing.assert_frame_equal(sd.da.df_test, sd2.da.df_test)
-        assert sd.da.cat_features_indices == sd2.da.cat_features_indices
+        pd.testing.assert_frame_equal(sd.da._df_baseline, sd2.da._df_baseline)
+        pd.testing.assert_frame_equal(sd.da._df_test, sd2.da._df_test)
         assert sd.datadrift_target == sd2.datadrift_target
         assert sd.deployed_model == sd2.deployed_model
         assert sd.encoding == sd2.encoding
