@@ -123,7 +123,7 @@ class DatasetAnalysis:
         Returns:
             dict[str, tuple[str, str]]:
                 A dictionary where each key is a column name with a data type mismatch,
-                and the value is a tuple containing the data types from the baseline and test DataFrames, respectively.
+                and the value is a tuple containing the data types from the test and baseline DataFrames, respectively.
         """
         dtype_mismatches: dict[str, tuple[str, str]] = dict()
         for colname in self.intersecting_columns:
