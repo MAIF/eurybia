@@ -182,8 +182,8 @@ class DatasetAnalysis:
         """
         different_modalities: dict[str, dict[str, list[str]]] = dict()
         for colname in self.object_cols:
-            baseline_modalities = pd.unique(self._df_baseline[colname])
-            test_modalities = pd.unique(self._df_test[colname])
+            baseline_modalities = pd.Series(self._df_baseline[colname]).dropna().unique()
+            test_modalities = pd.Series(self._df_test[colname]).dropna().unique()
 
             new_modalities = [mod for mod in test_modalities if mod not in baseline_modalities]
             missing_modalities = [mod for mod in baseline_modalities if mod not in test_modalities]
