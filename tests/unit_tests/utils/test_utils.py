@@ -96,9 +96,3 @@ class Testutils(unittest.TestCase):
 
         assert all(isinstance(r, float) for r in should_be_floats)
         assert all(isinstance(r, int) for r in should_be_ints)
-
-    def test_train_test_split_concat(self):
-        df = pd.DataFrame([[0, 1], [0, 1], [0, 1], [0, 2], [0, 2], [0, 2], [0, 2]], columns=["A", "B"])
-        sd = SmartDrift(df_current=df, df_baseline=df)
-        sd.compile()
-        assert sd.auc >= 0.5

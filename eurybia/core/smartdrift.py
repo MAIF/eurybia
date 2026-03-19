@@ -118,7 +118,8 @@ class SmartDrift:
 
             for attr, val in dict_to_load.items():
                 if isinstance(val, io.BytesIO):
-                    setattr(sd, attr, pickle.load(val.seek(0)))
+                    val.seek(0)
+                    setattr(sd, attr, pickle.load(val))
                 elif attr == "_xpl":
                     xpl = SmartExplainer(model=val["model"])
                     xpl.__dict__.update(val)

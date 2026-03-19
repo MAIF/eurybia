@@ -238,8 +238,8 @@ class DatasetAnalysis:
                 A tuple containing the cleaned test and baseline DataFrames.
         """
 
-        df_test = self._df_test
-        df_baseline = self._df_baseline
+        df_test = self._df_test.copy()
+        df_baseline = self._df_baseline.copy()
 
         # keep only columns of same name and type
         df_test = self._fix_valid_cols(df_test)

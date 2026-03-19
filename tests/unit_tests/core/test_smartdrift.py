@@ -452,3 +452,9 @@ class TestSmartDrift(unittest.TestCase):
             ValueError, match="Your dataframes contain a column named target. Please consider renaming it."
         ):
             smart_drift.compile()
+
+    def test_small_dataset_auc_correctness(self):
+        df = pd.DataFrame([[0, 1], [0, 1], [0, 1], [0, 2], [0, 2], [0, 2], [0, 2]], columns=["A", "B"])
+        sd = SmartDrift(df_current=df, df_baseline=df)
+        sd.compile()
+        assert sd.auc >= 0.5

@@ -129,7 +129,7 @@ def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) 
     # Title
     blocks = [pn.pane.Markdown("# Consistency Analysis")]
 
-    # Manually ignored coluumns
+    # Manually ignored columns
     ignore_cols = pd.DataFrame({"ignore_cols": dr.smartdrift.da.ignored_cols}).rename(
         columns={"ignore_cols": "Ignored columns"}
     )
@@ -157,11 +157,11 @@ def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) 
         else:
             blocks += [pn.pane.Markdown(f"- No {k.lower()} have been detected.")]
 
-    blocks += [
-        pn.pane.Markdown("###  Unique values identified"),
-        pn.pane.Markdown(report_text["Consistency analysis"]["02"]),
-    ]
     if modalities_analysis:
+        blocks += [
+            pn.pane.Markdown("###  Unique values identified"),
+            pn.pane.Markdown(report_text["Consistency analysis"]["02"]),
+        ]
         if len(dr.smartdrift.da.categorical_value_differences) > 0:
             blocks += [
                 pn.pane.DataFrame(
