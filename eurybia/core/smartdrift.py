@@ -119,7 +119,7 @@ class SmartDrift:
             for attr, val in dict_to_load.items():
                 if isinstance(val, io.BytesIO):
                     setattr(sd, attr, pickle.load(val.seek(0)))
-                elif attr == "xpl":
+                elif attr == "_xpl":
                     xpl = SmartExplainer(model=val["model"])
                     xpl.__dict__.update(val)
                     setattr(sd, attr, xpl)
@@ -243,6 +243,15 @@ class SmartDrift:
         >>> SD.compile()
 
         """
+        # Checking datasets
+        ignored_cols_set = set(ignore_cols) if ignore_cols is not None else set()
+        baseline_cols = [col for col in self._df_baseline.columns if col not in ignored_cols_set]
+        current_cols = [col for col in self._df_current.columns if col not in ignored_cols_set]
+        if self.datadrift_target in baseline_cols or self.datadrift_target in current_cols:
+            raise ValueError(
+                f"Your dataframes contain a column named {self.datadrift_target}. Please consider renaming it."
+            )
+
         self._modalities_analysis = full_validation
 
         if hyperparameter is not None:
@@ -266,12 +275,6 @@ class SmartDrift:
         # Checking datasets
         if (len(self.da.datetime_cols) > 0) and (self.deployed_model is not None):
             raise TypeError("Your datasets have a datetime column. You should drop it")
-
-        # Checking datasets
-        if self.datadrift_target in self.da.valid_columns:
-            raise ValueError(
-                f"Your dataframes contain a column named {self.datadrift_target}. Please consider renaming it."
-            )
 
         self.df_current, self.df_baseline = self.da.clean_datasets()
 

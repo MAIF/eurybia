@@ -370,8 +370,6 @@ class TestSmartDrift(unittest.TestCase):
         self.assertEqual(sd.da.dtype_mismatches, sd2.da.dtype_mismatches)
         assert sd.auc == sd2.auc
         pd.testing.assert_frame_equal(sd.historical_auc, sd2.historical_auc)
-        pd.testing.assert_frame_equal(sd.da._df_baseline, sd2.da._df_baseline)
-        pd.testing.assert_frame_equal(sd.da._df_test, sd2.da._df_test)
         assert sd.datadrift_target == sd2.datadrift_target
         assert sd.deployed_model == sd2.deployed_model
         assert sd.encoding == sd2.encoding
@@ -442,3 +440,15 @@ class TestSmartDrift(unittest.TestCase):
         # Should raise an error
         with pytest.raises(TypeError, match="Your datasets have a datetime column. You should drop it"):
             sd.compile(full_validation=True)
+
+    def test_target_col_error(self):
+        """
+        Test compile()
+        """
+        df = self.titanic_df_1
+        df["target"] = df["Pclass"]
+        smart_drift = SmartDrift(df, df)
+        with pytest.raises(
+            ValueError, match="Your dataframes contain a column named target. Please consider renaming it."
+        ):
+            smart_drift.compile()

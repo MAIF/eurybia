@@ -206,20 +206,20 @@ class DatasetAnalysis:
 
         Returns:
             dict: A dictionary where keys are column names with differing float precisions, and values are tuples
-                  of (test dataset max precision, baseline dataset max precision).
+                  of (test dataset max precision, baseline dataset max precision) as integers.
         """
 
         def nb_digits(i: float):
             split_i = str(i).split(".")
             return len(split_i[1]) if len(split_i) > 1 else 0
 
-        different_float_precision: dict[str, tuple[str, str]] = dict()
+        different_float_precision: dict[str, tuple[int, int]] = dict()
 
         for colname in self.float_cols:
             baseline_digits = self._df_baseline[colname].apply(nb_digits)
             test_digits = self._df_test[colname].apply(nb_digits)
-            baseline_max_precision = np.max(baseline_digits)
-            test_max_precision = np.max(test_digits)
+            baseline_max_precision = int(np.max(baseline_digits))
+            test_max_precision = int(np.max(test_digits))
             if baseline_max_precision != test_max_precision:
                 different_float_precision[colname] = (test_max_precision, baseline_max_precision)
 

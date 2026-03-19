@@ -1,7 +1,5 @@
-from datetime import date, datetime
 import pandas as pd
 from eurybia.core.dataset_analysis import DatasetAnalysis
-import pytest
 
 
 def test_ignore_cols():
@@ -106,33 +104,3 @@ def test_fix_date_split():
     df_baseline = da._fix_date_split(df_baseline)
     assert list(df_test.columns) == ["a_year", "a_month", "a_day"]
     assert list(df_baseline.columns) == ["a_year", "a_month", "a_day"]
-
-
-# def test_fix_float_precision():
-#     df_test = pd.DataFrame([[1.23, 2.345], [1.34, 2.456]], columns=["a", "b"])
-#     df_baseline = pd.DataFrame([[1.234, 2.5], [1.456, 2.6]], columns=["a", "b"])
-#     da = DatasetAnalysis(df_baseline=df_baseline, df_test=df_test, optional_fixes=["float_precision"])
-#     da._fix_float_precision()
-#     assert da.df_test["a"].compare(pd.Series([1.23, 1.34])).empty
-#     assert da.df_test["b"].compare(pd.Series([2.3, 2.5])).empty
-#     assert da.df_baseline["a"].compare(pd.Series([1.23, 1.46])).empty
-#     assert da.df_baseline["b"].compare(pd.Series([2.5, 2.6])).empty
-
-
-# def test_fix_float_to_int():
-#     df_test = pd.DataFrame([[1.23, 2.345], [1.34, 2.456]], columns=["a", "b"])
-#     df_baseline = pd.DataFrame([[1.23, 2], [1.45, 2]], columns=["a", "b"])
-#     da = DatasetAnalysis(df_baseline=df_baseline, df_test=df_test, optional_fixes=["float_to_int"])
-#     da._fix_float_to_int()
-#     assert da.df_test["a"].compare(pd.Series([1.23, 1.34])).empty
-#     assert da.df_test["b"].compare(pd.Series([2, 2])).empty
-#     assert da.df_baseline["a"].compare(pd.Series([1.23, 1.45])).empty
-#     assert da.df_baseline["b"].compare(pd.Series([2, 2])).empty
-
-
-# def test_wrong_fix():
-#     df_test = pd.DataFrame([[1.23, 2.345], [1.34, 2.456]], columns=["a", "b"])
-#     df_baseline = pd.DataFrame([[1.23, 2], [1.45, 2]], columns=["a", "b"])
-#     da = DatasetAnalysis(df_baseline=df_baseline, df_test=df_test, optional_fixes=["foo"])
-#     with pytest.raises(ValueError):
-#         da.fix_datasets()
