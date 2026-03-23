@@ -125,12 +125,12 @@ def _get_project_information_panel(dr: DriftReport) -> pn.Column | None:
     return pn.Column(*blocks, name="Project information", styles=dict(display="none"))
 
 
-def _get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
+def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) -> pn.Column:
     # Title
     blocks = [pn.pane.Markdown("# Consistency Analysis")]
 
-    # Manually ignored coluumns
-    ignore_cols = pd.DataFrame({"ignore_cols": dr.smartdrift.ignore_cols}).rename(
+    # Manually ignored columns
+    ignore_cols = pd.DataFrame({"ignore_cols": dr.smartdrift.da.ignored_cols}).rename(
         columns={"ignore_cols": "Ignored columns"}
     )
     blocks += [
@@ -146,28 +146,34 @@ def _get_consistency_analysis_panel(dr: DriftReport) -> pn.Column:
         pn.pane.Markdown("## Consistency checks: column match between the 2 datasets."),
         pn.pane.Markdown(report_text["Consistency analysis"]["01"]),
     ]
-    for k, v in dr.smartdrift.pb_cols.items():
+    pb_cols = {
+        "New columns": dr.smartdrift.da.new_columns,
+        "Removed columns": dr.smartdrift.da.removed_columns,
+        "Type errors": list(dr.smartdrift.da.dtype_mismatches.keys()),
+    }
+    for k, v in pb_cols.items():
         if len(v) > 0:
             blocks += [pn.pane.DataFrame(pd.DataFrame(v).transpose())]
         else:
             blocks += [pn.pane.Markdown(f"- No {k.lower()} have been detected.")]
 
-    blocks += [
-        pn.pane.Markdown("###  Unique values identified"),
-        pn.pane.Markdown(report_text["Consistency analysis"]["02"]),
-    ]
-    if len(dr.smartdrift.err_mods) > 0:
+    if modalities_analysis:
         blocks += [
-            pn.pane.DataFrame(
-                pd.DataFrame(dr.smartdrift.err_mods)
-                .rename(columns={"err_mods": "Modalities present in one dataset and absent in the other :"})
-                .transpose(),
-            )
+            pn.pane.Markdown("###  Unique values identified"),
+            pn.pane.Markdown(report_text["Consistency analysis"]["02"]),
         ]
-    else:
-        blocks += [
-            pn.pane.Markdown("- No modalities have been detected as present in one dataset and absent in the other.")
-        ]
+        if len(dr.smartdrift.da.categorical_value_differences) > 0:
+            blocks += [
+                pn.pane.DataFrame(
+                    pd.DataFrame(dr.smartdrift.da.categorical_value_differences).transpose(),
+                )
+            ]
+        else:
+            blocks += [
+                pn.pane.Markdown(
+                    "- No modalities have been detected as present in one dataset and absent in the other."
+                )
+            ]
 
     return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"), css_classes=["information"])
 
@@ -358,6 +364,7 @@ def execute_report(
     output_file: str,
     project_info_file: str | None = None,
     config_report: dict | None = None,
+    modalities_analysis: bool = False,
 ) -> None:
     """Creates the report
 
@@ -389,7 +396,7 @@ def execute_report(
     tab_list.append(_get_index_panel(dr, project_info_file, config_report))
     if project_info_file is not None:
         tab_list.append(_get_project_information_panel(dr))
-    tab_list.append(_get_consistency_analysis_panel(dr))
+    tab_list.append(_get_consistency_analysis_panel(dr, modalities_analysis))
     tab_list.append(_get_data_drift_panel(dr))
     if dr.smartdrift.data_modeldrift is not None:
         tab_list.append(_get_model_drift_panel(dr))

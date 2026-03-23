@@ -4,38 +4,45 @@ from math import floor, log10
 from pathlib import Path
 
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
+from pandas.api.types import is_object_dtype, is_string_dtype
+from sklearn.model_selection import train_test_split
 
 
 def convert_string_to_int_keys(input_dict: dict) -> dict:
-    """Returns the dict with integer keys instead of string keys
+    """Converts the keys of a dictionary from strings to integers.
 
-    Parameters
-    ----------
-    input_dict: dict
+    Args:
+        input_dict (dict): A dictionary with string keys that represent integers.
 
-    Returns
-    -------
-    dict
+    Returns:
+        dict: A new dictionary with integer keys and the same values as the input.
 
+    Raises:
+        ValueError: If any key cannot be converted to an integer.
     """
+
     return {int(k): v for k, v in input_dict.items()}
 
 
 def base_100(series: pd.Series) -> pd.Series:
-    """base_100 function put a pd.Series in base 100
+    """Normalizes the values in a pandas Series so that their sum equals 1.
 
-    Parameters
-    ----------
-    serie: pd.Series
-       input series to convert to base 100
+    Args:
+        series (pd.Series): The input pandas Series to be normalized.
 
-    Returns
-    -------
-    pd.Series
-        converted series
+    Returns:
+        pd.Series: A Series with values divided by the total sum, representing proportions.
 
+    Example:
+        >>> import pandas as pd
+        >>> s = pd.Series([10, 20, 30])
+        >>> base_100(s)
+        0    0.166667
+        1    0.333333
+        2    0.500000
+        dtype: float64
     """
+
     tot = series.sum()
     return series / tot
 
@@ -47,21 +54,20 @@ def get_project_root() -> Path:
 
 
 def truncate_str(text: str, maxlen: int = 40) -> str:
-    """Truncate a string
+    """Truncates a string to a specified maximum length, preserving whole words.
 
-    Parameters
-    ----------
-    text : string
-        string to check in order to add line break
-    maxlen : int
-        number of characters before truncation
+    If the input string exceeds the specified maximum length, it is truncated at the last whole word
+    that fits within the limit and an ellipsis ("...") is appended. If the string is shorter than or
+    equal to the maximum length, it is returned unchanged.
 
-    Returns
-    -------
-    string
-        truncated text
+    Args:
+        text (str): The input string to truncate.
+        maxlen (int, optional): The maximum allowed length of the output string. Defaults to 40.
 
+    Returns:
+        str: The truncated string, possibly with an appended ellipsis.
     """
+
     if isinstance(text, str) and len(text) > maxlen:
         tot_length = 0
         input_words = text.split()
@@ -78,20 +84,27 @@ def truncate_str(text: str, maxlen: int = 40) -> str:
 
 
 def round_to_k(x: float, k: int) -> float | int:
-    """Round float to k significant figure
+    """Rounds a number to a specified number of significant digits.
 
-    Parameters
-    ----------
-    x : float
-        number to round
-    k : int
-        the number of significant figures
+    Args:
+        x (float): The number to round.
+        k (int): The number of significant digits to round to.
 
-    Returns
-    -------
-    float or int
+    Returns:
+        float | int: The rounded number. Returns an integer if the result is a whole number, otherwise returns a float.
 
+    Examples:
+        >>> round_to_k(1234.5678, 2)
+        1200
+        >>> round_to_k(0.012345, 3)
+        0.0123
+        >>> round_to_k(0, 4)
+        0
+
+    Notes:
+        If the rounded value is a whole number, it is returned as an integer to avoid misleading '.0' decimal.
     """
+
     if x == 0:
         return 0
     new_x = round(x, k - int(floor(log10(abs(x)))) - 1)
@@ -102,32 +115,56 @@ def round_to_k(x: float, k: int) -> float | int:
         return new_x
 
 
-def convert_date_col_into_multiple_col(df: pd.DataFrame) -> pd.DataFrame:
-    """Transform datetime column into multiple columns
-        - year
-        - month
-        - day
-    Drop datetime column
+def cat_features_indices(df: pd.DataFrame) -> list[int]:
+    """Returns the indices of categorical features in a pandas DataFrame.
 
-    Parameters
-    ----------
-    df: pd.Dataframe
-       input DataFrame with datetime columns
+    A categorical feature is identified as a column with an object or pandas string dtype.
 
-    Returns
-    -------
-    pd.Dataframe
-        DataFrame without datetime columns
+    Args:
+        df (pd.DataFrame): The input DataFrame to analyze.
 
+    Returns:
+        list[int]: A list of indices corresponding to categorical columns in the DataFrame.
     """
-    date_col_list = [column for column in df.columns if is_datetime(df[column])]
 
-    for col_date in date_col_list:
-        df[col_date + "_year"] = df[col_date].dt.year
-        df[col_date + "_month"] = df[col_date].dt.month
-        df[col_date + "_day"] = df[col_date].dt.day
+    indice_cat = []
+    for i, col in enumerate(df.columns):
+        dtype = df[col].dtype
+        if is_object_dtype(dtype) or is_string_dtype(dtype):
+            indice_cat.append(i)
+    return indice_cat
 
-        # droping original date column
-        df = df.drop(col_date, axis=1)
 
-    return df
+def train_test_split_concat(
+    df_baseline: pd.DataFrame, df_test: pd.DataFrame, target_col: str, **kwargs
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Splits two DataFrames (baseline and test) into train and test sets, assigns a target_col label to each,
+    and concatenates the corresponding splits.
+
+    The function performs a train-test split on both `df_baseline` and `df_test` using the provided
+    keyword arguments (passed to `sklearn.model_selection.train_test_split`). It then assigns a
+    target column with value 0 to the baseline data and 1 to the test data. The resulting train and
+    test sets are concatenated and returned.
+
+    Args:
+        df_baseline (pd.DataFrame): The baseline DataFrame to split and label as target 0.
+        df_test (pd.DataFrame): The test DataFrame to split and label as target 1.
+        target_col (str): The name of the label column.
+        **kwargs: Additional keyword arguments passed to `train_test_split`.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the concatenated train and test DataFrames,
+        each with a 'target_col' column indicating the source (0 for baseline, 1 for test).
+    """
+    baseline_train, baseline_test = train_test_split(df_baseline, **kwargs)
+    baseline_train[target_col] = 0
+    baseline_test[target_col] = 0
+
+    current_train, current_test = train_test_split(df_test, **kwargs)
+    current_train[target_col] = 1
+    current_test[target_col] = 1
+
+    train = pd.concat([baseline_train, current_train]).reset_index(drop=True)
+    test = pd.concat([baseline_test, current_test]).reset_index(drop=True)
+
+    return train, test

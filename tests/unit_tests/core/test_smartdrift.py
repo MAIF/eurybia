@@ -188,62 +188,12 @@ class TestSmartDrift(unittest.TestCase):
         )
         assert isinstance(smart_drift.data_modeldrift, pd.core.frame.DataFrame)
 
-    def test_analyse_consistency_nofullvalidation_1(self):
-        """
-        Test _analyze_consistency() method with full validation defined to False
-        """
-        script_path = Path(path.abspath(__file__)).parent.parent.parent.parent
-        titanic_original = path.join(script_path, TITANIC_ORIGINAL_PATH)
-        df_original = pd.read_csv(titanic_original, index_col=0)
-        titanic_altered = path.join(script_path, TITANIC_ALTERED_PATH)
-        df_altered = pd.read_csv(titanic_altered, index_col=0)
-
-        df_altered["col_sup"] = 0
-        smart_drift = SmartDrift(df_altered, df_original)
-        smart_drift._analyze_consistency(full_validation=False, ignore_cols=["col_sup", "Name", "PassengerId"])
-
-        expected_pb_cols = {"New columns": [], "Removed columns": ["col_sup"], "Type errors": []}
-
-        assert isinstance(smart_drift.pb_cols, dict)
-        assert all(key in ("New columns", "Removed columns", "Type errors") for key in smart_drift.pb_cols.keys())
-        assert isinstance(smart_drift.err_mods, dict)
-        assert smart_drift.pb_cols == expected_pb_cols
-        assert smart_drift.err_mods == dict()
-
-    def test_analyse_consistency_fullvalidation(self):
-        """
-        Test _analyze_consistency() method with full validation defined to True
-        """
-        script_path = Path(path.abspath(__file__)).parent.parent.parent.parent
-        titanic_original = path.join(script_path, TITANIC_ORIGINAL_PATH)
-        df_original = pd.read_csv(titanic_original, index_col=0)
-        titanic_altered = path.join(script_path, TITANIC_ALTERED_PATH)
-        df_altered = pd.read_csv(titanic_altered, index_col=0)
-
-        df_altered["col_sup"] = 0
-        df_altered = df_altered.replace("male", "Male")
-        df_original["col_sup"] = "0"
-        smart_drift = SmartDrift(df_altered, df_original)
-        smart_drift._analyze_consistency(full_validation=True, ignore_cols=["Title", "Name", "PassengerId"])
-
-        expected_err_mods = {"Sex": {"New distinct values": ["Male"], "Removed distinct values": ["male"]}}
-
-        expected_pb_cols = {"New columns": [], "Removed columns": [], "Type errors": ["col_sup"]}
-
-        assert isinstance(smart_drift.pb_cols, dict)
-        assert all(key in ("New columns", "Removed columns", "Type errors") for key in smart_drift.pb_cols.keys())
-        assert isinstance(smart_drift.err_mods, dict)
-        assert smart_drift.pb_cols == expected_pb_cols
-        assert smart_drift.err_mods == expected_err_mods
-
     def test_predict_1(self):
         """
         test _predict() method
         """
 
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        # df_predict = smart_drift._predict()
-        # assert df_predict is None
 
         with self.assertRaises(Exception):
             smart_drift._predict(deployed_model=self.rf)
@@ -413,12 +363,13 @@ class TestSmartDrift(unittest.TestCase):
         self.assertCountEqual(sd.df_current.columns, sd2.df_current.columns)
         assert len(sd.df_current) == len(sd2.df_current)
         assert sd.feature_importance.equals(sd2.feature_importance)
-        self.assertCountEqual(sd.ignore_cols, sd2.ignore_cols)
-        self.assertCountEqual(sd.pb_cols, sd2.pb_cols)
-        self.assertCountEqual(sd.err_mods, sd2.err_mods)
+        self.assertCountEqual(sd.da.ignored_cols, sd2.da.ignored_cols)
+        self.assertCountEqual(sd.da.categorical_value_differences, sd2.da.categorical_value_differences)
+        self.assertCountEqual(sd.da.removed_columns, sd2.da.removed_columns)
+        self.assertCountEqual(sd.da.new_columns, sd2.da.new_columns)
+        self.assertEqual(sd.da.dtype_mismatches, sd2.da.dtype_mismatches)
         assert sd.auc == sd2.auc
         pd.testing.assert_frame_equal(sd.historical_auc, sd2.historical_auc)
-        pd.testing.assert_frame_equal(sd._df_concat, sd2._df_concat)
         assert sd.datadrift_target == sd2.datadrift_target
         assert sd.deployed_model == sd2.deployed_model
         assert sd.encoding == sd2.encoding
@@ -487,5 +438,23 @@ class TestSmartDrift(unittest.TestCase):
         sd = SmartDrift(df_current=df_current, df_baseline=df_baseline, deployed_model=regressor)
 
         # Should raise an error
-        with pytest.raises(TypeError, match="df_current have datetime column. You should drop it"):
+        with pytest.raises(TypeError, match="Your datasets have a datetime column. You should drop it"):
             sd.compile(full_validation=True)
+
+    def test_target_col_error(self):
+        """
+        Test compile()
+        """
+        df = self.titanic_df_1
+        df["target"] = df["Pclass"]
+        smart_drift = SmartDrift(df, df)
+        with pytest.raises(
+            ValueError, match="Your dataframes contain a column named target. Please consider renaming it."
+        ):
+            smart_drift.compile()
+
+    def test_small_dataset_auc_correctness(self):
+        df = pd.DataFrame([[0, 1], [0, 1], [0, 1], [0, 2], [0, 2], [0, 2], [0, 2]], columns=["A", "B"])
+        sd = SmartDrift(df_current=df, df_baseline=df)
+        sd.compile()
+        assert sd.auc >= 0.5

@@ -24,7 +24,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pandas>=2",
+    "pandas>=2,<3",
     "catboost>=1.0.1",
     "panel>=1.4.1",
     "jinja2>=2.11.0",

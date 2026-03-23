@@ -2,7 +2,6 @@
 
 import copy
 import io
-import logging
 import pickle
 import shutil
 import tempfile
@@ -13,18 +12,17 @@ from typing import Any
 import catboost
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from shapash.explainer.smart_explainer import SmartExplainer
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split
 
+from eurybia.core.dataset_analysis import DatasetAnalysis
 from eurybia.core.smartplotter import SmartPlotter
 from eurybia.report.generation import execute_report
 from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
-from eurybia.utils.utils import base_100, convert_date_col_into_multiple_col
+from eurybia.utils.utils import base_100, cat_features_indices, train_test_split_concat
 
 
 class SmartDrift:
@@ -120,11 +118,16 @@ class SmartDrift:
 
             for attr, val in dict_to_load.items():
                 if isinstance(val, io.BytesIO):
-                    setattr(sd, attr, pickle.load(val.seek(0)))
-                elif attr == "xpl":
+                    val.seek(0)
+                    setattr(sd, attr, pickle.load(val))
+                elif attr == "_xpl":
                     xpl = SmartExplainer(model=val["model"])
                     xpl.__dict__.update(val)
                     setattr(sd, attr, xpl)
+                elif attr == "_da":
+                    da = DatasetAnalysis(df_current, df_baseline)
+                    da.__dict__.update(val)
+                    setattr(sd, attr, da)
                 else:
                     setattr(sd, attr, val)
         else:
@@ -181,25 +184,23 @@ class SmartDrift:
             self.colors_dict.update(colors_dict)
 
         # data drift
+        self._da: DatasetAnalysis
         self._xpl: SmartExplainer
         self._df_predict: pd.DataFrame
         self._feature_importance: pd.DataFrame
-
-        self._pb_cols: dict[str, list[str]] = dict()
-        self._err_mods: dict[str, dict] = dict()
 
         self._auc: float
         self._js_divergence: float
         self._historical_auc: pd.DataFrame
         self._data_modeldrift: pd.DataFrame
 
-        self._ignore_cols: list[str] = list()  # generation
         self._datadrift_stat_test: pd.DataFrame  # smartplotter
-        self._df_concat: pd.DataFrame  # smartplotter
         self._datadrift_target: str = "target"  # constant
 
         self._plot = SmartPlotter(self)
         self._plot.define_style_attributes(colors_dict=self.colors_dict)
+
+        self._modalities_analysis: bool = False
 
     def compile(
         self,
@@ -243,8 +244,16 @@ class SmartDrift:
         >>> SD.compile()
 
         """
-        if ignore_cols is None:
-            ignore_cols = []
+        # Checking datasets
+        ignored_cols_set = set(ignore_cols) if ignore_cols is not None else set()
+        baseline_cols = [col for col in self._df_baseline.columns if col not in ignored_cols_set]
+        current_cols = [col for col in self._df_current.columns if col not in ignored_cols_set]
+        if self.datadrift_target in baseline_cols or self.datadrift_target in current_cols:
+            raise ValueError(
+                f"Your dataframes contain a column named {self.datadrift_target}. Please consider renaming it."
+            )
+
+        self._modalities_analysis = full_validation
 
         if hyperparameter is not None:
             for key, value in catboost_hyperparameter_init.items():
@@ -254,47 +263,36 @@ class SmartDrift:
                     else value
                 )
         hyperparameter = catboost_hyperparameter_init.copy()
-        if sample_size is not None:
-            self.df_baseline = self._sampling(sampling, sample_size, self.df_baseline)
-            self.df_current = self._sampling(sampling, sample_size, self.df_current)
+
+        da_sample_size = sample_size if sampling else None
+
+        self.da = DatasetAnalysis(
+            df_baseline=self._df_baseline,
+            df_test=self._df_current,
+            sample_size=da_sample_size,
+            ignored_cols=ignore_cols,
+        )
 
         # Checking datasets
-        self._check_dataset(ignore_cols)
+        if (len(self.da.datetime_cols) > 0) and (self.deployed_model is not None):
+            raise TypeError("Your datasets have a datetime column. You should drop it")
 
-        # Consistency analysis
-        self._analyze_consistency(full_validation=full_validation, ignore_cols=ignore_cols)
+        self.df_current, self.df_baseline = self.da.clean_datasets()
 
-        # Adding results to ignored columns
-        ignore_cols = list(
-            set(ignore_cols + [item for sublist in [self.pb_cols[sl] for sl in self.pb_cols] for item in sublist])
+        train, test = train_test_split_concat(
+            self.df_baseline, self.df_current, target_col=self.datadrift_target, test_size=0.25, random_state=42
         )
-        if len(ignore_cols) != 0:
-            self.df_baseline = self.df_baseline[[c for c in self.df_baseline.columns if c not in ignore_cols]]
-            self.df_current = self.df_current[[c for c in self.df_current.columns if c not in ignore_cols]]
+        self._df_concat = pd.concat([train, test]).reset_index(drop=True)
 
-        df_concat = (
-            pd.concat([self.df_current, self.df_baseline], keys=[1, 0])
-            .reset_index()
-            .rename(columns={"level_0": self.datadrift_target})
+        feature_columns = [col for col in train.columns if col != self.datadrift_target]
+        indice_cat = cat_features_indices(train[feature_columns])
+
+        train_pool_cat = catboost.Pool(
+            data=train[feature_columns], label=train[self.datadrift_target].astype(int), cat_features=indice_cat
         )
-        df_concat.drop(df_concat.columns[1], axis=1, inplace=True)
-        varz = [c for c in df_concat.columns if c not in [self.datadrift_target] and c not in ignore_cols]
-        dtypes = df_concat[varz].dtypes.map(str)
-        cat_features = list(dtypes[dtypes.isin(["object"])].index)
-        df_concat[cat_features] = df_concat[cat_features].fillna("NA")
-        df_concat = df_concat.fillna(0)
-        self.df_concat = df_concat
-
-        train, test = train_test_split(df_concat[varz + [self.datadrift_target]], test_size=0.25, random_state=42)
-
-        i = 0
-        indice_cat = []
-        for var_x in df_concat[varz]:
-            if var_x in cat_features:
-                indice_cat.append(i)
-            i = i + 1
-        train_pool_cat = catboost.Pool(data=train[varz], label=train["target"].astype(int), cat_features=indice_cat)
-        test_pool_cat = catboost.Pool(data=test[varz], label=test["target"].astype(int), cat_features=indice_cat)
+        test_pool_cat = catboost.Pool(
+            data=test[feature_columns], label=test[self.datadrift_target].astype(int), cat_features=indice_cat
+        )
         datadrift_classifier = catboost.CatBoostClassifier(
             max_depth=hyperparameter["max_depth"],
             l2_leaf_reg=hyperparameter["l2_leaf_reg"],
@@ -325,7 +323,7 @@ class SmartDrift:
             label_dict={0: self.baseline_dataset_name, 1: self.current_dataset_name}, model=datadrift_classifier
         )
 
-        x_test = test[varz]
+        x_test = test[feature_columns]
         y_test = test[self.datadrift_target]
 
         self.xpl.compile(x=x_test, y_target=y_test)
@@ -353,7 +351,6 @@ class SmartDrift:
                 date_compile_auc=date_compile_auc,
             )
 
-        self.ignore_cols = ignore_cols
         if self.deployed_model is not None:
             self.datadrift_stat_test = self._compute_datadrift_stat_test()
 
@@ -407,110 +404,11 @@ class SmartDrift:
                 smartdrift=self,
                 config_report=dict(title_story=title_story, title_description=title_description),
                 output_file=output_file,
+                modalities_analysis=self._modalities_analysis,
             )
         finally:
             if rm_working_dir:
                 shutil.rmtree(working_dir)
-
-    def _check_dataset(self, ignore_cols: list | None = None):
-        """Method to check if datasets are correct before to be analysed and if
-        it's not, try to modify them and informs the user. In worse case raise
-        an error.
-
-        Parameters
-        ----------
-        full_validation : bool, optional (default: False)
-            If True, analyze consistency on modalities between columns
-        ignore_cols: list, optional
-            list of feature to ignore in compute
-
-        """
-        if ignore_cols is None:
-            ignore_cols = []
-
-        if len([column for column in self.df_current.columns if is_datetime(self.df_current[column])]) > 0:
-            if self.deployed_model is None:
-                for col in [column for column in self.df_current.columns if is_datetime(self.df_current[column])]:
-                    print(
-                        f"""Column {col} will be dropped and transformed in df_current by : """
-                        f"""{col}_year, {col}_month, {col}_day"""
-                    )
-                self.df_current = convert_date_col_into_multiple_col(self.df_current)
-            else:
-                raise TypeError("df_current have datetime column. You should drop it")
-
-        if len([column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]) > 0:
-            if self.deployed_model is None:
-                for col in [column for column in self.df_baseline.columns if is_datetime(self.df_baseline[column])]:
-                    print(
-                        f"""Column {col} will be dropped and transformed in df_baseline by : """
-                        f"""{col}_year, {col}_month, {col}_day"""
-                    )
-                self.df_baseline = convert_date_col_into_multiple_col(self.df_baseline)
-            else:
-                raise TypeError("df_baseline have datetime column. You should drop it")
-
-    def _analyze_consistency(self, ignore_cols: list, full_validation: bool = False) -> None:
-        """Method to analyse consistency between the 2 datasets, in terms of columns and modalities
-
-        Parameters
-        ----------
-        full_validation : bool, optional (default: False)
-            If True, analyze consistency on modalities between columns
-        ignore_cols: list, optional
-            list of feature to ignore in compute
-
-        """
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(module)s: %(message)s", datefmt="%y/%m/%d %H:%M:%S"
-        )
-
-        if len(ignore_cols) > 0:
-            print(f"""The following variables are manually set to be ignored in the analysis: \n {ignore_cols}""")
-        # Features
-        new_cols = [c for c in self.df_baseline.columns if c not in self.df_current.columns]
-        removed_cols = [c for c in self.df_current.columns if c not in self.df_baseline.columns]
-        if len(new_cols) > 0:
-            print(
-                f"""The following variables are no longer available in the
-                        current dataset and will not be analyzed: \n {new_cols}"""
-            )
-        if len(removed_cols) > 0:
-            print(
-                f"""The following variables are only available in the
-            current dataset and will not be analyzed: \n {removed_cols}"""
-            )
-        common_cols = [c for c in self.df_current.columns if c in self.df_baseline.columns]
-        # dtypes
-        err_dtypes = [
-            c for c in common_cols if self.df_baseline.dtypes.map(str)[c] != self.df_current.dtypes.map(str)[c]
-        ]
-
-        if len(err_dtypes) > 0:
-            print(
-                f"""The following variables have mismatching dtypes
-             and will not be analyzed: \n {err_dtypes}"""
-            )
-        # Feature values
-        err_mods: dict[str, dict] = {}
-        if full_validation is True:
-            invalid_cols = ignore_cols + new_cols + removed_cols + err_dtypes
-            for column in self.df_baseline.columns:
-                if column not in invalid_cols and self.df_baseline.dtypes.map(str)[column] == "object":
-                    uniques_histo = pd.unique(self.df_baseline[column])
-                    uniques_current = pd.unique(self.df_current[column])
-                    new_mods = [mod for mod in uniques_current if mod not in uniques_histo]
-                    removed_mods = [mod for mod in uniques_histo if mod not in uniques_current]
-                    if len(new_mods) > 0 or len(removed_mods) > 0:
-                        err_mods[column] = {}
-                        err_mods[column]["New distinct values"] = new_mods
-                        err_mods[column]["Removed distinct values"] = removed_mods
-                        print(
-                            f"""The variable {column} has mismatching unique values:
-{new_mods} | {removed_mods}\n"""
-                        )
-        self.pb_cols = {"New columns": new_cols, "Removed columns": removed_cols, "Type errors": err_dtypes}
-        self.err_mods = err_mods
 
     def _predict(self, deployed_model: Any, encoding: Any = None) -> pd.DataFrame:
         """Create an attributes df_predict with the computed score on both datasets
@@ -848,6 +746,14 @@ class SmartDrift:
                     ) or att_xpl in ["model", "preprocessing", "postprocessing"]:
                         smartexplainer_dict.update({att_xpl: getattr(self.xpl, att_xpl)})
                 dict_to_save.update({att: smartexplainer_dict})
+            elif isinstance(getattr(self, att), DatasetAnalysis):
+                da_dict = {}
+                for att_da in self.da.__dict__.keys():
+                    if isinstance(
+                        getattr(self.da, att_da), (list, dict, pd.DataFrame, pd.Series, type(None), bool)
+                    ) or att_da in ["model", "preprocessing", "postprocessing"]:
+                        da_dict.update({att_da: getattr(self.da, att_da)})
+                dict_to_save.update({att: da_dict})
         save_pickle(dict_to_save, path)
 
     @property
@@ -917,30 +823,6 @@ class SmartDrift:
         self._feature_importance = val
 
     @property
-    def pb_cols(self) -> dict[str, list[str]]:
-        """Getter"""
-        return self._pb_cols
-
-    @pb_cols.setter
-    def pb_cols(self, val: dict[str, list[str]]) -> None:
-        """Setter"""
-        if not isinstance(val, dict):
-            raise ValueError("pb_cols must be a dictionary.")
-        self._pb_cols = val
-
-    @property
-    def err_mods(self) -> dict[str, dict]:
-        """Getter"""
-        return self._err_mods
-
-    @err_mods.setter
-    def err_mods(self, val: dict[str, dict]) -> None:
-        """Setter"""
-        if not isinstance(val, dict):
-            raise ValueError("err_mods must be a dictionary.")
-        self._err_mods = val
-
-    @property
     def auc(self) -> float:
         """Getter"""
         if not hasattr(self, "_auc"):
@@ -972,7 +854,6 @@ class SmartDrift:
     def historical_auc(self) -> pd.DataFrame | None:
         """Getter"""
         if not hasattr(self, "_historical_auc"):
-            # raise RuntimeError("historical_auc has not been initialized yet.")
             return None
         return self._historical_auc
 
@@ -987,7 +868,6 @@ class SmartDrift:
     def data_modeldrift(self) -> pd.DataFrame | None:
         """Getter"""
         if not hasattr(self, "_data_modeldrift"):
-            # raise RuntimeError("data_modeldrift has not been initialized yet.")
             return None
         return self._data_modeldrift
 
@@ -1029,18 +909,6 @@ class SmartDrift:
         self._deployed_model = val
 
     @property
-    def ignore_cols(self) -> list[str]:
-        """Getter"""
-        return self._ignore_cols
-
-    @ignore_cols.setter
-    def ignore_cols(self, val: list[str]) -> None:
-        """Setter"""
-        if not isinstance(val, list):
-            raise ValueError("ignore_cols must be a list.")
-        self._ignore_cols = val
-
-    @property
     def datadrift_stat_test(self) -> pd.DataFrame:
         """Getter"""
         if not hasattr(self, "_datadrift_stat_test"):
@@ -1077,3 +945,17 @@ class SmartDrift:
     def plot(self) -> SmartPlotter:
         """Getter"""
         return self._plot
+
+    @property
+    def da(self) -> DatasetAnalysis:
+        """Getter"""
+        if not hasattr(self, "_da"):
+            raise RuntimeError("da has not been initialized yet.")
+        return self._da
+
+    @da.setter
+    def da(self, val: DatasetAnalysis) -> None:
+        """Setter"""
+        if not isinstance(val, DatasetAnalysis):
+            raise ValueError(f"da must be a of type {DatasetAnalysis.__name__}.")
+        self._da = val
