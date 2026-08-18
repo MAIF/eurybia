@@ -42,7 +42,9 @@ plugins:
           options:
             docstring_style: numpy
             show_root_heading: true
-            show_source: true
+            show_source: false
+            separate_signature: true
+            show_signature_annotations: true
             members_order: source
 
 markdown_extensions:
