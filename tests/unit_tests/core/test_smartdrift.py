@@ -45,7 +45,7 @@ class TestSmartDrift(unittest.TestCase):
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
         y = titanic_df["Survived"]
         X = titanic_df.drop("Survived", axis=1)
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(X)
         X = categ_encoding.transform(X)
         x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=1)
         rf = RandomForestClassifier(n_estimators=100, min_samples_leaf=3)
@@ -211,7 +211,7 @@ class TestSmartDrift(unittest.TestCase):
 
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
 
-        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(
+        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(
             self.X[["Title", "Pclass", "Sex", "Embarked"]]
         )
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
@@ -232,7 +232,7 @@ class TestSmartDrift(unittest.TestCase):
         test _predict() method
         """
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(
+        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(
             self.X[["Title", "Pclass", "Sex", "Embarked"]]
         )
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)

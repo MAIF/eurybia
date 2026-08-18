@@ -37,7 +37,7 @@ class TestDriftReport(unittest.TestCase):
         y = titan_df["Survived"]
         X = titan_df.drop("Survived", axis=1).drop("Name", axis=1)
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(X)
         x_encoded = categ_encoding.transform(X)
 
         x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=1)
