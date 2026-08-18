@@ -16,8 +16,8 @@
     <img src="https://img.shields.io/pypi/l/eurybia" alt="license">
   </a>
   <!-- Doc -->
-  <a href="https://eurybia.readthedocs.io/en/latest/">
-    <img src="https://readthedocs.org/projects/eurybia/badge/?version=latest" alt="doc">
+  <a href="https://github.com/MAIF/eurybia/actions/workflows/docs.yml">
+    <img src="https://github.com/MAIF/eurybia/actions/workflows/docs.yml/badge.svg" alt="documentation build">
   </a>
   <!-- Pre-commit -->
   <a href="https://github.com/pre-commit/pre-commit">
@@ -33,7 +33,7 @@
   <p align="center">
     <a href="https://eurybia.readthedocs.io/en/latest/report.html">View Demo</a>
     ·
-    <a href="https://eurybia.readthedocs.io/en/latest/">Documentation</a>
+    <a href="https://maif.github.io/eurybia/">Documentation</a>
     ·
     <a href="https://medium.com/oss-by-maif/eurybia-maif-releases-a-new-open-source-solution-for-quality-ia-models-in-production-57bd0266a77e">Eurybia Quick Tour</a>
     ·
@@ -113,7 +113,7 @@ Eurybia is intended to work with Python versions 3.9 to 3.12. Installation can b
 pip install eurybia
 ```
 
-If you encounter **compatibility issues** you may check the corresponding section in the Eurybia documentation [here](https://eurybia.readthedocs.io/en/latest/installation-instructions/index.html).
+If you encounter **compatibility issues** you may check the corresponding section in the Eurybia documentation [here](https://maif.github.io/eurybia/installation-instructions/).
 
 ## 🔥 Features
 

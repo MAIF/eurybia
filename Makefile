@@ -55,14 +55,8 @@ coverage: ## check code coverage quickly with the default Python
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/source/eurybia.core.rst
-	rm -f docs/source/eurybia.report.rst
-	rm -f docs/source/eurybia.report.rst
-	rm -f docs/source/modules.rst
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/build/html/index.html
+docs: ## generate MkDocs HTML documentation
+	mkdocs build --strict
 
 release: dist ## package and upload a release
 	twine upload dist/*

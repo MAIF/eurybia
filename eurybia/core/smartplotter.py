@@ -24,23 +24,19 @@ from eurybia.style.style_utils import colors_loading, define_style, select_palet
 
 
 class SmartPlotter:
-    """The smartplotter class includes all the methods used to display graphics
+    """Provide the plotting methods available from a SmartDrift analysis.
 
-    Each SmartPlotter method is easy to use from a Smart Drift object,
-    just use the following syntax
-
-    Attributes:
+    Attributes
     ----------
-    smartdrift: object
-        SmartDrift object
-    style_dict: dict
-            Dict contains dicts of the colors used in the different plots
+    smartdrift : eurybia.core.smartdrift.SmartDrift
+        SmartDrift analysis associated with this plotter.
+    style_dict : dict
+        Plot colors and layout settings.
 
-    Example:
-    -------
-    >>> SD = Smartdrift()
-    >>> SD.compile()
-    >>> SD.plot.my_plot_method(param=value)
+    Examples
+    --------
+    >>> sd.compile()
+    >>> figure = sd.plot.generate_fig_univariate(col="age")
 
     """
 
@@ -104,8 +100,8 @@ class SmartPlotter:
             The column of interest
         hue : str
             The column used to distinguish the values (ex. 'train' and 'test')
-        type: str
-            The type of the series ('continous' or 'categorical')
+        dict_color_palette : dict
+            Colors used to render the figure.
 
         Returns
         -------

@@ -33,7 +33,7 @@ class TestGeneration(unittest.TestCase):
         y = titan_df["Survived"]
         X = titan_df.drop("Survived", axis=1).drop("Name", axis=1)
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(X)
         X_encoded = categ_encoding.transform(X)
 
         Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=0.75, random_state=1)

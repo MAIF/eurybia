@@ -76,6 +76,23 @@ We recommend using the following convention for naming branches
 
 ## Check and commit your changes
 
+### Build the documentation
+
+The documentation uses MkDocs and Markdown. Install the project and documentation dependencies, then run the local preview server:
+
+```
+pip install -e . -r docs/requirements.dev.txt
+mkdocs serve
+```
+
+Open `http://127.0.0.1:8000` in your browser. Before submitting documentation changes, check the production build:
+
+```
+mkdocs build --strict
+```
+
+Documentation pages live in `docs/` as `.md` files and navigation is configured in `mkdocs.yml`. API pages use `mkdocstrings` directives and are generated from Python docstrings.
+
 Before committing your modifications, we have some recommendations :
 
 - Execute pytest to check that all tests pass

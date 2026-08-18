@@ -26,68 +26,58 @@ from eurybia.utils.utils import base_100, cat_features_indices, train_test_split
 
 
 class SmartDrift:
-    """The SmartDrift class is the main object to compute drift in the Eurybia library
-    It allows to calculate data drift between 2 datasets using a data drift classification model
+    """Compute drift between two datasets using a data drift classification model.
 
-    Attributes:
+    Attributes
     ----------
-    df_current: pandas.DataFrame
-        current (or production) dataset which is compared to df_baseline
-    df_baseline: pandas.DataFrame
-        baseline (or learning) dataset which is compared to df_current
-    datadrift_classifier: model object
-        model used for binary classification of data drift
-    xpl: Shapash object
-        object used to compute explainability on datadrift_classifier
-    df_predict: pandas.DataFrame
-        computed score on both datasets if a deployed_model is specified
-    feature_importance: pandas.DataFrame
-        feature importance of datadrift_classifier and feature importance of production model if exist
-    pb_cols: dict
-        Dictionnary that references columns differences between df_current and df_baseline
-    err_mods: dict
-        Dictionnary that references modalities differences in columns between df_current and df_baseline
-    auc: int
-        Value auc of model drift
-    historical_auc: pandas.DataFrame
-        Dataframe that contains auc history of datadrift_classifier over time
-    data_modeldrift: pandas.DataFrame
-        Dataframe that contains performance history of deployed_model
-    ignore_cols: list
-        list of feature to ignore in compute
-    dataset_names : dict, (Optional)
-        Dictionnary used to specify dataset names to display in report.
+    df_current : pandas.DataFrame
+        Current (or production) dataset compared to ``df_baseline``.
+    df_baseline : pandas.DataFrame
+        Baseline (or learning) dataset compared to ``df_current``.
+    datadrift_classifier : object
+        Model used for binary classification of data drift.
+    xpl : shapash.explainer.smart_explainer.SmartExplainer
+        Object used to explain the data drift classifier.
+    df_predict : pandas.DataFrame
+        Scores computed on both datasets when a deployed model is specified.
+    feature_importance : pandas.DataFrame
+        Feature importance of the data drift classifier and, when available, the production model.
+    pb_cols : dict
+        Column differences between the current and baseline datasets.
+    err_mods : dict
+        Modality differences between columns in the current and baseline datasets.
+    auc : float
+        AUC of the data drift classifier.
+    historical_auc : pandas.DataFrame
+        AUC history of the data drift classifier over time.
+    data_modeldrift : pandas.DataFrame
+        Performance history of the deployed model.
+    ignore_cols : list
+        Features excluded from drift computation.
+    dataset_names : tuple[str, str]
+        Names displayed for the current and baseline datasets.
     df_concat : pandas.DataFrame
-        Dataframe that's composed of both df_baseline and df_current concatenated
+        Concatenation of the baseline and current datasets.
     plot : eurybia.core.smartplotter.SmartPlotter
-        Instance of an Eurybia SmartPlotter class. It's used for graph displaying purpose.
-    deployed_model: model object, optional
-            model in production used to put in perspective drift and to predict
-    encoding: preprocessing object, optional (default: None)
-            Preprocessing used before the training step
+        Plotting interface associated with this analysis.
+    deployed_model : object or None
+        Production model used to contextualize drift and compute predictions.
+    encoding : object or None
+        Preprocessing applied before prediction.
     datadrift_stat_test : dict
-        Datadrift statistical tests for each feature.
-        Each test identifies whether the feature has drifted.
-        There are 2 types of test implemented depending on the type of feature:
-        - Chi-square for discrete variables - ref:
-        (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html)
-        - Kolmogorov-Smirnov for continuous variables - ref:
-        (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html)
-        This datadrift_stat_test attribute specifies for each feature the test performed,
-        the statistic the test and the p value
-    palette_name : str (default: 'eurybia')
-        Name of the palette used for the colors of the report (refer to style folder).
-    colors_dict: dict
-            Dict of the colors used in the different plots
+        Statistical test, statistic, and p-value for every feature. Chi-square is
+        used for discrete variables and Kolmogorov-Smirnov for continuous variables.
+    palette_name : str
+        Name of the report color palette.
+    colors_dict : dict
+        Colors used in the plots.
     js_divergence : float
-        Jensen-Shannon divergence of probability distributions - ref:
-        (https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence)
+        Jensen-Shannon divergence between probability distributions.
 
-    How to declare a new SmartDrift object?
-
-    Example:
-    -------
-    >>> SD = Smartdrift(df_current=df_production, df_baseline=df_learning)
+    Examples
+    --------
+    >>> from eurybia import SmartDrift
+    >>> sd = SmartDrift(df_current=df_production, df_baseline=df_learning)
 
     """
 
@@ -162,11 +152,10 @@ class SmartDrift:
         colors_dict: dict
                 Dict of the colors used in the different plots
 
-        How to declare a new SmartDrift object ?
-
-        Example:
-        -------
-        >>> SD = Smartdrift(df_current=df_production, df_baseline=df_learning)
+        Examples
+        --------
+        >>> from eurybia import SmartDrift
+        >>> sd = SmartDrift(df_current=df_production, df_baseline=df_learning)
 
         """
         self._df_current = df_current
@@ -618,7 +607,7 @@ class SmartDrift:
 
         Parameters
         ----------
-        df : pd.DataFrame
+        dataset : pd.DataFrame
             The Dataframe with all the computed metrics.
         metric: str, (default: 'performance')
             The column name of the metric computed
