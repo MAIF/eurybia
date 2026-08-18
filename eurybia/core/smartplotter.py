@@ -104,8 +104,8 @@ class SmartPlotter:
             The column of interest
         hue : str
             The column used to distinguish the values (ex. 'train' and 'test')
-        type: str
-            The type of the series ('continous' or 'categorical')
+        dict_color_palette : dict
+            Colors used to render the figure.
 
         Returns
         -------

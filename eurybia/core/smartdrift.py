@@ -618,7 +618,7 @@ class SmartDrift:
 
         Parameters
         ----------
-        df : pd.DataFrame
+        dataset : pd.DataFrame
             The Dataframe with all the computed metrics.
         metric: str, (default: 'performance')
             The column name of the metric computed

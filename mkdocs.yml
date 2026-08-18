@@ -1,0 +1,75 @@
+site_name: Eurybia
+site_description: Monitor data and model drift over time
+site_url: https://maif.github.io/eurybia/
+repo_url: https://github.com/MAIF/eurybia
+repo_name: MAIF/eurybia
+edit_uri: edit/master/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  logo: _static/eurybia-fond-clair.png
+  favicon: _static/eurybia-fond-clair.png
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: light blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: light blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_root_heading: true
+            show_source: true
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Overview: overview.md
+  - Installation: installation-instructions/index.md
+  - Tutorials: tutorials.md
+  - API reference:
+      - Overview: reference/index.md
+      - SmartDrift: reference/smartdrift.md
+      - Plot methods: reference/smartplotter.md
+      - Report generation: reference/report-generation.md
+      - Data loader: reference/data-loader.md
+
+exclude_docs: |
+  source/
+  index.html
+  requirements.dev.txt
+
+copyright: Copyright &copy; 2022–2026 MAIF — Apache License 2.0
