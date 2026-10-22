@@ -82,7 +82,7 @@ def prob_mass_fun(data: pd.Series, n: int, bins_range: tuple[float, float]) -> t
 
 
 def compute_js_divergence(df_1: pd.DataFrame, df_2: pd.DataFrame, n_bins: int = 30) -> float:
-    """Computing the Jensen-Shannon divergence between 2 dataframe
+    """Compute the Jensen-Shannon divergence metric between two samples.
 
     Parameters
     ----------
@@ -95,12 +95,13 @@ def compute_js_divergence(df_1: pd.DataFrame, df_2: pd.DataFrame, n_bins: int = 
 
     Returns
     -------
-    jensenshannon(p, q) : score between 0 (The two score distributions are identical)
-    and 1 (The two score distributions maximally different).
+    float
+        Square root of the base-2 Jensen-Shannon divergence, from 0 for identical
+        distributions to 1 for maximally different distributions.
 
     """
     a = np.concatenate((df_1, df_2), axis=0)
     e, p = prob_mass_fun(df_1, n=n_bins, bins_range=(a.min(), a.max()))
     _, q = prob_mass_fun(df_2, n=e, bins_range=(a.min(), a.max()))
 
-    return scipy.spatial.distance.jensenshannon(p, q)
+    return scipy.spatial.distance.jensenshannon(p, q, base=2)

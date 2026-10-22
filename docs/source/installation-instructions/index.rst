@@ -4,12 +4,12 @@ Installation instructions
 Installing
 ----------
 
-**Eurybia** is intended to work with Python versions 3.8 to 3.10. Installation can be done with pip:
+**Eurybia** is intended to work with Python versions 3.10 to 3.14 and Shapash
+versions below 2.10. Installation can be done with pip:
 
 .. code:: bash
 
     pip install eurybia
-
 
 Jupyter
 -------

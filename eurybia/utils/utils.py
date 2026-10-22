@@ -4,8 +4,28 @@ from math import floor, log10
 from pathlib import Path
 
 import pandas as pd
-from pandas.api.types import is_object_dtype, is_string_dtype
+from pandas.api.types import is_string_dtype
 from sklearn.model_selection import train_test_split
+
+
+def is_text_like(series: pd.Series, strict_object: bool = False) -> bool:
+    """Return whether a Series should be treated as text-like or categorical.
+
+    When ``strict_object`` is True, object dtype is accepted only when values are
+    textual or empty. Otherwise, all object columns are accepted.
+    """
+    dtype = series.dtype
+
+    if isinstance(dtype, pd.CategoricalDtype):
+        return True
+
+    if dtype.name == "object":
+        if not strict_object:
+            return True
+        inferred_dtype = pd.api.types.infer_dtype(series, skipna=True)
+        return inferred_dtype in ("string", "empty")
+
+    return is_string_dtype(dtype)
 
 
 def convert_string_to_int_keys(input_dict: dict) -> dict:
@@ -118,7 +138,7 @@ def round_to_k(x: float, k: int) -> float | int:
 def cat_features_indices(df: pd.DataFrame) -> list[int]:
     """Returns the indices of categorical features in a pandas DataFrame.
 
-    A categorical feature is identified as a column with an object or pandas string dtype.
+    A categorical feature is identified as a column with an object, string, or category dtype.
 
     Args:
         df (pd.DataFrame): The input DataFrame to analyze.
@@ -129,8 +149,7 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
 
     indice_cat = []
     for i, col in enumerate(df.columns):
-        dtype = df[col].dtype
-        if is_object_dtype(dtype) or is_string_dtype(dtype):
+        if is_text_like(df[col]):
             indice_cat.append(i)
     return indice_cat
 

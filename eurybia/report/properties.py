@@ -62,10 +62,10 @@ report_text: dict[str, Any] = {
             "both baseline and current datasets."
         ),
         "08": (
-            "Jensen Shannon Divergence (JSD). "
-            "The JSD measures the effect of a data drift on the deployed model performance. "
-            "A value close to 0 indicates similar data distributions, while a value close to 1 "
-            "tend to indicate distinct data distributions with a negative effect on the deployed model performance."
+            "Jensen-Shannon divergence (JSD) between the deployed model score distributions on the baseline "
+            "and current data, reported as the square root of the base-2 divergence on [0, 1]: "
+            "0 means identical distributions and 1 means maximally different distributions. "
+            "Interpret changes in this divergence metric in the context of the application."
         ),
         "07": (  # FIXME: wrong message, continuous var are not rendered as a bar chart
             "Bar chart showing the unique values distribution of a feature. "

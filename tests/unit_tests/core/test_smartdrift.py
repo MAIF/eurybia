@@ -4,6 +4,7 @@ Unit tests for SmartDrift
 
 from datetime import date
 import os
+import tempfile
 import unittest
 from os import path
 from pathlib import Path
@@ -45,7 +46,7 @@ class TestSmartDrift(unittest.TestCase):
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
         y = titanic_df["Survived"]
         X = titanic_df.drop("Survived", axis=1)
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(X)
         X = categ_encoding.transform(X)
         x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=1)
         rf = RandomForestClassifier(n_estimators=100, min_samples_leaf=3)
@@ -56,6 +57,11 @@ class TestSmartDrift(unittest.TestCase):
         self.categ_encoding = categ_encoding
         self.script_path = script_path
         self.X = X
+        self._temp_dir = tempfile.TemporaryDirectory()
+        self.datadrift_file = path.join(self._temp_dir.name, "AUC_Histo.csv")
+
+    def tearDown(self):
+        self._temp_dir.cleanup()
 
     def test_compile_nooptions(self):
         """
@@ -202,7 +208,7 @@ class TestSmartDrift(unittest.TestCase):
         assert isinstance(df_predict, pd.DataFrame)
         assert all(column in ("dataset", "Score") for column in df_predict.columns)
         assert df_predict.shape[0] == (smart_drift.df_baseline.shape[0] + smart_drift.df_current.shape[0])
-        assert all(col_type in ("float64", "object") for col_type in df_predict.dtypes)
+        assert all(col_type in ("float64", "object", "str") for col_type in df_predict.dtypes)
 
     def test_predict_2(self):
         """
@@ -211,7 +217,7 @@ class TestSmartDrift(unittest.TestCase):
 
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
 
-        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(
+        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="error", return_df=True).fit(
             self.X[["Title", "Pclass", "Sex", "Embarked"]]
         )
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
@@ -225,14 +231,14 @@ class TestSmartDrift(unittest.TestCase):
         assert isinstance(df_predict, pd.DataFrame)
         assert all(column in ("dataset", "Score") for column in df_predict.columns)
         assert df_predict.shape[0] == (smart_drift.df_baseline.shape[0] + smart_drift.df_current.shape[0])
-        assert all(col_type in ("float64", "object") for col_type in df_predict.dtypes)
+        assert all(col_type in ("float64", "object", "str") for col_type in df_predict.dtypes)
 
     def test_predict_3(self):
         """
         test _predict() method
         """
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(
+        false_categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="error", return_df=True).fit(
             self.X[["Title", "Pclass", "Sex", "Embarked"]]
         )
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
@@ -251,14 +257,14 @@ class TestSmartDrift(unittest.TestCase):
         assert isinstance(df_predict, pd.DataFrame)
         assert all(column in ("dataset", "Score") for column in df_predict.columns)
         assert df_predict.shape[0] == (smart_drift.df_baseline.shape[0] + smart_drift.df_current.shape[0])
-        assert all(col_type in ("float64", "object") for col_type in df_predict.dtypes)
+        assert all(col_type in ("float64", "object", "str") for col_type in df_predict.dtypes)
 
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
         df_predict = smart_drift._predict(deployed_model=self.rf, encoding=self.categ_encoding)
         assert isinstance(df_predict, pd.DataFrame)
         assert all(column in ("dataset", "Score") for column in df_predict.columns)
         assert df_predict.shape[0] == (smart_drift.df_baseline.shape[0] + smart_drift.df_current.shape[0])
-        assert all(col_type in ("float64", "object") for col_type in df_predict.dtypes)
+        assert all(col_type in ("float64", "object", "str") for col_type in df_predict.dtypes)
 
     def test_feature_importance(self):
         """
@@ -270,7 +276,7 @@ class TestSmartDrift(unittest.TestCase):
         feature_imp = smart_drift._compute_feature_importance(deployed_model=self.rf)
         assert isinstance(feature_imp, pd.DataFrame)
         assert all(column in ("feature", "deployed_model", "datadrift_classifier") for column in feature_imp.columns)
-        assert all(col_type in ("float64", "object") for col_type in feature_imp.dtypes)
+        assert all(col_type in ("float64", "object", "str") for col_type in feature_imp.dtypes)
 
     def test_histo_datadrift_metric_1(self):
         """
@@ -280,49 +286,46 @@ class TestSmartDrift(unittest.TestCase):
             SmartDrift(self.titanic_df_1, self.titanic_df_2)._histo_datadrift_metric(datadrift_file=".")
 
         SD = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        SD.compile(datadrift_file="tests/data/AUC_Histo.csv")
-        df_auc = SD._histo_datadrift_metric(datadrift_file="tests/data/AUC_Histo.csv")
+        SD.compile(datadrift_file=self.datadrift_file)
+        df_auc = SD._histo_datadrift_metric(datadrift_file=self.datadrift_file)
         assert isinstance(df_auc, pd.DataFrame)
         assert all(column in ("date", "auc") for column in df_auc.columns)
-        assert all(column in ("object", "float64") for column in df_auc.dtypes)
-        os.remove("tests/data/AUC_Histo.csv")
+        assert all(column in ("object", "str", "float64") for column in df_auc.dtypes)
 
     def test_histo_datadrift_metric_2(self):
         """
         Test on _histo_datadrift_metric() method
         """
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        smart_drift.compile(datadrift_file="tests/data/AUC_Histo.csv")
+        smart_drift.compile(datadrift_file=self.datadrift_file)
 
         with self.assertRaises(Exception):
             smart_drift._histo_datadrift_metric(
-                datadrift_file="tests/data/AUC_Histo.csv", predict_test=smart_drift.model.predict(self.titanic_df_2)
+                datadrift_file=self.datadrift_file, predict_test=smart_drift.model.predict(self.titanic_df_2)
             )
 
-        df_auc = smart_drift._histo_datadrift_metric(datadrift_file="tests/data/AUC_Histo.csv")
+        df_auc = smart_drift._histo_datadrift_metric(datadrift_file=self.datadrift_file)
         assert isinstance(df_auc, pd.DataFrame)
         assert all(column in ("date", "auc") for column in df_auc.columns)
-        assert all(column in ("object", "float64") for column in df_auc.dtypes)
-        os.remove("tests/data/AUC_Histo.csv")
+        assert all(column in ("object", "str", "float64") for column in df_auc.dtypes)
 
     def test_histo_datadrift_metric_3(self):
         """
         Test on _histo_datadrift_metric() method
         """
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        smart_drift.compile(datadrift_file="tests/data/AUC_Histo.csv")
+        smart_drift.compile(datadrift_file=self.datadrift_file)
 
         # with self.assertRaises(Exception):
         #     smart_drift._histo_datadrift_metric(date_compile_auc=date(year=2020, month=12, day=1))
 
-        smart_drift.datadrift_file = path.join(self.script_path, "tests/data/AUC_Histo.csv")
+        smart_drift.datadrift_file = self.datadrift_file
         df_auc = smart_drift._histo_datadrift_metric(
-            datadrift_file="tests/data/AUC_Histo.csv", date_compile_auc=date(year=2020, month=12, day=1)
+            datadrift_file=self.datadrift_file, date_compile_auc=date(year=2020, month=12, day=1)
         )  # , datadrift_file=datadrift_file)
         assert isinstance(df_auc, pd.DataFrame)
         assert all(column in ("date", "auc") for column in df_auc.columns)
-        assert all(column in ("object", "float64") for column in df_auc.dtypes)
-        os.remove("tests/data/AUC_Histo.csv")
+        assert all(column in ("object", "str", "float64") for column in df_auc.dtypes)
 
     def test_histo_datadrift_metric_4(self):
         """
@@ -331,21 +334,20 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift = SmartDrift(
             self.titanic_df_1, self.titanic_df_2, deployed_model=self.rf, encoding=self.categ_encoding
         )
-        smart_drift.compile(datadrift_file="tests/data/AUC_Histo.csv")
+        smart_drift.compile(datadrift_file=self.datadrift_file)
 
         # with self.assertRaises(Exception):
         #     smart_drift._histo_datadrift_metric(
         #         datadrift_file="tests/data/AUC_Histo.csv", date_compile_auc=date(year=2020, month=12, day=1)
         #     )
 
-        datadrift_file = path.join(self.script_path, "tests/data/AUC_Histo.csv")
+        datadrift_file = self.datadrift_file
         df_auc = smart_drift._histo_datadrift_metric(
             date_compile_auc=date(year=2020, month=12, day=1), datadrift_file=datadrift_file
         )
         assert isinstance(df_auc, pd.DataFrame)
         assert all(column in ("date", "auc", "JS_predict") for column in df_auc.columns)
-        assert all(column in ("object", "float64") for column in df_auc.dtypes)
-        os.remove("tests/data/AUC_Histo.csv")
+        assert all(column in ("object", "str", "float64") for column in df_auc.dtypes)
 
     def test_save_load(self):
         """
@@ -353,7 +355,7 @@ class TestSmartDrift(unittest.TestCase):
         """
         temp_pkl_path = "tests/data/test_pkl.pkl"
         sd = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        sd.compile(datadrift_file="tests/data/AUC_Histo.csv")
+        sd.compile(datadrift_file=self.datadrift_file)
         sd.feature_importance = pd.DataFrame({"foo": ["bar"]})
         sd.save(temp_pkl_path)
         sd2 = SmartDrift.load(temp_pkl_path)
@@ -382,7 +384,7 @@ class TestSmartDrift(unittest.TestCase):
         test define_style() method : checks that the frontend style defined in colors.json is written into the SmartDrift plot attribute
         """
         sd = SmartDrift(self.titanic_df_1, self.titanic_df_2)
-        sd.compile(datadrift_file="tests/data/AUC_Histo.csv")
+        sd.compile(datadrift_file=self.datadrift_file)
         colors_dict = select_palette(colors_loading(), "eurybia")
         with self.assertRaises(ValueError):
             sd.define_style()

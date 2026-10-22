@@ -33,7 +33,7 @@ class TestGeneration(unittest.TestCase):
         y = titan_df["Survived"]
         X = titan_df.drop("Survived", axis=1).drop("Name", axis=1)
         varcat = ["Pclass", "Sex", "Embarked", "Title"]
-        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="ignore", return_df=True).fit(X)
+        categ_encoding = OrdinalEncoder(cols=varcat, handle_unknown="value", return_df=True).fit(X)
         X_encoded = categ_encoding.transform(X)
 
         Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=0.75, random_state=1)
@@ -94,6 +94,11 @@ class TestGeneration(unittest.TestCase):
         )
 
         assert os.path.exists("./report.html")
+        report_html = Path("./report.html").read_text(encoding="utf-8")
+        assert "<title>Test integration</title>" in report_html
+        assert report_html.count('rel="icon"') == 1
+        assert 'rel="icon" type="image/png" sizes="32x32"' in report_html
+        assert 'href="data:image/png;base64,' in report_html
 
     def test_execute_report_modeldrift_1(self) -> None:
         """

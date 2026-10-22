@@ -2,7 +2,9 @@
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype, is_float_dtype, is_string_dtype
+from pandas.api.types import is_datetime64_any_dtype, is_float_dtype
+
+from eurybia.utils.utils import is_text_like
 
 
 class DatasetAnalysis:
@@ -24,7 +26,7 @@ class DatasetAnalysis:
         new_columns (list[str]): Columns present only in the test dataset.
         removed_columns (list[str]): Columns present only in the baseline dataset.
         dtype_mismatches (dict): Columns with differing data types between datasets.
-        object_cols (list[str]): Categorical (object dtype) columns with matching types.
+        object_cols (list[str]): Text-like or categorical columns with matching types.
         float_cols (list[str]): Float columns with matching types.
         datetime_cols (list[str]): Datetime columns with matching types.
         categorical_value_differences (dict): Differences in categorical values between datasets.
@@ -114,7 +116,11 @@ class DatasetAnalysis:
             bool: True if the column has the same data type in both DataFrames, False otherwise.
         """
 
-        return self._df_baseline[colname].dtype == self._df_test[colname].dtype
+        baseline_series = self._df_baseline[colname]
+        test_series = self._df_test[colname]
+        if is_text_like(baseline_series) and is_text_like(test_series):
+            return True
+        return baseline_series.dtype == test_series.dtype
 
     @property
     def dtype_mismatches(self) -> dict[str, tuple[str, str]]:
@@ -140,9 +146,9 @@ class DatasetAnalysis:
         whose data type is string.
 
         Returns:
-            list[str]: List of column names with 'string' dtype and no dtype mismatches.
+            list[str]: List of text-like column names with no dtype mismatches.
         """
-        return [colname for colname in self.valid_columns if is_string_dtype(self._df_baseline[colname].dtype)]
+        return [colname for colname in self.valid_columns if is_text_like(self._df_baseline[colname])]
 
     @property
     def float_cols(self) -> list[str]:
