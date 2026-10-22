@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurybia"
-version = "1.4.0"
+dynamic = ["version"]
 authors = [
     {name = "Nicolas Roux"},
     {name = "Thomas Bouché", email = "thomas.bouche@maif.fr"},
@@ -41,6 +41,8 @@ test = ["pytest", "pytest-cov"]
 
 [tool.setuptools]
 package-dir = {"" = "."}
+
+[tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
 where = ["."]
