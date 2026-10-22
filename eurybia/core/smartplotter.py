@@ -530,18 +530,13 @@ class SmartPlotter:
                 datadrift_historical = datadrift_historical.groupby("date")["auc"].mean().reset_index()
                 datadrift_historical.sort_values(by="date", inplace=True)
 
-            datadrift_historical["auc_for_drift"] = np.maximum(
-                datadrift_historical["auc"], 1 - datadrift_historical["auc"]
-            )
-            datadrift_historical["auc_displayed"] = datadrift_historical["auc_for_drift"].round(2)
+            datadrift_historical["auc_displayed"] = datadrift_historical["auc"].round(2)
 
             if self.smartdrift.deployed_model is not None:
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
                 fig.add_trace(
                     go.Scatter(
-                        x=datadrift_historical["date"],
-                        y=datadrift_historical["auc_for_drift"],
-                        name="Datadrift classifier AUC",
+                        x=datadrift_historical["date"], y=datadrift_historical["auc"], name="Datadrift classifier AUC"
                     ),
                     secondary_y=False,
                 )
@@ -564,7 +559,7 @@ class SmartPlotter:
                 fig = px.line(
                     datadrift_historical,
                     x="date",
-                    y="auc_for_drift",
+                    y="auc",
                     title="AUC's Evolution of Datadrift classifier",
                     text="auc_displayed",
                 )
