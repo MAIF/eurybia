@@ -31,7 +31,7 @@ dependencies = [
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
     "shapash>=2.8.1,<2.10",
-    "plotly>=6.1.1,<8",
+    "plotly<8",
 ]
 
 [project.optional-dependencies] # Optional
