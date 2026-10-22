@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import panel as pn
+from panel.viewable import Viewable
 from plotly.graph_objects import Violin
 from shapash.explainer.smart_explainer import SmartExplainer
 
@@ -42,7 +43,7 @@ def _apply_html_head_metadata(output_file: str) -> None:
 def _get_index_panel(
     dr: DriftReport, project_info_file: str | None = None, config_report: dict | None = None
 ) -> pn.Column:
-    parts = []
+    parts: list[Viewable] = []
     header_logo = pn.pane.PNG(
         "https://eurybia.readthedocs.io/en/latest/_images/eurybia-fond-clair.png?raw=true",
         styles={"max-width": "150px", "height": "auto"},
@@ -122,7 +123,7 @@ def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
         Column of blocks
 
     """
-    blocks = []
+    blocks: list[Viewable] = []
     text = ""
     for k, v in text_dict.items():
         if isinstance(v, (str, int, float)) or v is None:
@@ -152,7 +153,7 @@ def _get_project_information_panel(dr: DriftReport) -> pn.Column | None:
 
 def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) -> pn.Column:
     # Title
-    blocks = [pn.pane.Markdown("# Consistency Analysis")]
+    blocks: list[Viewable] = [pn.pane.Markdown("# Consistency Analysis")]
 
     # Manually ignored columns
     ignore_cols = pd.DataFrame({"ignore_cols": dr.smartdrift.da.ignored_cols}).rename(
@@ -203,8 +204,8 @@ def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) 
     return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"), css_classes=["information"])
 
 
-def _get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
-    blocks = []
+def _get_select_plots(labels: list, key: str, tab: str, figures: list) -> list[Viewable]:
+    blocks: list[Viewable] = []
     select = pn.widgets.Select(value=labels[0], options=labels)
     select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
     blocks += [select]
@@ -222,8 +223,8 @@ def _get_select_plots(labels: list, key: str, tab: str, figures: list) -> list:
     return blocks
 
 
-def _get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
-    blocks = []
+def _get_select_tables(labels: list, key: str, tab: str, tables: list) -> list[Viewable]:
+    blocks: list[Viewable] = []
     select = pn.widgets.Select(value=labels[0], options=labels)
     select.jscallback(args={"key": f".{key}", "tab": tab}, value=select_callback)
     blocks += [select]
@@ -238,7 +239,7 @@ def _get_select_tables(labels: list, key: str, tab: str, tables: list) -> list:
 
 
 def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
-    blocks = [
+    blocks: list[Viewable] = [
         pn.pane.Markdown("# Data drift"),
         pn.pane.Markdown(report_text["Data drift"]["01"]),
         pn.pane.Markdown("## Detecting data drift"),
@@ -364,7 +365,7 @@ def _get_model_drift_panel(dr: DriftReport) -> pn.Column:
     pn.Column
 
     """
-    blocks = [
+    blocks: list[Viewable] = [
         pn.pane.Markdown("# Model drift"),
         pn.pane.Markdown(report_text["Model drift"]["01"]),
         pn.pane.Markdown("## Performance evolution of the deployed model"),
@@ -419,10 +420,12 @@ def execute_report(
         config_report=config_report,
     )
 
-    tab_list = []
+    tab_list: list[pn.Column] = []
     tab_list.append(_get_index_panel(dr, project_info_file, config_report))
     if project_info_file is not None:
-        tab_list.append(_get_project_information_panel(dr))
+        project_information_panel = _get_project_information_panel(dr)
+        if project_information_panel is not None:
+            tab_list.append(project_information_panel)
     tab_list.append(_get_consistency_analysis_panel(dr, modalities_analysis))
     tab_list.append(_get_data_drift_panel(dr))
     if dr.smartdrift.data_modeldrift is not None:
