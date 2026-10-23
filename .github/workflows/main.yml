@@ -1,5 +1,11 @@
 name: Build & Test
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -29,7 +35,7 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-  build_test_publish:
+  build_test:
     name: Build & Test (${{ matrix.python-version }})
     needs: code_quality
     runs-on: ubuntu-latest
@@ -58,13 +64,6 @@ jobs:
     - name: Build python package
       run: |
         python -m build
-    - name: Deploy to PyPI
-      if: success() && startsWith(github.ref, 'refs/tags') && matrix.python-version == '3.10'
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-
   pandas_compat:
     name: Pandas Compat (${{ matrix.pandas }})
     needs: code_quality

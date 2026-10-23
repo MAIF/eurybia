@@ -1,151 +1,216 @@
-# How to contribute to Eurybia Open source
+# How to contribute to Eurybia
 
-This guide aims to help you contributing to Eurybia. If you have found any problems, improvements that can be done, or you have a burning desire to develop new features for Eurybia, please make sure to follow the steps bellow.
+This guide explains how to report bugs, propose improvements, and submit contributions to Eurybia.
 
 - [How to open an issue](#how-to-open-an-issue)
-- [Create your contribution to submit a pull request](#create-your-contribution-to-submit-a-pull-request)
-    - [Fork to code in your personal Eurybia repo](#fork-to-code-in-your-personal-eurybia-repo)
-    - [Clone your forked repository](#clone-your-forked-repository)
-    - [Make sure that your repository is up to date](#make-sure-that-your-repository-is-up-to-date)
-    - [Start your contribution code](#start-your-contribution-code)
-    - [Commit your changes](#commit-your-changes)
-    - [Create a pull request](#create-a-pull-request)
-    - [Finally submit your pull request](#finally-submit-your-pull-request)
+- [Set up your environment](#set-up-your-environment)
+  - [Get the code](#get-the-code)
+  - [Install dependencies](#install-dependencies)
+  - [Set up pre-commit hooks](#set-up-pre-commit-hooks)
+- [Create your contribution](#create-your-contribution)
+  - [Start coding on a dedicated branch](#start-coding-on-a-dedicated-branch)
+  - [Run tests and build checks](#run-tests-and-build-checks)
+  - [Run code quality checks](#run-code-quality-checks)
+  - [Commit and push your changes](#commit-and-push-your-changes)
+  - [Create a pull request](#create-a-pull-request)
+- [Contributing using AI](#contributing-using-ai)
+- [Publishing a release (maintainers)](#publishing-a-release-maintainers)
 
-# How to open an issue
+## How to open an issue
 
-**Screenshots are coming soon**
+Before opening an issue:
 
-An issue will open a discussion to evaluate if the problem / feature that you submit is eligible, and legitimate for Eurybia.
+- Search existing issues to avoid duplicates and check the project roadmap.
+- Explain whether you are reporting a bug or proposing a feature.
+- For bugs, include your Python and Eurybia versions, a minimal reproducible
+  example, and the expected and actual behavior.
 
-Check on the project tab if your issue / feature is not already created. In this tab, you will find the roadmap of Eurybia.
+Every pull request must be linked to an issue. Discuss substantial changes with
+the maintainers before starting implementation.
 
-A Pull Request must be linked to an issue.
-Before you open an issue, please check the current opened issues to insure there are no duplicate. Define if it's a feature or a bugfix.
+## Set up your environment
 
-Next, the Eurybia team, or the community, will give you a feedback on whether your issue must be implemented in Eurybia, or if it can be resolved easily without a pull request.
+### Get the code
 
-# Create your contribution to submit a pull request
-## Fork to code in your personal Eurybia repo
+Fork [MAIF/eurybia](https://github.com/MAIF/eurybia) to your GitHub account, then
+clone your fork:
 
-The first step is to get our MAIF repository on your personal GitHub repositories. To do so, use the "Fork" button.
-
-<img src="https://github.com/MAIF/eurybia/blob/master/docs/assets/images/contributing/eurybia-fork.png" alt="fork this repository" />
-
-## Clone your forked repository
-
-<img align="right" width="300" src="https://github.com/MAIF/eurybia/blob/master/docs/assets/images/contributing/eurybia-clone.png" alt="clone your forked repository" />
-
-Click on the "Code" button to copy the url of your repository, and next, you can paste this url to clone your forked repository.
-
-```
+```bash
 git clone https://github.com/YOUR_GITHUB_PROFILE/eurybia.git
-```
-
-## Make sure that your repository is up to date
-
-To insure that your local forked repository is synced, you have to update your repo with the master branch of Eurybia (MAIF). So, go to your repository and as follow :
-
-```
-cd Eurybia
+cd eurybia
 git remote add upstream https://github.com/MAIF/eurybia.git
-git pull upstream master
 ```
 
-## - Set up your development environment
+Before starting a contribution, update your local `master` branch:
 
-- Install the development requirements
-```
-pip install -r ./requirements.dev.txt
+```bash
+git checkout master
+git fetch upstream
+git merge --ff-only upstream/master
 ```
 
-- Set up the **pre-commit hooks** in your local copy of Eurybia
+### Install dependencies
+
+Python `>=3.10, <3.15` is required. From the repository root, create and activate
+a virtual environment, then install Eurybia in editable mode with development
+and test dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev,test]"
 ```
+
+On Windows, activate the environment with `.venv\Scripts\Activate.ps1` in
+PowerShell instead.
+
+Alternatively, with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv sync --extra dev --extra test
+source .venv/bin/activate
+```
+
+See [pyproject.toml](pyproject.toml) for the supported Python versions and
+dependency extras.
+
+### Set up pre-commit hooks
+
+Install both the code checks and the commit message hook:
+
+```bash
 pre-commit install
+pre-commit install --hook-type commit-msg
 ```
 
-## Start your contribution code
+The hooks are defined in [.pre-commit-config.yaml](.pre-commit-config.yaml).
 
-To contribute to Eurybia, you will need to create a personal branch.
-```
+## Create your contribution
+
+### Start coding on a dedicated branch
+
+```bash
 git checkout -b feature/my-contribution-branch
 ```
-We recommend using the following convention for naming branches
-- **feature/your_feature_name** if you are creating a feature
-- **hotfix/your_bug_fix** if you are fixing a bug
 
-## Check and commit your changes
+Use `feature/your_feature_name` for a feature or `hotfix/your_bug_fix` for a bug
+fix. Add or update tests for behavior changes and update related documentation.
 
-Before committing your modifications, we have some recommendations :
+### Run tests and build checks
 
-- Execute pytest to check that all tests pass
-```
-pytest
-```
-- Try to build Eurybia
-```
-python setup.py bdist_wheel
-```
-- Stage your modifications
-```
-git add .
-```
-- Commit your changes : **This will execute the pre-commit hooks, possibly modifying some files**
-We recommend committing with clear messages and grouping your commits by modifications dependencies.
-```
-git commit -m ‘fixed a bug’
-```
-If the pre-commit hooks modify some of your files, add and commit those changes
-```
-git add .
-git commit -m ‘linting’
+Run the test suite:
+
+```bash
+python -m pytest
 ```
 
-## Push your changes
+During development, you can run only the relevant test file:
 
-Once all of these steps succeed, push your local modifications to your remote repository.
-
+```bash
+python -m pytest tests/unit_tests/core/test_smartplotter.py
 ```
+
+To collect coverage:
+
+```bash
+python -m pytest --cov=eurybia --cov-report=term-missing
+```
+
+Check that the source distribution and wheel build successfully:
+
+```bash
+python -m pip install build
+python -m build
+```
+
+If you use uv, `uv build` is an alternative.
+
+CI runs the test suite on Python 3.10 through 3.14 and checks compatibility with
+multiple pandas versions. See [the CI workflow](.github/workflows/main.yml) for
+the current matrices.
+
+### Run code quality checks
+
+Check linting, formatting, and type annotations:
+
+```bash
+ruff check .
+ruff format --check .
+mypy eurybia
+```
+
+Apply formatting changes with `ruff format .`. You can also run the pre-commit
+checks across all tracked files:
+
+```bash
+pre-commit run --all-files
+```
+
+### Commit and push your changes
+
+Stage only files related to your contribution. Use a
+[Conventional Commits](https://www.conventionalcommits.org/) message, as checked
+by the commit message hook:
+
+```bash
+git add <file>
+git commit -m "fix: describe the bug fix"
 git push origin feature/my-contribution-branch
 ```
 
-Your branch is now available on your remote forked repository, with your changes.
+Hooks may modify files. Review those changes, stage the relevant files again,
+and retry the commit if necessary.
 
-Next step is now to create a Pull Request so the Eurybia Team can add your changes to the official repository.
+### Create a pull request
 
-## Create a Pull Request
+On GitHub, click **Compare & pull request** and select:
 
+- Base repository: `MAIF/eurybia`
+- Base branch: `master`
+- Head repository: your fork
+- Head branch: your contribution branch
 
-A pull request allows you to ask the Eurybia team to review your changes, and merge your changes into the master branch of the official repository.
+Complete the repository's pull request template, link the related issue, and
+describe the changes and validation performed. Ensure CI passes and address
+review feedback before the pull request is merged.
 
-To create one, on the top of your forked repository, you will find a button "Compare & pull request"
+Thank you for contributing to Eurybia.
 
-<img src="https://github.com/MAIF/eurybia/blob/master/docs/assets/images/contributing/eurybia-compare-pr.png" alt="pull request" />
+## Contributing using AI
 
-As you can see, you can select on the right side which branch of your forked repository you want to associate to the pull request.
+You may use AI tools to help prepare a contribution, but you remain responsible
+for its correctness and quality. The
+[unitaryHACK guide to ethical AI contributions](https://unitaryhack.dev/ai-guide/)
+provides useful guidance.
 
-On the left side, you will find the official Eurybia repository.
+- Understand and review every change before submitting it. Be prepared to
+  explain your implementation and respond to review feedback yourself.
+- Validate generated code, examples, and API references. Run the relevant tests
+  and quality checks, cover important edge cases, and report what you verified.
+  Do not remove or weaken tests just to make generated code pass.
+- Keep contributions focused. Remove unnecessary generated comments,
+  boilerplate, and explanations that do not help maintain the code.
+- Describe AI assistance in the pull request: identify the tool, what it helped
+  with, and how you reviewed and validated the result.
+- Do not automate bulk submissions of AI-generated issues or pull requests.
+  Each contribution needs individual investigation and review.
 
-- Base repository: MAIF/eurybia
-- Base branch: master
-- Head repository: your-github-username/eurybia
-- Head branch: your-contribution-branch
+## Publishing a release (maintainers)
 
-<img src="https://github.com/MAIF/eurybia/blob/master/docs/assets/images/contributing/eurybia-pr-branch.png" alt="clone your forked repository" />
+Publishing a GitHub release triggers [the PyPI publication workflow](.github/workflows/publish.yaml).
+Pushing a tag alone runs CI but does not publish a package.
 
-Once you have selected the right branch, let's create the pull request with the green button "Create pull request".
+To release:
 
-<img src="https://github.com/MAIF/eurybia/blob/master/docs/assets/images/contributing/eurybia-pr-description.png" alt="clone your forked repository" />
+1. Create a version tag such as `v1.4.1` on the commit to release.
+   Package versions are derived from Git tags using `setuptools-scm`.
+2. Publish a GitHub release using that tag.
+3. The workflow runs the complete Python and pandas CI matrices on the release
+   commit, builds the distributions, and checks that the wheel version matches
+   the release tag before publishing to PyPI via OIDC.
+4. A final smoke test installs the exact published version from PyPI and checks
+   its import and version. A failure here occurs after publication; it does not
+   roll back the release.
 
-In the description, a template is initialized with all informations you have to give about what you are doing on what your PR is doing.
-
-Please follow this to write your PR content.
-
-
-## Finally, submit your pull request
-
-Your pull request is now ready to be submitted. A member of the Eurybia team will contact you and will review your code and contact you if needed.
-
-You have contributed to an Open source project, thank you and congratulations ! 🥳
-
-Show your contribution to Eurybia in your curriculum, and share it on your social media. Be proud of yourself, you gave some code lines to the entire world !
+This process does not use TestPyPI.

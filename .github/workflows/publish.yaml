@@ -1,0 +1,120 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    uses: ./.github/workflows/main.yml
+
+  build:
+    name: Build release distributions
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.package-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Build package
+        run: |
+          python -m pip install --upgrade build packaging
+          python -m build
+      - name: Check release version
+        id: package-version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          from packaging.utils import parse_wheel_filename
+          from packaging.version import Version
+
+          wheel, = Path("dist").glob("*.whl")
+          _, version, _, _ = parse_wheel_filename(wheel.name)
+          tag_version = Version(os.environ["RELEASE_TAG"].removeprefix("v"))
+          if version != tag_version:
+              raise SystemExit(f"Built version {version} does not match release tag {tag_version}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"version={version}\n")
+          PY
+      - name: Store distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish-to-pypi:
+    name: Publish distributions to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi-release
+      url: https://pypi.org/project/eurybia/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distributions
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  smoke-test-pypi:
+    name: Check installation from PyPI
+    needs: [build, publish-to-pypi]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: {}
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install and import published version
+        env:
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          python -m venv .venv-smoke
+          . .venv-smoke/bin/activate
+          for attempt in 1 2 3 4 5; do
+            if python -m pip install "eurybia==${RELEASE_VERSION}"; then
+              break
+            fi
+            if [ "${attempt}" -eq 5 ]; then
+              echo "Failed to install eurybia==${RELEASE_VERSION} from PyPI after retries."
+              exit 1
+            fi
+            echo "Retrying installation in 30s (attempt ${attempt}/5)..."
+            sleep 30
+          done
+          python - <<'PY'
+          import os
+
+          import eurybia
+
+          expected = os.environ["RELEASE_VERSION"]
+          if eurybia.__version__ != expected:
+              raise SystemExit(f"Installed version {eurybia.__version__} does not match {expected}")
+          print(f"Successfully imported eurybia {eurybia.__version__}")
+          PY
