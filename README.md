@@ -3,6 +3,10 @@
   <a href="https://github.com/MAIF/eurybia/workflows/Build%20%26%20Test/badge.svg">
     <img src="https://github.com/MAIF/eurybia/workflows/Build%20%26%20Test/badge.svg" alt="tests">
   </a>
+  <!-- Codecov -->
+  <a href="https://codecov.io/gh/MAIF/eurybia">
+    <img src="https://codecov.io/gh/MAIF/eurybia/branch/master/graph/badge.svg" alt="codecov">
+  </a>
   <!-- PyPi -->
   <a href="https://img.shields.io/pypi/v/eurybia">
     <img src="https://img.shields.io/pypi/v/eurybia" alt="pypi">
