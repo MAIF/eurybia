@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurybia"
-version = "1.4.0"
+dynamic = ["version"]
 authors = [
     {name = "Nicolas Roux"},
     {name = "Thomas Bouché", email = "thomas.bouche@maif.fr"},
@@ -30,8 +30,8 @@ dependencies = [
     "panel>=1.4.1",
     "jinja2>=2.11.0",
     "scipy>=1.4.0",
-    "shapash>=2.0.0,<2.10",
-    "plotly>=5,<6",
+    "shapash>=2.8.1,<2.10",
+    "plotly<8",
 ]
 
 [project.optional-dependencies] # Optional
@@ -42,6 +42,8 @@ test = ["pytest", "pytest-cov"]
 [tool.setuptools]
 package-dir = {"" = "."}
 
+[tool.setuptools_scm]
+
 [tool.setuptools.packages.find]
 where = ["."]
 
@@ -50,6 +52,10 @@ where = ["."]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 85
 
 [tool.mypy]
 exclude = ["tests", "tutorial"]
