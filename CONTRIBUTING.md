@@ -114,8 +114,14 @@ python -m pytest tests/unit_tests/core/test_smartplotter.py
 To collect coverage:
 
 ```bash
-python -m pytest --cov=eurybia --cov-report=term-missing
+python -m pytest --cov=eurybia --cov-branch --cov-report=term-missing
 ```
+
+Coverage runs fail if global coverage, including branches, is below 85%.
+Codecov checks coverage of changed code against a 90% target with a one
+percentage-point tolerance. Its global coverage comparison is informational.
+To require the Codecov patch check before merging, maintainers must add it to
+the branch protection rules or ruleset.
 
 Check that the source distribution and wheel build successfully:
 
