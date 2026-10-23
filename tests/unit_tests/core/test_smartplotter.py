@@ -232,23 +232,27 @@ class TestSmartPlotter(unittest.TestCase):
         datadrift_historical = pd.DataFrame(auc)
         fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
-        assert np.isclose(np.asarray(fig.data[0].y), 0.52).any()
-        assert datadrift_historical["auc"].iloc[-1] == 0.48
+        np.testing.assert_allclose(fig.data[0].y, [0.48, 0.510653, 0.532106, 0.528107])
+        np.testing.assert_allclose(fig.data[0].text, [0.48, 0.51, 0.53, 0.53])
+        pd.testing.assert_frame_equal(datadrift_historical, pd.DataFrame(auc))
 
     def test_generate_historical_datadrift_metric_2(self):
         """
         Unit test for generate_historical_datadrift_metric()'s method
         """
         auc = {
-            "date": ["23/09/2021", "23/08/2021", "23/07/2021"],
-            "auc": [0.528107, 0.532106, 0.510653],
-            "JS_predict": [0.28107, 0.32106, 0.50653],
+            "date": ["23/09/2021", "23/08/2021", "23/07/2021", "23/06/2021"],
+            "auc": [0.528107, 0.532106, 0.510653, 0.48],
+            "JS_predict": [0.28107, 0.32106, 0.50653, 0.2],
         }
         datadrift_historical = pd.DataFrame(auc)
         self.smartdrift.deployed_model = object()
         fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
+        np.testing.assert_allclose(fig.data[0].y, [0.48, 0.510653, 0.532106, 0.528107])
+        np.testing.assert_allclose(fig.data[1].y, [0.2, 0.50653, 0.32106, 0.28107])
         assert fig.layout.yaxis2.range == (0, 1)
+        pd.testing.assert_frame_equal(datadrift_historical, pd.DataFrame(auc))
 
     def test_generate_modeldrift_data_1(self):
         """
