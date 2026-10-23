@@ -68,5 +68,8 @@ class TestStatistical_tests(unittest.TestCase):
         res1 = compute_js_divergence(X1, X2)
         res2 = compute_js_divergence(X3, X4)
 
-        assert round(res1, 2) == 0.17
-        assert round(res2, 2) == 0.41
+        assert round(res1, 2) == 0.20
+        assert round(res2, 2) == 0.49
+
+        maximum_distance = compute_js_divergence(np.array([0, 0]), np.array([1, 1]), n_bins=2)
+        assert maximum_distance == 1

@@ -9,7 +9,14 @@ from pathlib import Path
 import pandas as pd
 
 from eurybia import SmartDrift
-from eurybia.utils.utils import base_100, convert_string_to_int_keys, get_project_root, round_to_k, truncate_str
+from eurybia.utils.utils import (
+    base_100,
+    cat_features_indices,
+    convert_string_to_int_keys,
+    get_project_root,
+    round_to_k,
+    truncate_str,
+)
 
 
 class Testutils(unittest.TestCase):
@@ -60,6 +67,18 @@ class Testutils(unittest.TestCase):
         unit test convert_string_to_int_keys()
         """
         self.assertRaises(ValueError, convert_string_to_int_keys, {"foo": 0})
+
+    def test_cat_features_indices_with_text_and_category_dtypes(self):
+        df = pd.DataFrame(
+            {
+                "object_text": pd.Series(["a", "b"], dtype=object),
+                "string_text": pd.Series(["a", "b"], dtype=pd.StringDtype()),
+                "category": pd.Series(["a", "b"], dtype="category"),
+                "number": [1, 2],
+            }
+        )
+
+        assert cat_features_indices(df) == [0, 1, 2]
 
     def test_get_project_root_samedir(self):
         """

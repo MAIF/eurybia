@@ -22,7 +22,7 @@ from eurybia.style.style_utils import colors_loading, select_palette
 from eurybia.utils.io import load_pickle, save_pickle
 from eurybia.utils.model_drift import catboost_hyperparameter_init, catboost_hyperparameter_type
 from eurybia.utils.statistical_tests import chisq_test, compute_js_divergence, ksmirnov_test
-from eurybia.utils.utils import base_100, cat_features_indices, train_test_split_concat
+from eurybia.utils.utils import base_100, cat_features_indices, is_text_like, train_test_split_concat
 
 
 class SmartDrift:
@@ -80,7 +80,7 @@ class SmartDrift:
     colors_dict: dict
             Dict of the colors used in the different plots
     js_divergence : float
-        Jensen-Shannon divergence of probability distributions - ref:
+        Jensen-Shannon divergence metric (square root of the base-2 divergence) - ref:
         (https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence)
 
     How to declare a new SmartDrift object?
@@ -550,7 +550,7 @@ class SmartDrift:
             return dataset
 
     def _histo_datadrift_metric(self, datadrift_file: str, date_compile_auc: date | None = None):
-        """Method which computes datadrift metrics (AUC, and Jensen Shannon prediction divergence if the deployed_model
+        """Compute drift metrics (AUC, and Jensen-Shannon prediction divergence if the deployed_model
         is filled in) and append it into a dataframe that will be exported during the generate_report method
 
         Parameters
@@ -563,7 +563,7 @@ class SmartDrift:
         Returns
         -------
         pandas.DataFrame or None
-        Dataframe with dates, AUC and Jensen Shannon prediction divergence computed at this date
+        Dataframe with dates, AUC and Jensen-Shannon prediction divergence computed at this date
 
         """
         if date_compile_auc is None:
@@ -679,7 +679,7 @@ class SmartDrift:
         # compute test for each feature
         for features, count in self.xpl.features_desc.items():
             try:
-                if current[features].dtypes.kind == "O" and count <= categ_max:
+                if is_text_like(current[features]) and count <= categ_max:
                     test = chisq_test(current[features].to_numpy(), baseline[features].to_numpy())
                 else:
                     test = ksmirnov_test(current[features].to_numpy(), baseline[features].to_numpy())

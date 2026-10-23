@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import base64
+import re
 from datetime import datetime
+from importlib import resources
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -16,6 +19,24 @@ from eurybia.report.project_report import DriftReport
 from eurybia.report.properties import report_css, report_jscallback, report_text, select_callback
 
 pn.extension("plotly")
+
+
+def _apply_html_head_metadata(output_file: str) -> None:
+    """Add the packaged Eurybia favicon to a standalone report."""
+    favicon = base64.b64encode(resources.files("eurybia.assets").joinpath("favicon.png").read_bytes()).decode()
+    favicon_tag = f'<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,{favicon}">'
+
+    with open(output_file, encoding="utf-8") as report_file:
+        report_html = report_file.read()
+
+    if "</head>" not in report_html:
+        return
+
+    with open(output_file, "w", encoding="utf-8") as report_file:
+        report_html = re.sub(r'<link rel="icon"[^>]*>', favicon_tag, report_html, count=1)
+        if favicon_tag not in report_html:
+            report_html = report_html.replace("</head>", f"{favicon_tag}</head>", 1)
+        report_file.write(report_html)
 
 
 def _get_index_panel(
@@ -51,26 +72,30 @@ def _get_index_panel(
     if dr.smartdrift.auc is None:
         raise RuntimeError("AUC should have been set.")
     # AUC
-    auc_block = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=280, width=500, title="Datadrift classifier AUC", image=True
+    auc_indicator = pn.pane.SVG(
+        dr.smartdrift.plot.generate_indicator(
+            fig_value=max(dr.smartdrift.auc, 1 - dr.smartdrift.auc),
+            height=280,
+            width=500,
+            title="Datadrift classifier AUC",
+        )
     )
-    auc_indicator = pn.pane.PNG(auc_block)
 
     # Jensen-Shannon
     if dr.smartdrift.deployed_model is not None:
         if dr.smartdrift.js_divergence is None:
             raise RuntimeError("Jensen-Shannon divergence should have been set.")
 
-        JS_block = dr.smartdrift.plot.generate_indicator(
-            fig_value=dr.smartdrift.js_divergence,
-            height=280,
-            width=500,
-            title="Jensen Shannon Datadrift",
-            min_gauge=0,
-            max_gauge=0.2,
-            image=True,
+        js_indicator = pn.pane.SVG(
+            dr.smartdrift.plot.generate_indicator(
+                fig_value=dr.smartdrift.js_divergence,
+                height=280,
+                width=500,
+                title="Jensen-Shannon divergence",
+                min_gauge=0,
+                max_gauge=1,
+            )
         )
-        js_indicator = pn.pane.PNG(JS_block)
         indicators = pn.Row(auc_indicator, js_indicator)
 
     else:
@@ -225,9 +250,12 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
         raise RuntimeError("AUC should have been set.")
 
     auc = dr.smartdrift.plot.generate_indicator(
-        fig_value=dr.smartdrift.auc, height=300, width=500, title="Datadrift classifier AUC", image=True
+        fig_value=max(dr.smartdrift.auc, 1 - dr.smartdrift.auc),
+        height=300,
+        width=500,
+        title="Datadrift classifier AUC",
     )
-    blocks += [pn.pane.PNG(auc)]
+    blocks += [pn.pane.SVG(auc)]
 
     blocks += [
         pn.pane.Markdown("## Importance of features in data drift"),
@@ -283,12 +311,11 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
             fig_value=dr.smartdrift.js_divergence,
             height=280,
             width=500,
-            title="Jensen Shannon Datadrift",
+            title="Jensen-Shannon divergence",
             min_gauge=0,
-            max_gauge=0.2,
-            image=True,
+            max_gauge=1,
         )
-        blocks += [pn.pane.PNG(js_fig)]
+        blocks += [pn.pane.SVG(js_fig)]
 
     contribution_figures, contribution_labels = dr.display_model_contribution()
 
@@ -404,4 +431,5 @@ def execute_report(
     pn.config.raw_css.append(report_css)
     report = pn.Tabs(*tab_list, css_classes=["main-report"])
     report.jscallback(args={"active": report}, active=report_jscallback)
-    report.save(output_file, embed=True)
+    report.save(output_file, embed=True, title=dr.title_story)
+    _apply_html_head_metadata(output_file)

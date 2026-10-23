@@ -8,14 +8,14 @@ if TYPE_CHECKING:
     from eurybia import SmartDrift
 
 import copy
+from html import escape
+from math import cos, pi, sin
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.figure_factory as ff
-import seaborn as sns
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 
@@ -85,7 +85,7 @@ class SmartPlotter:
         hue: str | None = None,
         df_all: pd.DataFrame | None = None,
         dict_color_palette: dict | None = None,
-    ) -> plt.Figure:
+    ) -> go.Figure:
         """Returns a plotly figure containing the distribution of any kind of feature
         (continuous, categorical).
 
@@ -487,12 +487,13 @@ class SmartPlotter:
         hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
         """Displays line plot of the evolution of the datadrift metrics :
-        AUC of Datadrift classifier and if deployed_model fill, Jensen Shannon divergence of distribution of prediction
+        AUC of the datadrift classifier and, if deployed_model is set, the Jensen-Shannon divergence between predictions
 
         Parameters
         ----------
         datadrift_historical : pd.DataFrame
-            DataFrame with date, datadrif classifer auc and jensen shannon prediction divergence if deployed_model fill
+            DataFrame with dates, drift-classifier AUC and Jensen-Shannon prediction divergence
+            when deployed_model is set.
         template: str, optional
             Template (background style) for the plot
         title: str, optional
@@ -544,16 +545,16 @@ class SmartPlotter:
                     go.Scatter(
                         x=datadrift_historical["date"],
                         y=datadrift_historical["JS_predict"],
-                        name="Jensen_Shannon Prediction Divergence",
+                        name="Jensen-Shannon Prediction Divergence",
                     ),
                     secondary_y=True,
                 )
 
                 fig.update_layout(title_text="Evolution of data drift")
                 fig.update_yaxes(title_text="<b>Datadrift classifier AUC</b>  ", secondary_y=False)
-                fig.update_yaxes(title_text="<b>Jensen_Shannon Prediction Divergence</b> ", secondary_y=True)
+                fig.update_yaxes(title_text="<b>Jensen-Shannon Prediction Divergence</b> ", secondary_y=True)
                 fig.update_yaxes(range=[0.5, 1], secondary_y=False)
-                fig.update_yaxes(range=[0, 0.3], secondary_y=True)
+                fig.update_yaxes(range=[0, 1], secondary_y=True)
             else:
                 fig = px.line(
                     datadrift_historical,
@@ -713,9 +714,8 @@ class SmartPlotter:
         height: float = 300,
         width: float = 500,
         title: str = "Metric",
-        image: bool = False,
-    ) -> plotly.graph_objs._figure.Figure | bytes:
-        """Generate an indicator gauge with a colorbar.
+    ) -> str:
+        """Generate a static SVG indicator gauge.
 
         Args:
             fig_value (float): Value to display on the gauge.
@@ -724,41 +724,81 @@ class SmartPlotter:
             height (float, optional): Height of the plot. Defaults to 300.
             width (float, optional): Width of the plot. Defaults to 500.
             title (str, optional): Title of the plot. Defaults to "Metric".
-            image (bool, optional): If True, returns an image instead of a Plotly Figure. Defaults to False.
-
         Returns:
-            plotly.graph_objs._figure.Figure | bytes: The generated figure or image.
+            str: The generated SVG image.
         """
-        color = sns.blend_palette(["green", "yellow", "orange", "red"], 100)
-        color = color.as_hex()
-        list_color_glob = list()
-        threshold = [i for i in np.arange(min_gauge, max_gauge, (max_gauge - min_gauge) / len(color))]
-        for i in range(1, len(threshold) + 1):
-            dict_color = dict()
-            if i == len(threshold):
-                rang = [threshold[i - 1], 1]
-            else:
-                rang = [threshold[i - 1], threshold[i]]
-            dict_color["range"] = rang
-            dict_color["color"] = color[i - 1]
-            list_color_glob.append(dict_color)
-        fig = go.Figure(
-            go.Indicator(
-                mode="gauge+number",
-                value=round(fig_value, 2),
-                domain={"x": [0, 1], "y": [0, 1]},
-                title={"text": title, "align": "center", "font": {"size": 20}},
-                gauge={
-                    "axis": {"range": [min_gauge, max_gauge], "ticktext": ["No Drift", "High Drift"], "tickwidth": 1},
-                    "bar": {"color": "black"},
-                    "borderwidth": 0,
-                    "steps": list_color_glob,
-                },
-            )
-        )
-        fig.update_layout(
-            height=height,
-            width=width,
-        )
+        if max_gauge <= min_gauge:
+            raise ValueError("max_gauge must be greater than min_gauge")
 
-        return fig.to_image() if image else fig
+        width = float(width)
+        height = float(height)
+        center_x = width / 2
+        radius = min(width * 0.38, height * 0.48)
+        center_y = height * 0.76
+        stroke_width = max(20, min(52, height * 0.18))
+        ratio = (fig_value - min_gauge) / (max_gauge - min_gauge)
+        fill_ratio = min(1, max(0, ratio))
+        fill_angle = pi * (1 - fill_ratio)
+        fill_width = max(8, stroke_width * 0.55)
+        fill_x = center_x + radius * cos(fill_angle)
+        fill_y = center_y - radius * sin(fill_angle)
+        ticks = []
+        tick_labels = []
+
+        for index in range(11):
+            angle = pi * (1 - index / 10)
+            outer_radius = radius + stroke_width / 2 + 2
+            tick_length = 10 if index in (0, 5, 10) else 6
+            inner_radius = outer_radius - tick_length
+            x_start = center_x + inner_radius * cos(angle)
+            y_start = center_y - inner_radius * sin(angle)
+            x_end = center_x + outer_radius * cos(angle)
+            y_end = center_y - outer_radius * sin(angle)
+            ticks.append(
+                f'<line class="gauge-tick" x1="{x_start:.2f}" y1="{y_start:.2f}" '
+                f'x2="{x_end:.2f}" y2="{y_end:.2f}" stroke="#555" stroke-width="1.5"/>'
+            )
+            tick_value = min_gauge + (max_gauge - min_gauge) * index / 10
+            label_radius = outer_radius + 14
+            label_x = center_x + label_radius * cos(angle)
+            label_y = center_y - label_radius * sin(angle) + 4
+            tick_labels.append(
+                f'<text class="gauge-tick-label" x="{label_x:.2f}" y="{label_y:.2f}" '
+                f'text-anchor="middle" font-family="sans-serif" font-size="15" fill="#555">{tick_value:g}</text>'
+            )
+
+        fill_arc = (
+            f'<path class="gauge-fill" d="M {center_x - radius:.2f} {center_y:.2f} '
+            f'A {radius:.2f} {radius:.2f} 0 0 1 {fill_x:.2f} {fill_y:.2f}" '
+            f'fill="none" stroke="#111" stroke-width="{fill_width:.2f}" stroke-linecap="butt"/>'
+            if fill_ratio > 0
+            else ""
+        )
+        value_y = center_y - radius * 0.3 + 16
+        safe_title = escape(title, quote=True)
+        return (
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width:g}" height="{height:g}" '
+            f'viewBox="0 0 {width:g} {height:g}" role="img" aria-label="{safe_title}">'
+            f"<title>{safe_title}</title>"
+            f'<defs><linearGradient id="gauge-colors" gradientUnits="userSpaceOnUse" '
+            f'x1="{center_x - radius:g}" y1="{center_y:g}" x2="{center_x + radius:g}" y2="{center_y:g}">'
+            f'<stop offset="0%" stop-color="#008000"/><stop offset="25%" stop-color="#ffff00"/>'
+            f'<stop offset="75%" stop-color="#ffa500"/><stop offset="100%" stop-color="#ff0000"/>'
+            "</linearGradient></defs>"
+            f'<text x="{center_x:g}" y="20" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="20" fill="#222">{safe_title}</text>'
+            f'<path class="gauge-track" d="M {center_x - radius:.2f} {center_y:.2f} '
+            f'A {radius:.2f} {radius:.2f} 0 0 1 {center_x + radius:.2f} {center_y:.2f}" '
+            f'fill="none" stroke="url(#gauge-colors)" stroke-width="{stroke_width:.2f}"/>'
+            f"{fill_arc}"
+            f"{''.join(ticks)}"
+            f"{''.join(tick_labels)}"
+            f'<text class="gauge-value" x="{center_x:g}" y="{value_y:.2f}" text-anchor="middle" '
+            f'font-family="sans-serif" font-size="56" font-weight="600" fill="#222">'
+            f"{round(fig_value, 2):g}</text>"
+            f'<text x="{center_x - radius:g}" y="{center_y + 23:g}" text-anchor="middle" '
+            f'font-family="sans-serif" font-size="12" fill="#555">No Drift</text>'
+            f'<text x="{center_x + radius:g}" y="{center_y + 23:g}" text-anchor="middle" '
+            f'font-family="sans-serif" font-size="12" fill="#555">High Drift</text>'
+            "</svg>"
+        )

@@ -225,23 +225,34 @@ class TestSmartPlotter(unittest.TestCase):
         """
         Unit test for generate_historical_datadrift_metric()'s method
         """
-        auc = {"date": ["23/09/2021", "23/08/2021", "23/07/2021"], "auc": [0.528107, 0.532106, 0.510653]}
+        auc = {
+            "date": ["23/09/2021", "23/08/2021", "23/07/2021", "23/06/2021"],
+            "auc": [0.528107, 0.532106, 0.510653, 0.48],
+        }
         datadrift_historical = pd.DataFrame(auc)
         fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
+        np.testing.assert_allclose(fig.data[0].y, [0.48, 0.510653, 0.532106, 0.528107])
+        np.testing.assert_allclose(fig.data[0].text, [0.48, 0.51, 0.53, 0.53])
+        pd.testing.assert_frame_equal(datadrift_historical, pd.DataFrame(auc))
 
     def test_generate_historical_datadrift_metric_2(self):
         """
         Unit test for generate_historical_datadrift_metric()'s method
         """
         auc = {
-            "date": ["23/09/2021", "23/08/2021", "23/07/2021"],
-            "auc": [0.528107, 0.532106, 0.510653],
-            "JS_predict": [0.28107, 0.32106, 0.50653],
+            "date": ["23/09/2021", "23/08/2021", "23/07/2021", "23/06/2021"],
+            "auc": [0.528107, 0.532106, 0.510653, 0.48],
+            "JS_predict": [0.28107, 0.32106, 0.50653, 0.2],
         }
         datadrift_historical = pd.DataFrame(auc)
+        self.smartdrift.deployed_model = object()
         fig = self.smartdrift.plot.generate_historical_datadrift_metric(datadrift_historical)
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
+        np.testing.assert_allclose(fig.data[0].y, [0.48, 0.510653, 0.532106, 0.528107])
+        np.testing.assert_allclose(fig.data[1].y, [0.2, 0.50653, 0.32106, 0.28107])
+        assert fig.layout.yaxis2.range == (0, 1)
+        pd.testing.assert_frame_equal(datadrift_historical, pd.DataFrame(auc))
 
     def test_generate_modeldrift_data_1(self):
         """
@@ -292,5 +303,25 @@ class TestSmartPlotter(unittest.TestCase):
         Unit test for generate_indicator()'s method
         """
         self.smartdrift.compile()
-        fig = self.smartdrift.plot.generate_indicator(fig_value=self.smartdrift.auc, height=300, width=500, title="AUC")
-        assert isinstance(fig, plotly.graph_objs._figure.Figure)
+        svg = self.smartdrift.plot.generate_indicator(fig_value=self.smartdrift.auc, height=300, width=500, title="AUC")
+        assert isinstance(svg, str)
+        assert svg.startswith('<svg xmlns="http://www.w3.org/2000/svg"')
+        assert "AUC" in svg
+        assert svg.count('class="gauge-tick"') == 11
+        assert svg.count('class="gauge-tick-label"') == 11
+        assert 'class="gauge-tick-label" x="250.00"' in svg
+        assert 'font-size="15" fill="#555">' in svg
+        assert ">0.75</text>" in svg
+        assert 'stroke-width="52.00"' in svg
+        assert 'class="gauge-fill"' in svg
+        assert 'stroke="#111" stroke-width="28.60" stroke-linecap="butt"' in svg
+        assert "M 106.00 228.00 A 144.00 144.00 0 0 1" in svg
+        assert 'class="gauge-needle"' not in svg
+        assert 'class="gauge-value" x="250"' in svg
+        assert 'class="gauge-value" x="250" y="200.80"' in svg
+        assert 'x="106" y="251" text-anchor="middle"' in svg
+        assert 'x="394" y="251" text-anchor="middle"' in svg
+        assert svg.count('class="gauge-track"') == 1
+        assert "A 144.00 144.00 0 0 1 394.00 228.00" in svg
+        assert "gauge-segment" not in svg
+        assert 'font-size="56" font-weight="600"' in svg

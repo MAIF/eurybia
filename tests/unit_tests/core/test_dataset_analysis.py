@@ -40,11 +40,22 @@ def test_has_same_dtype():
     assert da._has_same_dtype("b") is False
 
 
+def test_object_and_string_dtypes_are_compatible():
+    df_baseline = pd.DataFrame({"text": pd.Series(["a", None], dtype=object)})
+    df_test = pd.DataFrame({"text": pd.Series(["a", None], dtype=pd.StringDtype())})
+    da = DatasetAnalysis(df_baseline=df_baseline, df_test=df_test)
+
+    assert da._has_same_dtype("text") is True
+    assert da.valid_columns == ["text"]
+    assert da.dtype_mismatches == {}
+    assert da.object_cols == ["text"]
+
+
 def test_dtype_mismatches():
     df_baseline = pd.DataFrame([[1, "2"], [4, "5"]], columns=["a", "b"])
     df_test = pd.DataFrame([[1, 2], [3, 4]], columns=["a", "b"])
     da = DatasetAnalysis(df_baseline=df_baseline, df_test=df_test)
-    assert da.dtype_mismatches == {"b": ("int64", "object")}
+    assert da.dtype_mismatches == {"b": ("int64", str(df_baseline["b"].dtype))}
 
 
 def test_object_cols():
