@@ -98,7 +98,7 @@ todo_include_todos = True
 
 # -- Additional html pages  -------------------------------------------------
 # Generates the report example in the documentation
-subprocess.run(["python", "../../tutorial/Eurybia_report_example.py"])
+subprocess.run([sys.executable, "../../tutorial/Eurybia_report_example.py"], check=True)
 html_extra_path = ["../../tutorial/report.html"]
 
 
