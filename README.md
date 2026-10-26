@@ -111,7 +111,7 @@ sd.generate_report(
 
 ## 🛠 Installation
 
-Eurybia is intended to work with Python versions 3.10 to 3.14 and Shapash versions below 2.10. Installation can be done with pip:
+Eurybia is intended to work with Python versions 3.11 to 3.14 and Shapash 2.10 and above. Installation can be done with pip:
 
 ```
 pip install eurybia

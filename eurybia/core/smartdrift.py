@@ -121,8 +121,10 @@ class SmartDrift:
                     val.seek(0)
                     setattr(sd, attr, pickle.load(val))
                 elif attr == "_xpl":
+                    explainer_dict = val.pop("explainer")
                     xpl = SmartExplainer(model=val["model"])
                     xpl.__dict__.update(val)
+                    xpl.explainer.__dict__.update(explainer_dict)
                     setattr(sd, attr, xpl)
                 elif attr == "_da":
                     da = DatasetAnalysis(df_current, df_baseline)
@@ -327,7 +329,7 @@ class SmartDrift:
         y_test = test[self.datadrift_target]
 
         self.xpl.compile(x=x_test, y_target=y_test)
-        self.xpl.compute_features_import(force=True)
+        self.xpl.explainer.compute_features_import(force=True)
 
         self.xpl.define_style(colors_dict=self.colors_dict)
         self.datadrift_classifier = datadrift_classifier
@@ -504,7 +506,9 @@ class SmartDrift:
             ) from error
 
         feature_importance_drift = pd.DataFrame(
-            self.xpl.features_imp[0].values, index=self.xpl.features_imp[0].index, columns=["datadrift_classifier"]
+            self.xpl.explainer.features_imp[0].values,
+            index=self.xpl.explainer.features_imp[0].index,
+            columns=["datadrift_classifier"],
         )
         var_baseline = [c for c in self.df_baseline.columns if c not in ["target"]]
         if len(array_importance) != len(var_baseline):
@@ -677,7 +681,7 @@ class SmartDrift:
         test_results = {}
 
         # compute test for each feature
-        for features, count in self.xpl.features_desc.items():
+        for features, count in self.xpl.explainer.features_desc.items():
             try:
                 if is_text_like(current[features]) and count <= categ_max:
                     test = chisq_test(current[features].to_numpy(), baseline[features].to_numpy())
@@ -745,6 +749,13 @@ class SmartDrift:
                         getattr(self.xpl, att_xpl), (list, dict, pd.DataFrame, pd.Series, type(None), bool)
                     ) or att_xpl in ["model", "preprocessing", "postprocessing"]:
                         smartexplainer_dict.update({att_xpl: getattr(self.xpl, att_xpl)})
+                explainer_dict = {}
+                for att_xpl in self.xpl.explainer.__dict__.keys():
+                    if isinstance(
+                        getattr(self.xpl.explainer, att_xpl), (list, dict, pd.DataFrame, pd.Series, type(None), bool)
+                    ) or att_xpl in ["model", "preprocessing", "postprocessing"]:
+                        explainer_dict.update({att_xpl: getattr(self.xpl.explainer, att_xpl)})
+                smartexplainer_dict["explainer"] = explainer_dict
                 dict_to_save.update({att: smartexplainer_dict})
             elif isinstance(getattr(self, att), DatasetAnalysis):
                 da_dict = {}
