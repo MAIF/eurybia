@@ -10,6 +10,7 @@ This guide explains how to report bugs, propose improvements, and submit contrib
 - [Create your contribution](#create-your-contribution)
   - [Start coding on a dedicated branch](#start-coding-on-a-dedicated-branch)
   - [Run tests and build checks](#run-tests-and-build-checks)
+  - [Build the documentation](#build-the-documentation)
   - [Run code quality checks](#run-code-quality-checks)
   - [Commit and push your changes](#commit-and-push-your-changes)
   - [Create a pull request](#create-a-pull-request)
@@ -135,6 +136,23 @@ If you use uv, `uv build` is an alternative.
 CI runs the test suite on Python 3.11 through 3.14 and checks compatibility with
 multiple pandas versions. See [the CI workflow](.github/workflows/main.yml) for
 the current matrices.
+
+### Build the documentation
+
+Read the Docs uses Ubuntu 24.04 and Python 3.11, installs the documentation
+dependencies, then installs Eurybia from the checked-out repository.
+To build the same documentation locally, install Pandoc (required by nbsphinx)
+and run from the repository root in a Python 3.11 virtual environment:
+
+```bash
+python -m pip install -r docs/requirements.dev.txt
+python -m pip install .
+python -m sphinx -b html docs/source docs/_build/html
+```
+
+The HTML documentation is generated in `docs/_build/html`. The build also
+generates the example report by running `tutorial/Eurybia_report_example.py`;
+tutorial notebooks are rendered without executing their cells.
 
 ### Run code quality checks
 
