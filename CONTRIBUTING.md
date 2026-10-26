@@ -51,7 +51,7 @@ git merge --ff-only upstream/master
 
 ### Install dependencies
 
-Python `>=3.10, <3.15` is required. From the repository root, create and activate
+Python `>=3.11, <3.15` is required. From the repository root, create and activate
 a virtual environment, then install Eurybia in editable mode with development
 and test dependencies:
 
@@ -132,7 +132,7 @@ python -m build
 
 If you use uv, `uv build` is an alternative.
 
-CI runs the test suite on Python 3.10 through 3.14 and checks compatibility with
+CI runs the test suite on Python 3.11 through 3.14 and checks compatibility with
 multiple pandas versions. See [the CI workflow](.github/workflows/main.yml) for
 the current matrices.
 

@@ -1,7 +1,7 @@
 <p align="center">
   <!-- Tests -->
-  <a href="https://github.com/MAIF/eurybia/workflows/Build%20%26%20Test/badge.svg">
-    <img src="https://github.com/MAIF/eurybia/workflows/Build%20%26%20Test/badge.svg" alt="tests">
+  <a href="https://github.com/MAIF/eurybia/actions/workflows/main.yml?query=branch%3Amaster">
+    <img src="https://github.com/MAIF/eurybia/actions/workflows/main.yml/badge.svg?branch=master" alt="Build &amp; Test (master)">
   </a>
   <!-- Codecov -->
   <a href="https://codecov.io/gh/MAIF/eurybia">
@@ -21,7 +21,7 @@
   </a>
   <!-- Doc -->
   <a href="https://eurybia.readthedocs.io/en/latest/">
-    <img src="https://readthedocs.org/projects/eurybia/badge/?version=latest" alt="doc">
+    <img src="https://img.shields.io/badge/Documentation-Read_the_Docs-425466?logo=readthedocs&logoColor=white" alt="Documentation">
   </a>
   <!-- Pre-commit -->
   <a href="https://github.com/pre-commit/pre-commit">
@@ -111,7 +111,7 @@ sd.generate_report(
 
 ## 🛠 Installation
 
-Eurybia is intended to work with Python versions 3.10 to 3.14 and Shapash versions below 2.10. Installation can be done with pip:
+Eurybia is intended to work with Python versions 3.11 to 3.14 and Shapash 2.10 and above. Installation can be done with pip:
 
 ```
 pip install eurybia

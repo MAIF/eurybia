@@ -4,12 +4,16 @@ Installation instructions
 Installing
 ----------
 
-**Eurybia** is intended to work with Python versions 3.10 to 3.14 and Shapash
-versions below 2.10. Installation can be done with pip:
+**Eurybia** is intended to work with Python versions 3.11 to 3.14 and Shapash
+2.10. Installation can be done with pip:
 
 .. code:: bash
 
     pip install eurybia
+
+Plotly must be below version 7: Eurybia's continuous distribution plots use
+``plotly.figure_factory.create_distplot``, which was removed in Plotly 7.
+This constraint is applied automatically when installing Eurybia.
 
 Jupyter
 -------
@@ -220,4 +224,3 @@ Compatibility issues
 
 When using Eurybia, you may encounter some compatibility issues related to your environment and the libraries' versions used.
 The extras requirements of Eurybia allow you to update your requirements to a compatible version.
-

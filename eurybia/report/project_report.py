@@ -67,9 +67,9 @@ class DriftReport:
         """
         self.smartdrift = smartdrift
         self.explainer = explainer
-        if self.explainer.features_imp is None:
-            self.explainer.compute_features_import(force=True)
-        self.features_imp_list = self.explainer.features_imp[0].sort_values(ascending=False).index.to_list()  # type: ignore
+        if self.explainer.explainer.features_imp is None:
+            self.explainer.explainer.compute_features_import(force=True)
+        self.features_imp_list = self.explainer.explainer.features_imp[0].sort_values(ascending=False).index.to_list()  # type: ignore
         self.config_report = config_report if config_report is not None else dict()
 
         self.data_concat = self._create_data_drift(
@@ -237,8 +237,10 @@ class DriftReport:
 
     def display_model_contribution(self) -> tuple[list, list]:
         """Displays explainability of the model as computed in SmartPlotter object"""
-        multiclass = True if (self.explainer._classes and len(self.explainer._classes) > 2) else False
-        c_list = self.explainer._classes if multiclass else [1]  # list just used for multiclass
+        multiclass = (
+            True if (self.explainer.explainer._classes and len(self.explainer.explainer._classes) > 2) else False
+        )
+        c_list = self.explainer.explainer._classes if multiclass else [1]  # list just used for multiclass
         plot_list = []
         labels = []
         for label in c_list:  # Iterating over all labels in multiclass case

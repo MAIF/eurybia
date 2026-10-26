@@ -70,6 +70,7 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
         smart_drift.compile()
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_compile_fullvalid(self):
         """
@@ -78,6 +79,7 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
         smart_drift.compile(full_validation=True)
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_compile_nosampling(self):
         """
@@ -86,6 +88,7 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
         smart_drift.compile(full_validation=True, sampling=False)
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_compile_samplingsize(self):
         """
@@ -94,6 +97,7 @@ class TestSmartDrift(unittest.TestCase):
         smart_drift = SmartDrift(self.titanic_df_1, self.titanic_df_2)
         smart_drift.compile(full_validation=True, sample_size=100)
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_compile_model_encoder(self):
         """
@@ -104,6 +108,7 @@ class TestSmartDrift(unittest.TestCase):
         )
         smart_drift.compile()
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_compile_dataset_names(self):
         """
@@ -118,6 +123,7 @@ class TestSmartDrift(unittest.TestCase):
         )
         smart_drift.compile()
         assert isinstance(smart_drift.xpl, shapash.explainer.smart_explainer.SmartExplainer)
+        assert smart_drift.xpl.explainer.features_imp is not None
 
     def test_generate_report_fullvalid(self):
         """
