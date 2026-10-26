@@ -11,9 +11,9 @@ Installing
 
     pip install eurybia
 
-Plotly must be below version 7: Eurybia's continuous distribution plots use
-``plotly.figure_factory.create_distplot``, which was removed in Plotly 7.
-This constraint is applied automatically when installing Eurybia.
+Plotly versions below 8, including Plotly 7, are supported. Continuous
+distribution plots use SciPy Gaussian kernel density estimates rendered with
+Plotly scatter traces, without relying on the removed ``create_distplot`` API.
 
 Jupyter
 -------

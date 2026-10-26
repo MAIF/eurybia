@@ -11,6 +11,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import plotly
+from scipy.stats import gaussian_kde
 from sklearn.model_selection import train_test_split
 
 from eurybia.core.smartdrift import SmartDrift
@@ -143,6 +144,57 @@ class TestSmartPlotter(unittest.TestCase):
             df, "int_data", "data_train_test", dict_color_palette=dict_color_palette
         )
         assert isinstance(fig, plotly.graph_objs._figure.Figure)
+        assert len(fig.data) == 2
+        colors = list(self.smartdrift.plot.style_dict["univariate_cont_bar"].values())
+        for trace, label, color in zip(fig.data, ["train", "test"], colors):
+            values = df.loc[df["data_train_test"] == label, "int_data"].to_numpy()
+            expected_x = min(values) + np.arange(500) * (max(values) - min(values)) / 500
+            np.testing.assert_allclose(trace.x, expected_x, rtol=0, atol=1e-12)
+            np.testing.assert_allclose(trace.y, gaussian_kde(values)(expected_x), rtol=1e-12)
+            assert trace.type == "scatter"
+            assert trace.mode == "lines"
+            assert trace.name == trace.legendgroup == label
+            assert trace.marker.color == color
+            assert trace.showlegend is True
+            assert trace.hovertemplate == "%{y:.2f}"
+        assert fig.layout.xaxis.title.text == "int_data"
+        assert fig.layout.xaxis.showgrid is False
+        assert fig.layout.yaxis.showgrid is False
+
+    def test_continuous_density_missing_values_and_custom_layout(self):
+        """Keep zero imputation, group order and explicit layout options."""
+        df = pd.DataFrame({"value": [np.nan, 2.0, 4.0, 1.0, 3.0, 5.0], "dataset": ["A"] * 3 + ["B"] * 3})
+        fig = self.smartdrift.plot.generate_fig_univariate_continuous(
+            df,
+            "value",
+            "dataset",
+            dict_color_palette={},
+            title={"text": "Density"},
+            xaxis_title={"text": "Value"},
+            yaxis_title={"text": "Density"},
+            height=400,
+            width=600,
+            hovermode="x",
+        )
+        for trace, values in zip(fig.data, [[0.0, 2.0, 4.0], [1.0, 3.0, 5.0]]):
+            np.testing.assert_allclose(trace.y, gaussian_kde(values)(trace.x), rtol=1e-12)
+        assert [trace.name for trace in fig.data] == ["A", "B"]
+        assert fig.layout.title.text == "Density"
+        assert fig.layout.xaxis.title.text == "Value"
+        assert fig.layout.yaxis.title.text == "Density"
+        assert fig.layout.height == 400
+        assert fig.layout.width == 600
+        assert fig.layout.hovermode == "x"
+
+    def test_continuous_density_rejects_insufficient_or_constant_groups(self):
+        """Propagate KDE errors rather than drawing a misleading density."""
+        for values, error in [([1.0], ValueError), ([1.0, 1.0, 1.0], np.linalg.LinAlgError)]:
+            with self.subTest(values=values):
+                df = pd.DataFrame({"value": values, "dataset": "A"})
+                with self.assertRaises(error):
+                    self.smartdrift.plot.generate_fig_univariate_continuous(
+                        df, "value", "dataset", dict_color_palette={}
+                    )
 
     def test_generate_fig_univariate_categorical(self):
         """

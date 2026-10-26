@@ -15,9 +15,9 @@ import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
-import plotly.figure_factory as ff
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
+from scipy.stats import gaussian_kde
 
 from eurybia.report.common import VarType, compute_col_types
 from eurybia.style.style_utils import colors_loading, define_style, select_palette
@@ -145,7 +145,12 @@ class SmartPlotter:
         width: str | None = None,
         hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """Returns a plotly figure containing the distribution of a continuous feature.
+        """Returns Gaussian kernel density curves for a continuous feature.
+
+        Each curve is evaluated at 500 points over its dataset's range using
+        SciPy's default bandwidth. Missing values are replaced with zero.
+        Groups with insufficient or constant data cannot be estimated by KDE
+        and propagate SciPy's error.
 
         Parameters
         ----------
@@ -184,14 +189,22 @@ class SmartPlotter:
         if group_labels[0] == "Current dataset":
             group_labels = ["Baseline dataset", "Current dataset"]
 
-        fig = ff.create_distplot(
-            datasets,
-            group_labels=group_labels,
-            colors=list(colors),
-            show_hist=False,
-            show_curve=True,
-            show_rug=False,
-        )
+        fig = go.Figure()
+        for index, dataset in enumerate(datasets):
+            # Match the sampling grid of the former create_distplot KDE curves.
+            start, end = min(dataset), max(dataset)
+            curve_x = [start + point * (end - start) / 500 for point in range(500)]
+            curve_y = gaussian_kde(dataset)(curve_x)
+            fig.add_trace(
+                go.Scatter(
+                    x=curve_x,
+                    y=curve_y,
+                    mode="lines",
+                    name=group_labels[index],
+                    legendgroup=group_labels[index],
+                    marker=dict(color=colors[index % len(colors)]),
+                )
+            )
         if template is None:
             template = self.style_dict["template"]
         if title is None:
