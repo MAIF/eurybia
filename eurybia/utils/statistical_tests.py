@@ -1,4 +1,4 @@
-"""Statistical test functions"""
+"""Statistical test functions."""
 
 import numpy as np
 import pandas as pd
@@ -6,8 +6,8 @@ import scipy.spatial
 from scipy import stats
 
 
-def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
-    """Returns a dict containing testname, statistic, pvalue of the ks test
+def ksmirnov_test(obs_a: np.ndarray, obs_b: np.ndarray) -> dict:
+    """Returns a dict containing testname, statistic, pvalue of the ks test.
 
     Parameters
     ----------
@@ -27,8 +27,8 @@ def ksmirnov_test(obs_a: np.array, obs_b: np.array) -> dict:
     return output
 
 
-def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
-    """Returns a dict containing testname, statistic, pvalue of the chisquare test
+def chisq_test(obs_a: np.ndarray, obs_b: np.ndarray) -> dict:
+    """Returns a dict containing testname, statistic, pvalue of the chisquare test.
 
     Parameters
     ----------
@@ -58,15 +58,17 @@ def chisq_test(obs_a: np.array, obs_b: np.array) -> dict:
     return output
 
 
-def prob_mass_fun(data: pd.Series, n: int, bins_range: tuple[float, float]) -> tuple[np.ndarray, np.ndarray]:
+def prob_mass_fun(
+    data: np.ndarray | pd.Series | pd.DataFrame, n: int | np.ndarray, bins_range: tuple[float, float]
+) -> tuple[np.ndarray, np.ndarray]:
     """Computing the probability mass function using NumPy’s histogram.
 
     Parameters
     ----------
     data: pandas.Series
         Series to split
-    n: int
-        The number of equal-width bins in the given range.
+    n: int or np.ndarray
+        The number of equal-width bins or an array of bin edges.
     range: tuple
         The lower and upper range of the bins.
 
@@ -81,7 +83,9 @@ def prob_mass_fun(data: pd.Series, n: int, bins_range: tuple[float, float]) -> t
     return e, p
 
 
-def compute_js_divergence(df_1: pd.DataFrame, df_2: pd.DataFrame, n_bins: int = 30) -> float:
+def compute_js_divergence(
+    df_1: np.ndarray | pd.Series | pd.DataFrame, df_2: np.ndarray | pd.Series | pd.DataFrame, n_bins: int = 30
+) -> float:
     """Compute the Jensen-Shannon divergence metric between two samples.
 
     Parameters

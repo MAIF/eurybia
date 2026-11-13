@@ -1,4 +1,6 @@
-"""dataset_analysis module"""
+"""dataset_analysis module."""
+
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -8,10 +10,10 @@ from eurybia.utils.utils import is_text_like
 
 
 class DatasetAnalysis:
-    """
-    DatasetAnalysis provides tools for comparing and analyzing differences between two pandas DataFrames,
-    typically representing a baseline and a test dataset. It supports detection of schema and data
-    inconsistencies, such as column mismatches, data type differences, missing values, and float precision issues.
+    """Compare baseline and test DataFrames for schema and data differences.
+
+    The analysis detects column mismatches, data type differences, missing values,
+    and float precision issues.
 
     Key Features:
     - Identifies intersecting, new, and removed columns between datasets.
@@ -19,21 +21,35 @@ class DatasetAnalysis:
     - Analyzes categorical value differences between datasets.
     - Provides utilities for filling missing values and aligning schemas.
 
-    Attributes:
-        ignored_cols (list[str]): List of columns ignored in analysis.
-        valid_columns (list[str]): Columns present in both datasets with matching data types.
-        intersecting_columns (list[str]): Columns present in both datasets.
-        new_columns (list[str]): Columns present only in the test dataset.
-        removed_columns (list[str]): Columns present only in the baseline dataset.
-        dtype_mismatches (dict): Columns with differing data types between datasets.
-        object_cols (list[str]): Text-like or categorical columns with matching types.
-        float_cols (list[str]): Float columns with matching types.
-        datetime_cols (list[str]): Datetime columns with matching types.
-        categorical_value_differences (dict): Differences in categorical values between datasets.
-        float_precision_differences (dict): Differences in float precision between datasets.
+    Attributes
+    ----------
+    ignored_cols : list[str]
+        Columns ignored in analysis.
+    valid_columns : list[str]
+        Columns present in both datasets with matching data types.
+    intersecting_columns : list[str]
+        Columns present in both datasets.
+    new_columns : list[str]
+        Columns present only in the test dataset.
+    removed_columns : list[str]
+        Columns present only in the baseline dataset.
+    dtype_mismatches : dict
+        Columns with differing data types between datasets.
+    object_cols : list[str]
+        Text-like or categorical columns with matching types.
+    float_cols : list[str]
+        Float columns with matching types.
+    datetime_cols : list[str]
+        Datetime columns with matching types.
+    categorical_value_differences : dict
+        Differences in categorical values between datasets.
+    float_precision_differences : dict
+        Differences in float precision between datasets.
 
-    Methods:
-        clean_datasets(): Applies configured data cleaning and transformation fixes to the datasets.
+    Methods
+    -------
+    clean_datasets()
+        Apply configured data cleaning and transformation fixes to the datasets.
     """
 
     def __init__(
@@ -43,10 +59,10 @@ class DatasetAnalysis:
         ignored_cols: list[str] | None = None,
         sample_size: int | None = None,
         random_state: int = 42,
-    ):
-        """
-        Initializes the dataset analysis object with test and baseline DataFrames,
-        applies optional sampling and ignores specified columns.
+    ) -> None:
+        """Initialize the analysis with test and baseline DataFrames.
+
+        Apply optional sampling and ignore specified columns.
 
         Args:
             df_test (pd.DataFrame): The test dataset to analyze.
@@ -67,25 +83,28 @@ class DatasetAnalysis:
 
     @property
     def ignored_cols(self) -> list[str]:
-        """Getter"""
+        """Getter."""
         return self._ignored_cols
 
     @property
     def valid_columns(self) -> list[str]:
         """Returns the list of intersecting column names that have the same data type across datasets.
 
-        Returns:
-            list[str]: A list of valid column names with consistent data types.
+        Returns
+        -------
+        list[str]
+            Valid column names with consistent data types.
         """
-
         return [c for c in self.intersecting_columns if self._has_same_dtype(c)]
 
     @property
     def intersecting_columns(self) -> list[str]:
         """Returns a list of column names that are present in both df_test and df_baseline.
 
-        Returns:
-            list[str]: List of column names common to both df_test and df_baseline.
+        Returns
+        -------
+        list[str]
+            Column names common to both df_test and df_baseline.
         """
         return [c for c in self._df_test.columns if c in self._df_baseline.columns]
 
@@ -93,8 +112,10 @@ class DatasetAnalysis:
     def new_columns(self) -> list[str]:
         """Identifies columns that have been added by comparing df_test and df_baseline.
 
-        Returns:
-            list[str]: A list of column names that exist in df_test but not in df_baseline.
+        Returns
+        -------
+        list[str]
+            Column names that exist in df_test but not in df_baseline.
         """
         return [c for c in self._df_test.columns if c not in self._df_baseline.columns]
 
@@ -102,8 +123,10 @@ class DatasetAnalysis:
     def removed_columns(self) -> list[str]:
         """Identifies columns that have been removed by comparing df_baseline and df_test.
 
-        Returns:
-            list[str]: A list of column names that exist in df_baseline but not in df_test.
+        Returns
+        -------
+        list[str]
+            Column names that exist in df_baseline but not in df_test.
         """
         return [c for c in self._df_baseline.columns if c not in self._df_test.columns]
 
@@ -112,10 +135,12 @@ class DatasetAnalysis:
 
         Args:
             colname (str): The name of the column to compare.
-        Returns:
-            bool: True if the column has the same data type in both DataFrames, False otherwise.
-        """
 
+        Returns
+        -------
+        bool
+            True if the column has the same data type in both DataFrames, False otherwise.
+        """
         baseline_series = self._df_baseline[colname]
         test_series = self._df_test[colname]
         if is_text_like(baseline_series) and is_text_like(test_series):
@@ -126,10 +151,11 @@ class DatasetAnalysis:
     def dtype_mismatches(self) -> dict[str, tuple[str, str]]:
         """Identifies columns with mismatched data types between the baseline and test DataFrames.
 
-        Returns:
-            dict[str, tuple[str, str]]:
-                A dictionary where each key is a column name with a data type mismatch,
-                and the value is a tuple containing the data types from the test and baseline DataFrames, respectively.
+        Returns
+        -------
+        dict[str, tuple[str, str]]
+            A dictionary where each key is a column name with a data type mismatch,
+            and the value is a tuple containing the data types from the test and baseline DataFrames, respectively.
         """
         dtype_mismatches: dict[str, tuple[str, str]] = dict()
         for colname in self.intersecting_columns:
@@ -142,51 +168,54 @@ class DatasetAnalysis:
 
     @property
     def object_cols(self) -> list[str]:
-        """Returns a list of column names from the intersecting and not dtype mismatching columns
-        whose data type is string.
+        """Return common string columns with matching data types.
 
-        Returns:
-            list[str]: List of text-like column names with no dtype mismatches.
+        Returns
+        -------
+        list[str]
+            Text-like column names with no dtype mismatches.
         """
         return [colname for colname in self.valid_columns if is_text_like(self._df_baseline[colname])]
 
     @property
     def float_cols(self) -> list[str]:
-        """Returns a list of column names from the intersecting and not dtype mismatching columns
-        whose data type is float.
+        """Return common float columns with matching data types.
 
-        Returns:
-            list[str]: List of column names with 'float' dtype and no dtype mismatches.
+        Returns
+        -------
+        list[str]
+            Column names with 'float' dtype and no dtype mismatches.
         """
-
         return [colname for colname in self.valid_columns if is_float_dtype(self._df_baseline[colname])]
 
     @property
     def datetime_cols(self) -> list[str]:
-        """Returns a list of column names from the intersecting and not dtype mismatching columns
-        whose data type is datetime.
+        """Return common datetime columns with matching data types.
 
-        Returns:
-            list[str]: List of column names with datetime dtype and no dtype mismatches.
+        Returns
+        -------
+        list[str]
+            Column names with datetime dtype and no dtype mismatches.
         """
         return [colname for colname in self.valid_columns if is_datetime64_any_dtype(self._df_baseline[colname])]
 
     @property
-    def categorical_value_differences(self):
-        """Identifies and returns the differences in categorical (object) column values
-        between the baseline and test datasets.
+    def categorical_value_differences(self) -> dict[str, dict[str, list[Any]]]:
+        """Identify categorical value differences between the baseline and test datasets.
 
         For each object column, the method compares the unique values (modalities)
         present in the baseline and test datasets.
         It records any new values found in the test dataset that are not in the baseline,
         as well as any missing values that are present in the baseline but absent in the test dataset.
 
-        Returns:
-            dict: A dictionary where each key is an object column name, and the value is another dictionary with:
-                - "New values": List of values present in the test dataset but not in the baseline.
-                - "Missing values": List of values present in the baseline but not in the test dataset.
+        Returns
+        -------
+        dict
+            A dictionary where each key is an object column name, and the value is another dictionary with:
+            - "New values": List of values present in the test dataset but not in the baseline.
+            - "Missing values": List of values present in the baseline but not in the test dataset.
         """
-        different_modalities: dict[str, dict[str, list[str]]] = dict()
+        different_modalities: dict[str, dict[str, list[Any]]] = dict()
         for colname in self.object_cols:
             baseline_modalities = pd.Series(self._df_baseline[colname]).dropna().unique()
             test_modalities = pd.Series(self._df_test[colname]).dropna().unique()
@@ -202,20 +231,21 @@ class DatasetAnalysis:
         return different_modalities
 
     @property
-    def float_precision_differences(self):
-        """Analyzes the precision (number of digits after the decimal point) of float columns
-        in the baseline and test datasets.
+    def float_precision_differences(self) -> dict[str, tuple[int, int]]:
+        """Analyze float precision differences between the baseline and test datasets.
 
         For each float column, calculates the maximum number of decimal digits present
         in both the baseline and test datasets. If the maximum precision differs between the two datasets
         for any column, records the column name and the respective precisions.
 
-        Returns:
-            dict: A dictionary where keys are column names with differing float precisions, and values are tuples
-                  of (test dataset max precision, baseline dataset max precision) as integers.
+        Returns
+        -------
+        dict
+            Column names with differing float precisions mapped to tuples of
+            (test dataset max precision, baseline dataset max precision) as integers.
         """
 
-        def nb_digits(i: float):
+        def nb_digits(i: float) -> int:
             split_i = str(i).split(".")
             return len(split_i[1]) if len(split_i) > 1 else 0
 
@@ -239,11 +269,12 @@ class DatasetAnalysis:
             2. Splitting datetime columns into separate year, month, and day columns.
             3. Filling missing values in string columns.
             4. Filling missing values in numeric columns.
-        Returns:
-            tuple[pd.DataFrame, pd.DataFrame]:
-                A tuple containing the cleaned test and baseline DataFrames.
-        """
 
+        Returns
+        -------
+        tuple[pd.DataFrame, pd.DataFrame]
+            The cleaned test and baseline DataFrames.
+        """
         df_test = self._df_test.copy()
         df_baseline = self._df_baseline.copy()
 

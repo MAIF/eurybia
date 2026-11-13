@@ -100,6 +100,17 @@ fix. Add or update tests for behavior changes and update related documentation.
 
 ### Run tests and build checks
 
+Run the same quality checks as CI:
+
+```bash
+make lint
+make format
+make typecheck
+```
+
+These commands use Ruff and mypy from the development environment. The
+pre-commit hooks use the same tools.
+
 Run the test suite:
 
 ```bash
@@ -133,9 +144,11 @@ python -m build
 
 If you use uv, `uv build` is an alternative.
 
-CI runs the test suite on Python 3.11 through 3.14 and checks compatibility with
-multiple pandas versions. See [the CI workflow](.github/workflows/main.yml) for
-the current matrices.
+CI runs the test suite on Python 3.11 through 3.14. A separate Python 3.11 job
+uses `uv pip install --resolution lowest-direct '.[test]'` to test the oldest
+compatible direct dependencies, with current transitive dependencies. CI also
+audits GitHub Actions workflows with zizmor. See
+[the CI workflow](.github/workflows/main.yml) for details.
 
 ### Build the documentation
 
@@ -230,9 +243,9 @@ To release:
 1. Create a version tag such as `v1.4.1` on the commit to release.
    Package versions are derived from Git tags using `setuptools-scm`.
 2. Publish a GitHub release using that tag.
-3. The workflow runs the complete Python and pandas CI matrices on the release
-   commit, builds the distributions, and checks that the wheel version matches
-   the release tag before publishing to PyPI via OIDC.
+3. The workflow runs the Python tests, lowest-dependency tests, and workflow
+   audit on the release commit, builds the distributions, and checks that the
+   wheel version matches the release tag before publishing to PyPI via OIDC.
 4. A final smoke test installs the exact published version from PyPI and checks
    its import and version. A failure here occurs after publication; it does not
    roll back the release.

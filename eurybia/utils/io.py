@@ -1,11 +1,11 @@
-"""IO module"""
+"""IO module."""
 
 import pickle
 from typing import Any
 
 
 def load_yml(path: str) -> dict:
-    """Loads a yml file
+    """Loads a yml file.
 
     Parameters
     ----------
@@ -39,8 +39,8 @@ except (ImportError, ModuleNotFoundError):
     _is_yaml_available = False
 
 
-def save_pickle(obj, path: str, protocol: int = pickle.HIGHEST_PROTOCOL) -> None:
-    """Save any python Object in pickle file
+def save_pickle(obj: Any, path: str, protocol: int = pickle.HIGHEST_PROTOCOL) -> None:
+    """Save any python Object in pickle file.
 
     Parameters
     ----------
@@ -70,7 +70,9 @@ def save_pickle(obj, path: str, protocol: int = pickle.HIGHEST_PROTOCOL) -> None
 
 
 def load_pickle(path: str) -> Any:
-    """Load any pickle file
+    """Load any pickle file.
+
+    Only load trusted files: pickle deserialization can execute arbitrary code.
 
     Parameters
     ----------
@@ -90,6 +92,6 @@ def load_pickle(path: str) -> Any:
         )
 
     with open(path, "rb") as file:
-        pklobj = pickle.load(file)
+        pklobj = pickle.load(file)  # noqa: S301
 
     return pklobj
