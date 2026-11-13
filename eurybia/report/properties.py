@@ -221,28 +221,6 @@ select {
 
 """
 
-report_jscallback: str = """
-console.log("callback called");
-var active_tab = active.active;
-var top = document.getElementsByTagName('div')[1];
-var elements = top.shadowRoot.children;
-var current_tab = 0;
-for (var i=0 ; i<elements.length ; i++) {
-    var tagName = elements[i].tagName;
-    if (tagName === 'DIV') {
-        var className = elements[i].className;
-        if (className !== "bk-header" && current_tab !== active_tab) {
-            elements[i].style.removeProperty('visibility');
-            elements[i].style['display'] = 'none';
-        } else {
-            elements[i].style.removeProperty("display");
-        }
-        current_tab = current_tab + 1;
-    }
-}
-window.scrollTo(0, 0);
-"""
-
 select_callback: str = """
 console.log("Tab = " + tab);
 console.log("Key = " + key);

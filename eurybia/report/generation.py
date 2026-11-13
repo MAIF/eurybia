@@ -17,9 +17,13 @@ from shapash.explainer.smart_explainer import SmartExplainer
 if TYPE_CHECKING:
     from eurybia import SmartDrift
 from eurybia.report.project_report import DriftReport
-from eurybia.report.properties import report_css, report_jscallback, report_text, select_callback
+from eurybia.report.properties import report_css, report_text, select_callback
 
 pn.extension("plotly")
+
+# Panel keeps inactive tabs mounted with ``visibility: hidden``; collapse them so the
+# page height matches the active tab. Panel itself handles which tab is shown.
+HIDE_INACTIVE_TABS_CSS = ':host > div[style*="visibility: hidden"] { display: none; }'
 
 
 def _apply_html_head_metadata(output_file: str) -> None:
@@ -148,7 +152,7 @@ def _get_project_information_panel(dr: DriftReport) -> pn.Column | None:
     if dr.metadata is None:
         return None
     blocks = dict_to_text_blocks(dr.metadata)
-    return pn.Column(*blocks, name="Project information", styles=dict(display="none"))
+    return pn.Column(*blocks, name="Project information")
 
 
 def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) -> pn.Column:
@@ -201,7 +205,7 @@ def _get_consistency_analysis_panel(dr: DriftReport, modalities_analysis: bool) 
                 )
             ]
 
-    return pn.Column(*blocks, name="Consistency Analysis", styles=dict(display="none"), css_classes=["information"])
+    return pn.Column(*blocks, name="Consistency Analysis", css_classes=["information"])
 
 
 def _get_select_plots(labels: list, key: str, tab: str, figures: list) -> list[Viewable]:
@@ -349,7 +353,7 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
             pn.pane.Plotly(fig),
         ]
 
-    return pn.Column(*blocks, name="Data drift", styles=dict(display="none"), css_classes=["data-drift"])
+    return pn.Column(*blocks, name="Data drift", css_classes=["data-drift"])
 
 
 def _get_model_drift_panel(dr: DriftReport) -> pn.Column:
@@ -383,7 +387,7 @@ def _get_model_drift_panel(dr: DriftReport) -> pn.Column:
             list_blocks = _get_select_plots(labels=labels, key="modeldrift-plot", tab=".model-drift", figures=figures)
             blocks += list_blocks
 
-    return pn.Column(*blocks, name="Model drift", styles=dict(display="none"), css_classes=["model-drift"])
+    return pn.Column(*blocks, name="Model drift", css_classes=["model-drift"])
 
 
 def execute_report(
@@ -432,7 +436,6 @@ def execute_report(
         tab_list.append(_get_model_drift_panel(dr))
 
     pn.config.raw_css.append(report_css)
-    report = pn.Tabs(*tab_list, css_classes=["main-report"])
-    report.jscallback(args={"active": report}, active=report_jscallback)
+    report = pn.Tabs(*tab_list, css_classes=["main-report"], stylesheets=[HIDE_INACTIVE_TABS_CSS])
     report.save(output_file, embed=True, title=dr.title_story)
     _apply_html_head_metadata(output_file)
