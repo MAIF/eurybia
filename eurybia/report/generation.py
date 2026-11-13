@@ -107,8 +107,7 @@ def _get_index_panel(
 
 
 def dict_to_text_blocks(text_dict: dict, level: int = 1) -> pn.Column:
-    """This function recursively explores the dict and returns a Panel Column containing
-    other groups and text blocks fed with the dict
+    """Recursively turn a dictionary into a Panel column of groups and text blocks.
 
     Parameters
     ----------
@@ -353,7 +352,7 @@ def _get_data_drift_panel(dr: DriftReport) -> pn.Column:
 
 
 def _get_model_drift_panel(dr: DriftReport) -> pn.Column:
-    """This function generates and returns a Panel Column page containing the Eurybia model drift analysis
+    """Generate a Panel column containing the Eurybia model drift analysis.
 
     Parameters
     ----------
@@ -394,7 +393,7 @@ def execute_report(
     config_report: dict | None = None,
     modalities_analysis: bool = False,
 ) -> None:
-    """Creates the report
+    """Creates the report.
 
     Parameters
     ----------

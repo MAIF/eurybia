@@ -1,4 +1,4 @@
-"""Common functions used in report"""
+"""Common functions used in report."""
 
 import builtins
 import os
@@ -6,6 +6,7 @@ from collections.abc import Callable
 from enum import Enum
 from importlib import import_module
 from numbers import Number
+from typing import Any
 
 import pandas as pd
 
@@ -21,7 +22,7 @@ class VarType(Enum):
     TYPE_UNSUPPORTED = "Unsupported"
 
     def __str__(self) -> str:
-        """Str"""
+        """Str."""
         return str(self.value)
 
 
@@ -51,8 +52,8 @@ def display_value(value: float, thousands_separator: str = ",", decimal_separato
     return value_str.replace("/thousands/", thousands_separator).replace("/decimal/", decimal_separator)
 
 
-def replace_dict_values(obj: dict, replace_fn: Callable, *args) -> dict:
-    """Recursively iterates over all values of obj and changes its values using the replace_fn
+def replace_dict_values(obj: dict, replace_fn: Callable, *args: Any) -> dict:
+    """Recursively iterates over all values of obj and changes its values using the replace_fn.
 
     Parameters
     ----------
@@ -101,8 +102,7 @@ def series_dtype(s: pd.Series) -> VarType:
 
 
 def numeric_is_continuous(s: pd.Series) -> bool:
-    """Function that returns True if a
-    numeric pandas series is continuous and False if it is categorical.
+    """Return whether a numeric pandas series is continuous rather than categorical.
 
     Parameters
     ----------
@@ -118,9 +118,10 @@ def numeric_is_continuous(s: pd.Series) -> bool:
     return True if n_unique > 15 else False
 
 
-def get_callable(path: str):  # FIXME: never used
-    """This function is similar to the _locate function in Hydra library
-    Locate an object by name or dotted path, importing as necessary.
+def get_callable(path: str) -> Callable[..., Any]:  # FIXME: never used
+    """Locate a callable by name or dotted path, importing as necessary.
+
+    Similar to the _locate function in the Hydra library.
     """
     if path == "":
         raise ImportError("Empty path")
@@ -179,7 +180,9 @@ def compute_col_types(df_all: pd.DataFrame | None) -> dict:
 
 
 def load_saved_df(path: str) -> pd.DataFrame | None:  # FIXME: never used
-    """Loads a pandas DataFrame that was saved using pd.to_csv method.
+    """Load a pandas DataFrame saved as a pickle.
+
+    Only load trusted files: pickle deserialization can execute arbitrary code.
 
     Parameters
     ----------
@@ -192,7 +195,7 @@ def load_saved_df(path: str) -> pd.DataFrame | None:  # FIXME: never used
 
     """
     if os.path.exists(path):
-        return pd.read_pickle(path)
+        return pd.read_pickle(path)  # noqa: S301
 
     else:
         return None

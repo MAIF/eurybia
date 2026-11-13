@@ -1,4 +1,4 @@
-"""SmartDrift module"""
+"""SmartDrift module."""
 
 import copy
 import io
@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import catboost
 import numpy as np
@@ -26,10 +26,11 @@ from eurybia.utils.utils import base_100, cat_features_indices, is_text_like, tr
 
 
 class SmartDrift:
-    """The SmartDrift class is the main object to compute drift in the Eurybia library
-    It allows to calculate data drift between 2 datasets using a data drift classification model
+    """Compute drift with the main Eurybia object.
 
-    Attributes:
+    It allows to calculate data drift between 2 datasets using a data drift classification model.
+
+    Attributes
     ----------
     df_current: pandas.DataFrame
         current (or production) dataset which is compared to df_baseline
@@ -92,8 +93,10 @@ class SmartDrift:
     """
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: str) -> Self:
         """The load() class method allows Eurybia users to use a pickled SmartDrift.
+
+        Only load trusted files: pickle deserialization can execute arbitrary code.
 
         Parameters
         ----------
@@ -119,7 +122,7 @@ class SmartDrift:
             for attr, val in dict_to_load.items():
                 if isinstance(val, io.BytesIO):
                     val.seek(0)
-                    setattr(sd, attr, pickle.load(val))
+                    setattr(sd, attr, pickle.load(val))  # noqa: S301
                 elif attr == "_xpl":
                     explainer_dict = val.pop("explainer")
                     xpl = SmartExplainer(model=val["model"])
@@ -146,8 +149,10 @@ class SmartDrift:
         encoding: Any = None,
         palette_name: str = "eurybia",
         colors_dict: dict | None = None,
-    ):
-        """Parameters
+    ) -> None:
+        """Initialize a SmartDrift object.
+
+        Parameters
         ----------
         df_current: pandas.DataFrame
             current (or production) dataset which is compared to df_baseline
@@ -214,8 +219,9 @@ class SmartDrift:
         date_compile_auc: date | None = None,
         hyperparameter: dict | None = None,
         attr_importance: str = "feature_importances_",
-    ):
+    ) -> None:
         r"""The compile method is the first step to compute data drift.
+
         It allows to calculate data drift between 2 datasets using a data drift classification model.
         Most of the parameters are optional but helps to adapt the data drift calculation if necessary.
         This step can last a few moments with large datasets.
@@ -363,8 +369,9 @@ class SmartDrift:
         title_story: str = "Drift Report",
         title_description: str = "",
         working_dir: str | None = None,
-    ):
-        """This method will generate an HTML report containing different information about the project.
+    ) -> None:
+        """Generate an HTML report containing information about the project.
+
         It allows the information compiled to be rendered.
         It can be associated with a project info yml file on which can figure different information about the project.
 
@@ -413,7 +420,7 @@ class SmartDrift:
                 shutil.rmtree(working_dir)
 
     def _predict(self, deployed_model: Any, encoding: Any = None) -> pd.DataFrame:
-        """Create an attributes df_predict with the computed score on both datasets
+        """Create an attributes df_predict with the computed score on both datasets.
 
         Parameters
         ----------
@@ -478,7 +485,7 @@ class SmartDrift:
     def _compute_feature_importance(
         self, deployed_model: Any, attr_importance: str = "feature_importances_"
     ) -> pd.DataFrame:
-        """Create an attributes feature_importance with the computed score on both datasets
+        """Create an attributes feature_importance with the computed score on both datasets.
 
         Parameters
         ----------
@@ -527,8 +534,8 @@ class SmartDrift:
         feature_importance["deployed_model"] = base_100(feature_importance["deployed_model"])
         return feature_importance
 
-    def _sampling(self, sampling: bool, sample_size: int, dataset: pd.DataFrame):
-        """Return a sampling from the original dataframe
+    def _sampling(self, sampling: bool, sample_size: int, dataset: pd.DataFrame) -> pd.DataFrame:
+        """Return a sampling from the original dataframe.
 
         Parameters
         ----------
@@ -553,9 +560,10 @@ class SmartDrift:
         else:
             return dataset
 
-    def _histo_datadrift_metric(self, datadrift_file: str, date_compile_auc: date | None = None):
-        """Compute drift metrics (AUC, and Jensen-Shannon prediction divergence if the deployed_model
-        is filled in) and append it into a dataframe that will be exported during the generate_report method
+    def _histo_datadrift_metric(self, datadrift_file: str, date_compile_auc: date | None = None) -> pd.DataFrame:
+        """Compute drift metrics and append them to a dataframe for the report.
+
+        The metrics include AUC and, when a deployed model is provided, Jensen-Shannon prediction divergence.
 
         Parameters
         ----------
@@ -614,11 +622,10 @@ class SmartDrift:
         reference_columns: list[str] | None = None,
         year_col: str = "annee",
         month_col: str = "mois",
-    ):
-        """When method drift is specified, It will display in the report
-        the several plots from a dataframe to analyse drift model from the deployed model.
-        Each plot will represent one possible computed metric according
-        to its groups. (grouped by date(year-month), reference_columns).
+    ) -> None:
+        """Store model-drift metrics for display in the report.
+
+        Each plot represents a computed metric grouped by date and reference columns.
 
         Parameters
         ----------
@@ -658,8 +665,8 @@ class SmartDrift:
                 + str(error)
             ) from error
 
-    def _compute_datadrift_stat_test(self, max_size: int = 50000, categ_max: int = 20):
-        """Calculates all statistical tests to analyze the drift of each feature
+    def _compute_datadrift_stat_test(self, max_size: int = 50000, categ_max: int = 20) -> pd.DataFrame:
+        """Calculates all statistical tests to analyze the drift of each feature.
 
         Parameters
         ----------
@@ -699,9 +706,8 @@ class SmartDrift:
 
         return pd.DataFrame.from_dict(test_results, orient="index")
 
-    def define_style(self, palette_name: str | None = None, colors_dict: dict | None = None):
-        """The define_style function is a function that uses a palette or a dict
-        to define the different styles used in the different outputs of Eurybia
+    def define_style(self, palette_name: str | None = None, colors_dict: dict | None = None) -> None:
+        """Define output styles using a palette or a dictionary.
 
         Parameters
         ----------
@@ -722,11 +728,11 @@ class SmartDrift:
 
         self.xpl.define_style(colors_dict=self.colors_dict)
 
-    def save(self, path: str):
-        """Save method allows user to save SmartDrift object on disk
-        using a pickle file.
+    def save(self, path: str) -> None:
+        """Save the SmartDrift object to disk using a pickle file.
+
         Save method can be useful: you don't have to recompile to display
-        results later
+        results later.
 
         Parameters
         ----------
@@ -769,204 +775,204 @@ class SmartDrift:
 
     @property
     def df_current(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         return self._df_current
 
     @df_current.setter
     def df_current(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("df_current must be a pandas DataFrame")
         self._df_current = val
 
     @property
     def df_baseline(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         return self._df_baseline
 
     @df_baseline.setter
     def df_baseline(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("df_baseline must be a pandas DataFrame")
         self._df_baseline = val
 
     @property
     def xpl(self) -> SmartExplainer:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_xpl"):
             raise RuntimeError("SmartExplainer has not been initialized yet.")
         return self._xpl
 
     @xpl.setter
     def xpl(self, val: SmartExplainer) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, SmartExplainer):
             raise ValueError("xpl must be a SmartExplainer instance.")
         self._xpl = val
 
     @property
     def df_predict(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_df_predict"):
             raise RuntimeError("df_predict has not been initialized yet.")
         return self._df_predict
 
     @df_predict.setter
     def df_predict(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("df_predict must be a pandas DataFrame.")
         self._df_predict = val
 
     @property
     def feature_importance(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_feature_importance"):
             raise RuntimeError("feature_importance has not been initialized yet.")
         return self._feature_importance
 
     @feature_importance.setter
     def feature_importance(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("feature_importance must be a pandas DataFrame.")
         self._feature_importance = val
 
     @property
     def auc(self) -> float:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_auc"):
             raise RuntimeError("auc has not been initialized yet.")
         return self._auc
 
     @auc.setter
     def auc(self, val: float) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, (float, int)):
             raise ValueError("auc must be of type float or int.")
         self._auc = float(val)
 
     @property
     def js_divergence(self) -> float:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_js_divergence"):
             raise RuntimeError("js_divergence has not been initialized yet.")
         return self._js_divergence
 
     @js_divergence.setter
     def js_divergence(self, val: float) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, (float, int)):
             raise ValueError("js_divergence must be of type float or int.")
         self._js_divergence = float(val)
 
     @property
     def historical_auc(self) -> pd.DataFrame | None:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_historical_auc"):
             return None
         return self._historical_auc
 
     @historical_auc.setter
     def historical_auc(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("historical_auc must be a pandas DataFrame.")
         self._historical_auc = val
 
     @property
     def data_modeldrift(self) -> pd.DataFrame | None:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_data_modeldrift"):
             return None
         return self._data_modeldrift
 
     @data_modeldrift.setter
     def data_modeldrift(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("data_modeldrift must be a pandas DataFrame.")
         self._data_modeldrift = val
 
     @property
     def current_dataset_name(self) -> str:
-        """Returns the display name of df_current"""
+        """Returns the display name of df_current."""
         return self._dataset_names[0]
 
     @property
     def baseline_dataset_name(self) -> str:
-        """Returns the display name of df_baseline"""
+        """Returns the display name of df_baseline."""
         return self._dataset_names[1]
 
     @property
     def encoding(self) -> Any:
-        """Getter"""
+        """Getter."""
         return self._encoding
 
     @encoding.setter
     def encoding(self, val: Any) -> None:
-        """Setter"""
+        """Setter."""
         self._encoding = val
 
     @property
     def deployed_model(self) -> Any:
-        """Getter"""
+        """Getter."""
         return self._deployed_model
 
     @deployed_model.setter
     def deployed_model(self, val: Any) -> None:
-        """Setter"""
+        """Setter."""
         self._deployed_model = val
 
     @property
     def datadrift_stat_test(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_datadrift_stat_test"):
             raise RuntimeError("datadrift_stat_test has not been initialized yet.")
         return self._datadrift_stat_test
 
     @datadrift_stat_test.setter
     def datadrift_stat_test(self, val: pd.DataFrame) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, pd.DataFrame):
             raise ValueError("datadrift_stat_test must be a pandas DataFrame.")
         self._datadrift_stat_test = val
 
     @property
     def df_concat(self) -> pd.DataFrame:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_df_concat"):
             raise RuntimeError("df_concat has not been initialized yet.")
         return self._df_concat
 
     @df_concat.setter
     def df_concat(self, val: pd.DataFrame | None) -> None:
-        """Setter"""
+        """Setter."""
         if val is not None and not isinstance(val, pd.DataFrame):
             raise ValueError("df_concat must be a pandas DataFrame or None.")
         self._df_concat = val
 
     @property
     def datadrift_target(self) -> str:
-        """Getter"""
+        """Getter."""
         return self._datadrift_target
 
     @property
     def plot(self) -> SmartPlotter:
-        """Getter"""
+        """Getter."""
         return self._plot
 
     @property
     def da(self) -> DatasetAnalysis:
-        """Getter"""
+        """Getter."""
         if not hasattr(self, "_da"):
             raise RuntimeError("da has not been initialized yet.")
         return self._da
 
     @da.setter
     def da(self, val: DatasetAnalysis) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, DatasetAnalysis):
             raise ValueError(f"da must be a of type {DatasetAnalysis.__name__}.")
         self._da = val

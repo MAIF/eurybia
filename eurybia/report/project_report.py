@@ -1,4 +1,4 @@
-"""Module used in the base_report notebook to generate report"""
+"""Module used in the base_report notebook to generate report."""
 
 from __future__ import annotations
 
@@ -19,7 +19,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 class DriftReport:
-    """The DriftReport class allows to generate compare two datasets.
+    """Generate a report comparing two datasets.
+
     One used to train the model the other build for production purposes.
     It analyzes the data and the model used in order to provide interesting
     insights that can be shared with non technical person.
@@ -49,8 +50,10 @@ class DriftReport:
         explainer: SmartExplainer,
         project_info_file: str | None = None,
         config_report: dict | None = None,
-    ):
-        """Parameters
+    ) -> None:
+        """Initialize a drift report.
+
+        Parameters
         ----------
         smartdrift: object
             SmartDrift object
@@ -91,9 +94,7 @@ class DriftReport:
     def _create_data_drift(
         self, df_current: pd.DataFrame | None, df_baseline: pd.DataFrame | None
     ) -> pd.DataFrame | None:
-        """Creates a DataFrame that contains dataset used for
-        training part and dataset used for production with the column 'data_drift_split'
-        allowing to distinguish the values.
+        """Combine training and production data with a column distinguishing the datasets.
 
         Parameters
         ----------
@@ -130,8 +131,11 @@ class DriftReport:
             ]
         ).reset_index(drop=True)
 
-    def display_dataset_analysis(self, global_analysis: bool = True, univariate_analysis: bool = True):
-        """This method performs and displays an exploration of the data given.
+    def display_dataset_analysis(
+        self, global_analysis: bool = True, univariate_analysis: bool = True
+    ) -> dict[str, pd.DataFrame | tuple[list, list, list]]:
+        """Perform and display an exploration of the data.
+
         It allows to compare train and test values for each part of the analysis.
         The parameters of the method allow to filter which part to display or not.
 
@@ -148,7 +152,7 @@ class DriftReport:
             Whether or not to display the multivariate analysis part
 
         """
-        res = {}
+        res: dict[str, pd.DataFrame | tuple[list, list, list]] = {}
         if global_analysis:
             res["global"] = self._display_dataset_analysis_global()
 
@@ -170,7 +174,7 @@ class DriftReport:
 
         return res
 
-    def _display_dataset_analysis_global(self):
+    def _display_dataset_analysis_global(self) -> pd.DataFrame:
         df_stats_global = self._stats_to_table(
             test_stats=perform_global_dataframe_analysis(self.smartdrift.df_current),
             train_stats=perform_global_dataframe_analysis(self.smartdrift.df_baseline),
@@ -236,7 +240,7 @@ class DriftReport:
             return pd.DataFrame({names[0]: pd.Series(test_stats)})
 
     def display_model_contribution(self) -> tuple[list, list]:
-        """Displays explainability of the model as computed in SmartPlotter object"""
+        """Displays explainability of the model as computed in SmartPlotter object."""
         multiclass = (
             True if (self.explainer.explainer._classes and len(self.explainer.explainer._classes) > 2) else False
         )
@@ -251,7 +255,7 @@ class DriftReport:
         return plot_list, labels
 
     def display_data_modeldrift(self) -> tuple[list, list]:
-        """Display modeldrift computed metrics when method 'drift' is used"""
+        """Display modeldrift computed metrics when method 'drift' is used."""
         plot_list = []
         labels = []
         if self.smartdrift.data_modeldrift is not None:

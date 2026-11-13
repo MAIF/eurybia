@@ -1,7 +1,8 @@
-"""Utils is a group of function for the library"""
+"""Utils is a group of function for the library."""
 
 from math import floor, log10
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from pandas.api.types import is_string_dtype
@@ -34,13 +35,16 @@ def convert_string_to_int_keys(input_dict: dict) -> dict:
     Args:
         input_dict (dict): A dictionary with string keys that represent integers.
 
-    Returns:
-        dict: A new dictionary with integer keys and the same values as the input.
+    Returns
+    -------
+    dict
+        A new dictionary with integer keys and the same values as the input.
 
-    Raises:
-        ValueError: If any key cannot be converted to an integer.
+    Raises
+    ------
+    ValueError
+        If any key cannot be converted to an integer.
     """
-
     return {int(k): v for k, v in input_dict.items()}
 
 
@@ -50,8 +54,10 @@ def base_100(series: pd.Series) -> pd.Series:
     Args:
         series (pd.Series): The input pandas Series to be normalized.
 
-    Returns:
-        pd.Series: A Series with values divided by the total sum, representing proportions.
+    Returns
+    -------
+    pd.Series
+        A Series with values divided by the total sum, representing proportions.
 
     Example:
         >>> import pandas as pd
@@ -62,7 +68,6 @@ def base_100(series: pd.Series) -> pd.Series:
         2    0.500000
         dtype: float64
     """
-
     tot = series.sum()
     return series / tot
 
@@ -84,10 +89,11 @@ def truncate_str(text: str, maxlen: int = 40) -> str:
         text (str): The input string to truncate.
         maxlen (int, optional): The maximum allowed length of the output string. Defaults to 40.
 
-    Returns:
-        str: The truncated string, possibly with an appended ellipsis.
+    Returns
+    -------
+    str
+        The truncated string, possibly with an appended ellipsis.
     """
-
     if isinstance(text, str) and len(text) > maxlen:
         tot_length = 0
         input_words = text.split()
@@ -110,10 +116,13 @@ def round_to_k(x: float, k: int) -> float | int:
         x (float): The number to round.
         k (int): The number of significant digits to round to.
 
-    Returns:
-        float | int: The rounded number. Returns an integer if the result is a whole number, otherwise returns a float.
+    Returns
+    -------
+    float | int
+        The rounded number, returned as an integer if it is whole and otherwise as a float.
 
-    Examples:
+    Examples
+    --------
         >>> round_to_k(1234.5678, 2)
         1200
         >>> round_to_k(0.012345, 3)
@@ -121,10 +130,10 @@ def round_to_k(x: float, k: int) -> float | int:
         >>> round_to_k(0, 4)
         0
 
-    Notes:
+    Notes
+    -----
         If the rounded value is a whole number, it is returned as an integer to avoid misleading '.0' decimal.
     """
-
     if x == 0:
         return 0
     new_x = round(x, k - int(floor(log10(abs(x)))) - 1)
@@ -143,10 +152,11 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
     Args:
         df (pd.DataFrame): The input DataFrame to analyze.
 
-    Returns:
-        list[int]: A list of indices corresponding to categorical columns in the DataFrame.
+    Returns
+    -------
+    list[int]
+        Indices corresponding to categorical columns in the DataFrame.
     """
-
     indice_cat = []
     for i, col in enumerate(df.columns):
         if is_text_like(df[col]):
@@ -155,10 +165,9 @@ def cat_features_indices(df: pd.DataFrame) -> list[int]:
 
 
 def train_test_split_concat(
-    df_baseline: pd.DataFrame, df_test: pd.DataFrame, target_col: str, **kwargs
+    df_baseline: pd.DataFrame, df_test: pd.DataFrame, target_col: str, **kwargs: Any
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Splits two DataFrames (baseline and test) into train and test sets, assigns a target_col label to each,
-    and concatenates the corresponding splits.
+    """Split, label, and concatenate baseline and test DataFrames.
 
     The function performs a train-test split on both `df_baseline` and `df_test` using the provided
     keyword arguments (passed to `sklearn.model_selection.train_test_split`). It then assigns a
@@ -171,9 +180,11 @@ def train_test_split_concat(
         target_col (str): The name of the label column.
         **kwargs: Additional keyword arguments passed to `train_test_split`.
 
-    Returns:
-        tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the concatenated train and test DataFrames,
-        each with a 'target_col' column indicating the source (0 for baseline, 1 for test).
+    Returns
+    -------
+    tuple[pd.DataFrame, pd.DataFrame]
+        The concatenated train and test DataFrames, each with a 'target_col' column
+        indicating the source (0 for baseline, 1 for test).
     """
     baseline_train, baseline_test = train_test_split(df_baseline, **kwargs)
     baseline_train[target_col] = 0

@@ -1,4 +1,4 @@
-"""functions for loading and manipulating colors"""
+"""functions for loading and manipulating colors."""
 
 import json
 import os
@@ -6,8 +6,7 @@ from typing import Any
 
 
 def colors_loading() -> dict:
-    """colors_loading allows Eurybia to load a json file which contains different
-    palettes of colors that can be used in the plot
+    """Load the available color palettes from a JSON file.
 
     Returns
     -------
@@ -23,8 +22,7 @@ def colors_loading() -> dict:
 
 
 def select_palette(colors_dic: dict[str, dict], palette_name: str) -> dict:
-    """colors_loading allows Eurybia to load a json file which contains different
-    palettes of colors that can be used in the plot
+    """Select a color palette by name.
 
     Parameters
     ----------
@@ -45,9 +43,7 @@ def select_palette(colors_dic: dict[str, dict], palette_name: str) -> dict:
 
 
 def define_style(palette: dict[str, Any]) -> dict[str, Any]:
-    """The define_style function is a function that uses a palette
-    to define the different styles used in the different outputs
-    of Eurybia
+    """Define the styles used in Eurybia outputs from a palette.
 
     Parameters
     ----------
