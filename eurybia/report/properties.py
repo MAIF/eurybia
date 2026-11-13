@@ -1,4 +1,4 @@
-"""Module used to group static assets needed for the report generation"""
+"""Module used to group static assets needed for the report generation."""
 
 from typing import Any
 

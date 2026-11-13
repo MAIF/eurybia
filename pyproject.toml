@@ -25,18 +25,18 @@ classifiers = [
 ]
 dependencies = [
     "pandas>=2.2.2,!=3.0.4,<4",
-    "catboost>=1.0.1",
+    "catboost>=1.2.8",
     "panel>=1.4.1",
-    "jinja2>=2.11.0",
+    "jinja2>=3.1",
     "scipy>=1.4.0",
     "shapash>=2.10",
-    "plotly<8",
+    "plotly>=5.24.1,<8",
 ]
 
 [project.optional-dependencies] # Optional
 all = ["eurybia[dev, test]"]
-dev = ["pre-commit", "mypy", "ruff"]
-test = ["pytest", "pytest-cov"]
+dev = ["pre-commit", "mypy==2.4.1", "ruff==0.17.5"]
+test = ["pytest>=8", "pytest-cov>=6"]
 
 [tool.setuptools]
 package-dir = {"" = "."}
@@ -59,12 +59,15 @@ fail_under = 85
 [tool.mypy]
 exclude = ["tests", "tutorial"]
 ignore_missing_imports = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
 
 [tool.ruff]
 line-length = 120
 exclude = [
+    "tests",
     "docs",
-    "tutorial",
 ]
 
 [tool.ruff.lint]
@@ -82,12 +85,15 @@ select = [
     "I",    # isort
     "D",    # pydocstyle
     "NPY",  # NumPy-specific rules
+    "ANN",  # flake8-annotations
 ]
-ignore = ["D2", "D4"]
+ignore = ["E501", "D100", "D104", "D105", "D107", "D401", "S311", "ANN401"]
 exclude = ["tests/*"]
 
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.ruff.lint.per-file-ignores]
-"eurybia/core/smartdrift.py" = ["S301"]
-"eurybia/data/data_loader.py" = ["S310"]
-"eurybia/report/common.py" = ["S301"]
-"eurybia/utils/io.py" = ["S301"]
+"eurybia/__init__.py" = ["F401"]
+"!eurybia/**" = ["ANN"]
+"tutorial/**/*.ipynb" = ["D1", "E402", "S101"]

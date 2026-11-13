@@ -1,8 +1,8 @@
-"""Smart plotter module"""
+"""Smart plotter module."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from eurybia import SmartDrift
@@ -24,12 +24,12 @@ from eurybia.style.style_utils import colors_loading, define_style, select_palet
 
 
 class SmartPlotter:
-    """The smartplotter class includes all the methods used to display graphics
+    """The smartplotter class includes all the methods used to display graphics.
 
     Each SmartPlotter method is easy to use from a Smart Drift object,
     just use the following syntax
 
-    Attributes:
+    Attributes
     ----------
     smartdrift: object
         SmartDrift object
@@ -44,7 +44,7 @@ class SmartPlotter:
 
     """
 
-    def __init__(self, smartdrift: SmartDrift):
+    def __init__(self, smartdrift: SmartDrift) -> None:
         """Initialize a SmartPlotter.
 
         Args:
@@ -57,24 +57,24 @@ class SmartPlotter:
 
     @property
     def style_dict(self) -> dict:
-        """Getter"""
+        """Getter."""
         return self._style_dict
 
     @style_dict.setter
     def style_dict(self, val: dict) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, dict):
             raise ValueError("style_dict must be a dictionary.")
         self._style_dict = val
 
     @property
     def smartdrift(self) -> SmartDrift:
-        """Getter"""
+        """Getter."""
         return self._smartdrift
 
     @smartdrift.setter
     def smartdrift(self, val: SmartDrift) -> None:
-        """Setter"""
+        """Setter."""
         if not isinstance(val, SmartDrift):
             raise ValueError("style_dict must be of type SmartDrift.")
         self._smartdrift = val
@@ -86,8 +86,7 @@ class SmartPlotter:
         df_all: pd.DataFrame | None = None,
         dict_color_palette: dict | None = None,
     ) -> go.Figure:
-        """Returns a plotly figure containing the distribution of any kind of feature
-        (continuous, categorical).
+        """Return a Plotly figure showing a continuous or categorical feature's distribution.
 
         If the feature is categorical and contains too many categories, the smallest
         categories are grouped into a new 'Other' category so that the graph remains
@@ -386,9 +385,7 @@ class SmartPlotter:
         return fig
 
     def _merge_small_categories(self, df_cat: pd.DataFrame, col: str, hue: str, nb_cat_max: int) -> pd.DataFrame:
-        """Merges categories of column 'col' of df_cat into 'Other' category so that
-        the number of categories is less than nb_cat_max.
-        """
+        """Merge small categories into 'Other' to limit their number to nb_cat_max."""
         df_cat_sum_hue = df_cat.groupby([col]).agg({"count": "sum"}).reset_index()
         list_cat_to_merge = df_cat_sum_hue.sort_values("count", ascending=False)[col].to_list()[nb_cat_max - 1 :]
         df_cat_other = (
@@ -400,9 +397,7 @@ class SmartPlotter:
     def scatter_feature_importance(
         self, feature_importance: pd.DataFrame | None = None, datadrift_stat_test: pd.DataFrame | None = None
     ) -> plotly.graph_objs._figure.Figure:
-        """Displays scatter of feature importance between drift
-        model and production one extracted from a datasets created
-        during the compile step.
+        """Display a scatter plot comparing drift and production feature importance.
 
         Parameters
         ----------
@@ -499,8 +494,9 @@ class SmartPlotter:
         width: str | None = None,
         hovermode: str | None = None,
     ) -> plotly.graph_objs._figure.Figure:
-        """Displays line plot of the evolution of the datadrift metrics :
-        AUC of the datadrift classifier and, if deployed_model is set, the Jensen-Shannon divergence between predictions
+        """Display the evolution of data-drift metrics.
+
+        Show the classifier AUC and, if a deployed model is set, the Jensen-Shannon divergence between predictions.
 
         Parameters
         ----------
@@ -705,8 +701,8 @@ class SmartPlotter:
 
         return fig
 
-    def define_style_attributes(self, colors_dict):
-        """define_style_attributes allows Eurybia user to change the color of plot
+    def define_style_attributes(self, colors_dict: dict[str, Any]) -> None:
+        """define_style_attributes allows Eurybia user to change the color of plot.
 
         Parameters
         ----------
@@ -737,8 +733,11 @@ class SmartPlotter:
             height (float, optional): Height of the plot. Defaults to 300.
             width (float, optional): Width of the plot. Defaults to 500.
             title (str, optional): Title of the plot. Defaults to "Metric".
-        Returns:
-            str: The generated SVG image.
+
+        Returns
+        -------
+        str
+            The generated SVG image.
         """
         if max_gauge <= min_gauge:
             raise ValueError("max_gauge must be greater than min_gauge")

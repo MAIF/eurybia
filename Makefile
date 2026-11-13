@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build docs help lint format typecheck
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -48,6 +48,15 @@ clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
+
+lint: ## check style with ruff
+	ruff check
+
+format: ## check formatting with ruff
+	ruff format --check
+
+typecheck: ## check type annotations with mypy
+	mypy eurybia
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source eurybia -m pytest
